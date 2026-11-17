@@ -173,3 +173,113 @@ body{perspective:none!important}
   .mobile-nav .active{color:#477c73!important}
   .feed-layout,.workspace{background:transparent!important}
 }
+
+
+/* NOX UI polish — unified sage, teal and soft neutral palette */
+:root{
+  --navy:#405f5a;--purple:#648b83;--violet:#83aaa0;--pink:#d58b9a;
+  --ink:#304743;--muted:#788c86;--line:#dfe9e4;--paper:#ffffff;
+  --canvas:#f1f5f2;--gold:#c5a66a;
+}
+body{background:#edf2ef!important;color:#304743!important}
+.app-frame{background:#f7faf8!important;box-shadow:0 0 45px rgba(48,75,67,.08)!important}
+.workspace{background:#f3f7f4!important}
+.card,.stories-panel,.composer,.post,.friends-panel{
+  border-color:#e0e9e4!important;
+  box-shadow:0 4px 18px rgba(48,75,67,.055)!important
+}
+.topbar{border-bottom-color:#e0e9e4!important}
+.search-box,.composer-prompt,.friends-search{
+  background:#f5f8f6!important;border-color:#dce7e1!important;color:#607871!important
+}
+button{transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.composer-actions button,.post-actions button,.friends-panel header button,
+.more-button,.icon-button,.mobile-add-friend,.add-friend-trigger,
+.publish-button,.logout-button,.friend-modal button{
+  font-family:'Cairo',system-ui,sans-serif
+}
+.composer-actions button{
+  background:#edf4f0!important;color:#526f67!important;
+  border:1px solid #e0ebe5!important;border-radius:12px!important
+}
+.composer-actions button:hover,.post-actions button:hover{
+  background:#e4efea!important
+}
+.composer-actions .publish-button,.publish-button,.add-friend-trigger{
+  background:#648b83!important;color:#fff!important;
+  border:1px solid #648b83!important;box-shadow:0 3px 9px rgba(76,119,108,.16)!important
+}
+.composer-actions .publish-button:hover,.publish-button:hover,.add-friend-trigger:hover{
+  background:#527970!important
+}
+.logout-button{
+  background:#edf4f0!important;color:#56756c!important;
+  border:1px solid #dce8e1!important;box-shadow:none!important
+}
+.post-actions button{color:#627b73!important}
+.post-actions button.liked{color:#c66f83!important}
+.friends-panel header button,.more-button{color:#648b83!important}
+.icon-button{color:#648b83!important}
+.notification-button i{background:#c77e8d!important}
+.add-friend-trigger{border-radius:12px!important}
+.friend-modal-card{border-color:#dce8e2!important}
+.friend-modal-card button:not(.friend-close){
+  border-radius:12px
+}
+@media(max-width:760px){
+  body{background:#edf2ef!important}
+  .app-frame{background:#f3f7f4!important;padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}
+  .mobile-header{
+    min-height:66px!important;height:66px!important;
+    background:#547a72!important;color:#fff!important;
+    box-shadow:0 2px 12px rgba(48,75,67,.12)!important;
+    padding-inline:13px!important
+  }
+  .brand-mobile b,.brand-mobile small{color:#fff!important}
+  .brand-mobile .brand-symbol{
+    background:#eaf1ed!important;color:#52766d!important;
+    border-radius:12px!important
+  }
+  .mobile-actions{gap:7px!important}
+  .mobile-actions .icon-button{
+    width:36px;height:36px;border-radius:11px!important;
+    display:grid;place-items:center;background:rgba(255,255,255,.13)!important;
+    border:1px solid rgba(255,255,255,.18)!important;color:#fff!important;
+    font-size:21px!important
+  }
+  .mobile-add-friend{
+    min-height:36px!important;padding:0 11px!important;
+    border-radius:11px!important;background:#edf4f0!important;
+    color:#4d7168!important;border:1px solid #dce9e2!important;
+    font-size:11px!important;font-weight:800!important
+  }
+  .feed-layout{background:transparent!important}
+  .mobile-nav{
+    display:flex!important;position:fixed!important;
+    right:0!important;left:0!important;bottom:0!important;top:auto!important;
+    width:100%!important;height:calc(66px + env(safe-area-inset-bottom))!important;
+    padding:6px 5px calc(6px + env(safe-area-inset-bottom))!important;
+    margin:0!important;transform:none!important;will-change:auto!important;
+    background:rgba(251,253,252,.98)!important;
+    border-top:1px solid #dce7e1!important;
+    box-shadow:0 -4px 16px rgba(48,75,67,.09)!important;
+    z-index:100!important;justify-content:space-around!important;
+    align-items:center!important;gap:2px!important
+  }
+  .mobile-nav a,.mobile-nav button{
+    flex:1!important;min-width:0!important;height:100%!important;
+    display:flex!important;flex-direction:column!important;
+    align-items:center!important;justify-content:center!important;
+    gap:2px!important;padding:3px 1px!important;margin:0!important;
+    border:0!important;border-radius:10px!important;
+    background:transparent!important;color:#81938c!important;
+    font-size:10px!important;font-weight:700!important;
+    line-height:1.25!important
+  }
+  .mobile-nav a span,.mobile-nav button span{font-size:19px!important;line-height:1.1!important}
+  .mobile-nav .active{
+    color:#4f8175!important;background:#edf4f0!important
+  }
+  .mobile-nav .nav-count{font-size:8px!important}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom))!important}
+}
