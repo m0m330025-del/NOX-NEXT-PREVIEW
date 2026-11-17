@@ -27,6 +27,101 @@ export function createModerationStore() {
     return result.rows[0] ?? null;
   }
 
+  async function findUserByNoxId(noxId) {
+    const result = await db.listRows({
+      databaseId: DATABASE_ID,
+      tableId: "users",
+      queries: [Query.equal("noxId", noxId), Query.limit(1)]
+    });
+    return result.rows[0] ?? null;
+  }
+
+  async function createFriendRequest(senderId, noxId) {
+    const recipient = await findUserByNoxId(noxId);
+    if (!recipient) return { error: "user_not_found" };
+    const recipientId = recipient.authUserId;
+    if (recipientId === senderId) return { error: "cannot_request_self" };
+    if (await isBlocked(senderId, recipientId)) return { error: "interaction_unavailable" };
+
+    const [existingFriendship, outgoing, incoming] = await Promise.all([
+      db.listRows({ databaseId: DATABASE_ID, tableId: "friendships", queries: [
+        Query.or([Query.and([Query.equal("userAId", senderId), Query.equal("userBId", recipientId)]),
+          Query.and([Query.equal("userAId", recipientId), Query.equal("userBId", senderId)])]), Query.limit(1)
+      ]}),
+      db.listRows({ databaseId: DATABASE_ID, tableId: "friend_requests", queries: [
+        Query.equal("senderId", senderId), Query.equal("recipientId", recipientId),
+        Query.equal("status", "pending"), Query.limit(1)
+      ]}),
+      db.listRows({ databaseId: DATABASE_ID, tableId: "friend_requests", queries: [
+        Query.equal("senderId", recipientId), Query.equal("recipientId", senderId),
+        Query.equal("status", "pending"), Query.limit(1)
+      ]})
+    ]);
+    if (existingFriendship.rows.length) return { error: "already_friends" };
+    if (outgoing.rows.length) return { error: "request_already_pending", requestId: outgoing.rows[0].$id };
+    if (incoming.rows.length) return { error: "incoming_request_pending", requestId: incoming.rows[0].$id };
+
+    const now = new Date().toISOString();
+    const row = await db.createRow({
+      databaseId: DATABASE_ID, tableId: "friend_requests", rowId: ID.unique(),
+      data: { senderId, recipientId, status: "pending", createdAt: now, updatedAt: now },
+      permissions: []
+    });
+    return { requestId: row.$id, status: row.status };
+  }
+
+  async function listFriendRequests(userId, direction) {
+    const field = direction === "incoming" ? "recipientId" : "senderId";
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "friend_requests",
+      queries: [Query.equal(field, userId), Query.equal("status", "pending"), Query.orderDesc("createdAt"), Query.limit(100)]
+    });
+    return result.rows.map(row => ({
+      requestId: row.$id,
+      userId: direction === "incoming" ? row.senderId : row.recipientId,
+      direction,
+      createdAt: row.createdAt
+    }));
+  }
+
+  async function respondToFriendRequest(userId, requestId, decision) {
+    const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
+    if (row.recipientId !== userId || row.status !== "pending") return { error: "request_unavailable" };
+    if (await isBlocked(row.senderId, row.recipientId)) return { error: "interaction_unavailable" };
+    const now = new Date().toISOString();
+    if (decision === "decline") {
+      await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
+        data: { status: "declined", updatedAt: now } });
+      return { status: "declined" };
+    }
+    const [userAId, userBId] = [row.senderId, row.recipientId].sort();
+    try {
+      await db.createRow({ databaseId: DATABASE_ID, tableId: "friendships", rowId: ID.unique(),
+        data: { userAId, userBId, createdAt: now }, permissions: [] });
+    } catch (error) {
+      if (error?.code !== 409 && error?.type !== "document_already_exists") throw error;
+    }
+    await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
+      data: { status: "accepted", updatedAt: now } });
+    return { status: "accepted" };
+  }
+
+  async function cancelFriendRequest(userId, requestId) {
+    const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
+    if (row.senderId !== userId || row.status !== "pending") return { error: "request_unavailable" };
+    await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
+      data: { status: "cancelled", updatedAt: new Date().toISOString() } });
+    return { status: "cancelled" };
+  }
+
+  async function listFriendships(userId) {
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "friendships",
+      queries: [Query.or([Query.equal("userAId", userId), Query.equal("userBId", userId)]), Query.limit(100)]
+    });
+    return result.rows.map(row => ({ userId: row.userAId === userId ? row.userBId : row.userAId, createdAt: row.createdAt }));
+  }
+
   async function createBlock(blockerId, blockedId) {
     if (!(await findUser(blockedId))) {
       return { created: false, error: "target_not_found" };
@@ -156,5 +251,5 @@ export function createModerationStore() {
     }));
   }
 
-  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports };
+  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships };
 }
