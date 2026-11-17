@@ -95,3 +95,17 @@ export async function isBlockedEitherWay(userAId, userBId, findBlock) {
   ]);
   return Boolean(aBlockedB || bBlockedA);
 }
+
+
+export function validateNoxId(value) {
+  if (typeof value !== "string") return { ok: false, error: "invalid_nox_id" };
+  const noxId = value.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{4,32}$/.test(noxId)) return { ok: false, error: "invalid_nox_id" };
+  return { ok: true, value: noxId };
+}
+
+export function validateRequestId(value) {
+  return isValidId(value)
+    ? { ok: true, value }
+    : { ok: false, error: "invalid_request_id" };
+}
