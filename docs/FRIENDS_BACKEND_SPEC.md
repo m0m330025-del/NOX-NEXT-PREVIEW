@@ -6,7 +6,7 @@ The selected backend for NOX NEXT is **Appwrite**. This document replaces the ea
 
 - Frontend hosting: Cloudflare Pages (the current preview may still be hosted on GitHub Pages).
 - Authentication: Appwrite Auth.
-- Database: Appwrite database `NOX_CORE`, database ID `nox_core`.
+- Database: Appwrite TablesDB database `NOX_CORE`, database ID `6afc583f00382386b997`.
 - Media storage: Cloudflare R2, integrated through trusted server-side code when implemented.
 - Realtime: Appwrite Realtime with authenticated access, after collection permissions are configured and tested.
 - Server-side operations: Appwrite Functions. The browser must not receive an Appwrite API key.
@@ -16,8 +16,8 @@ The Appwrite endpoint and project ID in `core/appwrite-config.js` are public cli
 ## Current verified status
 
 - The repository contains an Appwrite bootstrap script and a manually triggered GitHub Actions workflow.
-- The bootstrap script defines the initial database and four collections: `users`, `friend_requests`, `friendships`, and `notifications`.
-- The script now waits for each attribute and index to reach Appwrite's `available` state before continuing.
+- The bootstrap script targets the existing database and defines four private TablesDB tables: `users`, `friend_requests`, `friendships`, and `notifications`.
+- The TablesDB bootstrap verifies the existing database, creates four private tables with columns and indexes, and verifies the resulting tables.
 - The workflow has **not** been confirmed as successfully executed.
 - No live database, authenticated friend API, realtime flow, or cross-device friend feature should be described as operational until it has been deployed and tested.
 - The existing browser-only friend interface uses local storage and is a demonstration only.
@@ -70,7 +70,7 @@ Additional collections, including temporary QR tokens, blocks, and reports, must
 
 ## Permissions and trust boundaries
 
-- Keep the collections private by default. The bootstrap script currently creates collections with empty collection permissions and document-level security enabled.
+- Keep the collections private by default. The bootstrap script currently creates collections with empty table permissions and row-level security enabled.
 - Do not grant broad client write permissions to friend requests, friendships, or notifications.
 - Implement friend operations in authenticated Appwrite Functions. Each function must derive the acting user from a server-validated Appwrite identity/session, never from a client-supplied `senderId` or `userId`.
 - Grant only the minimum required read/write permissions after the function design is implemented. Test access using two separate accounts, including attempts to read or modify another user's records.
@@ -107,7 +107,7 @@ Collect only profile data needed by the product. Keep date of birth private and 
 - [ ] Confirm the Appwrite project ID and endpoint in the Appwrite Console.
 - [ ] Store the Appwrite API key as a protected GitHub Actions Secret; never paste it into chat or commit it.
 - [ ] Run the manual bootstrap workflow and confirm a successful run.
-- [ ] Verify the database, four collections, attributes, and indexes in Appwrite Console.
+- [ ] Verify the database, four tables, columns, and indexes in Appwrite Console.
 - [ ] Implement authenticated Appwrite Functions for friend operations.
 - [ ] Configure minimum required permissions and test unauthorized access.
 - [ ] Test two separate accounts on two devices: lookup, request, accept, decline, cancel, notification, logout, and reconnect.
