@@ -135,11 +135,16 @@ const definitions = [
       { key: "type", type: "varchar", size: 16, required: true },
       { key: "title", type: "varchar", size: 120, required: false },
       { key: "createdById", type: "varchar", size: 36, required: true },
+      { key: "participantAId", type: "varchar", size: 36, required: true },
+      { key: "participantBId", type: "varchar", size: 36, required: true },
       { key: "createdAt", type: "datetime", required: true },
       { key: "updatedAt", type: "datetime", required: true },
       { key: "lastMessageAt", type: "datetime", required: false }
     ],
     indexes: [
+      { key: "participant_pair_unique", type: "unique", columns: ["participantAId", "participantBId"] },
+      { key: "participant_a_lookup", type: "key", columns: ["participantAId", "updatedAt"] },
+      { key: "participant_b_lookup", type: "key", columns: ["participantBId", "updatedAt"] },
       { key: "created_by_updated", type: "key", columns: ["createdById", "updatedAt"] },
       { key: "last_message_lookup", type: "key", columns: ["lastMessageAt"] }
     ]
