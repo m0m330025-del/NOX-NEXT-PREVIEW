@@ -160,6 +160,13 @@ for (const table of definitions) {
         created = true;
         break;
       } catch (error) {
+        // listIndexes may not expose the key in a consistent field across
+        // Appwrite versions. A 409 confirms the index is already present.
+        if (error?.type === "column_index_already_exists" || error?.code === 409) {
+          console.log("Index already exists:", table.id + "." + index.key);
+          created = true;
+          break;
+        }
         const transient = error?.type === "column_not_available";
         if (!transient || attempt === 5) throw error;
         const delayMs = 1000 * (attempt + 1);
