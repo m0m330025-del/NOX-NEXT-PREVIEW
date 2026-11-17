@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e8f0ed"><title>إنشاء حساب | NOX NEXT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./signup.css">
+</head>
+<body>
+<main class="signup-shell">
+<section class="brand-panel">
+  <div class="brand-mark">N</div>
+  <p class="eyebrow">NOX SOCIAL UNIVERSE</p>
+  <h1>ابدأ حكايتك في NOX</h1>
+  <p class="brand-copy">أنشئ حسابك، تعرّف على أصدقاء جدد، وشارك لحظاتك في مساحة تجمعك بمن تحب.</p>
+  <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+  <div class="floating-card card-a">✦　مساحتك الخاصة</div><div class="floating-card card-b">♡　أصدقاء ولحظات جديدة</div>
+</section>
+<section class="form-panel">
+<a class="back-link" href="./login.html">→ العودة لتسجيل الدخول</a>
+<div class="form-heading"><span class="mini-mark">N</span><span>انضم إلى عالمنا</span></div>
+<h2>إنشاء حساب جديد</h2><p class="subheading">املأ البيانات التالية للبدء في تجربة NOX NEXT</p>
+<form id="signup-form">
+<label for="full-name">الاسم</label>
+<div class="field"><span>♙</span><input id="full-name" type="text" placeholder="اكتب اسمك" autocomplete="name" required minlength="2"></div>
+<label for="username">اسم المستخدم</label>
+<div class="field"><span>@</span><input id="username" type="text" placeholder="اختر اسمًا مميزًا" autocomplete="username" required minlength="3"></div>
+<label for="email">البريد الإلكتروني</label>
+<div class="field"><span>✉</span><input id="email" type="email" placeholder="name@example.com" autocomplete="email" required></div>
+<label for="password">كلمة المرور</label>
+<div class="field"><span>◇</span><input id="password" type="password" placeholder="8 أحرف على الأقل" autocomplete="new-password" required minlength="8"><button type="button" class="show-password" data-target="password">إظهار</button></div>
+<label for="confirm-password">تأكيد كلمة المرور</label>
+<div class="field"><span>◇</span><input id="confirm-password" type="password" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password" required minlength="8"><button type="button" class="show-password" data-target="confirm-password">إظهار</button></div>
+<label class="terms"><input id="terms" type="checkbox" required> أوافق على شروط الاستخدام وسياسة الخصوصية</label>
+<button class="submit-button" type="submit">إنشاء حساب تجريبي <span>←</span></button>
+</form>
+<p class="login-line">لديك حساب بالفعل؟ <a href="./login.html">تسجيل الدخول</a></p>
+<p class="demo-note" id="notice" role="status">هذه واجهة تجريبية فقط؛ لن تُرسل بياناتك أو يُنشأ حساب فعلي قبل ربط نظام الحسابات.</p>
+<div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
+</section>
+</main>
+<script>
+document.querySelectorAll('.show-password').forEach(button=>button.addEventListener('click',()=>{
+ const field=document.getElementById(button.dataset.target),show=field.type==='password';
+ field.type=show?'text':'password';button.textContent=show?'إخفاء':'إظهار';
+}));
+document.getElementById('signup-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const password=document.getElementById('password').value;
+ const confirm=document.getElementById('confirm-password').value;
+ const notice=document.getElementById('notice');
+ if(password!==confirm){notice.textContent='كلمتا المرور غير متطابقتين؛ راجع البيانات وحاول مرة أخرى.';return;}
+ notice.textContent='تم التحقق من النموذج شكليًا فقط. إنشاء الحساب وحفظ البيانات سيتاحان بعد ربط قاعدة البيانات.';
+});
+</script>
+</body></html>
