@@ -1,5 +1,5 @@
 import { Client, Account } from "node-appwrite";
-import { isModerator, validateBlockTarget, validateReportInput, validateNoxId, validateRequestId } from "./policy.js";
+import { isModerator, validateBlockTarget, validateReportInput, validateNoxId, validateRequestId, validateMessageId } from "./policy.js";
 import { createModerationStore } from "./store.js";
 
 const json = (res, status, body) => res.json(body, status);
@@ -189,13 +189,17 @@ export default async ({ req, res, log }) => {
     if (typeof body.body !== "string" || !body.body.trim() || body.body.length > 4000) {
       return json(res, 400, { error: "invalid_message" });
     }
+    const idempotency = validateMessageId(body.idempotencyKey);
+    if (!idempotency.ok) return json(res, 400, { error: idempotency.error });
     try {
-      const result = await createModerationStore().sendMessage(caller.$id, checked.value, body.body);
+      const result = await createModerationStore().sendMessage(caller.$id, checked.value, body.body, idempotency.value);
       if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
       if (result.error === "friendship_required") return json(res, 403, { error: result.error });
       if (result.error === "message_rate_limited") return json(res, 429, { error: result.error });
+      if (result.error === "idempotency_key_conflict") return json(res, 409, { error: result.error });
+      if (result.error === "invalid_idempotency_key") return json(res, 400, { error: result.error });
       if (result.error) return json(res, 404, { error: result.error });
-      return json(res, 201, result);
+      return json(res, result.replayed ? 200 : 201, result);
     } catch {
       log("Private message creation failed.");
       return json(res, 503, { error: "service_unavailable" });
