@@ -22,10 +22,17 @@ AI-assisted technical review against Appwrite SDK usage patterns, backend securi
 | Medium | The schema bootstrap creates only the initial four collections; QR token, block, and report data models are not yet implemented. | Documented as future reviewed work before enabling those features. |
 | Medium | Duplicate pending friend requests cannot be safely prevented by the current non-unique lookup indexes alone. | Server-side concurrency-safe validation is required and documented. |
 
+| Medium | The previous SQL migration remained executable despite the Appwrite architecture decision. | Replaced its contents with a retirement notice so it cannot accidentally create an unrelated PostgreSQL backend. |
+| Medium | Workflow installed an unpinned SDK version and did not fail early when its required secret was absent. | Pin SDK to 31.3.0, add a missing-secret preflight, and serialize bootstrap runs. |
+| Low | Notification read-state was optional in the bootstrap schema but required in the specification. | Set `isRead` as a required boolean attribute. |
+
 ### Files changed
 
 - `scripts/setup-appwrite.mjs` — wait for schema attributes and indexes to become available.
 - `docs/FRIENDS_BACKEND_SPEC.md` — replace PostgreSQL-only guidance with Appwrite architecture, data model, permissions, function contract, and release checks.
+- `.github/workflows/setup-appwrite.yml` — pin the Node SDK, check for the required secret, and prevent overlapping bootstrap runs.
+- `db/migrations/001_friends_schema.sql` — retire the obsolete PostgreSQL migration to prevent accidental execution.
+- `scripts/setup-appwrite.mjs` — make notification `isRead` required, matching the specification.
 
 ### Not yet verified
 
