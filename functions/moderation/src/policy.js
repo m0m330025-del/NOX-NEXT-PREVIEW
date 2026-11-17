@@ -17,7 +17,7 @@ export const CONTENT_TYPES = new Set([
 export function isValidId(value) {
   return typeof value === "string"
     && value.length >= 1
-    && value.length <= 128
+    && value.length <= 36
     && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value);
 }
 
