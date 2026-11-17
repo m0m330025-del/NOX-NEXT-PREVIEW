@@ -58,3 +58,6 @@ npm test
 ```
 
 Tests use synthetic IDs and do not connect to Appwrite.
+
+
+Source validation is part of CI: the workflow runs the eight policy tests and Node.js syntax checks for all three source modules. The most recent route-normalization correction is included in the current branch head.
