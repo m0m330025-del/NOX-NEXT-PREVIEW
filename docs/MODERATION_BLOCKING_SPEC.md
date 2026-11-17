@@ -157,6 +157,29 @@ For every direct-message, friend-request, presence, and other private interactio
 - Report content is length-limited, safely rendered, access-controlled, and retained only as long as defined.
 - Appeals and restoration actions preserve the audit trail.
 
-## 8. Release gate
+## 8. Appwrite Functions implementation contract
+
+Use an authenticated Appwrite Function boundary for each operation. Appwrite documents that authenticated function executions receive `x-appwrite-user-jwt` and `x-appwrite-user-id`; the JWT can be used with the Server SDK so requests are evaluated in the invoking user's context. If a function uses its function API key for privileged TablesDB writes, that key must remain server-side and its scopes must be limited to the exact tables and operations required.
+
+Required request handling:
+- Require an authenticated invocation and reject missing `x-appwrite-user-jwt`; do not accept a user ID, reporter ID, blocker ID, actor ID, role, or status from the request body as authority.
+- Validate the JWT with the Appwrite Server SDK and derive the caller ID from the verified identity. Treat `x-appwrite-user-id` as execution metadata, not a substitute for validating the session JWT.
+- Validate method, JSON shape, allow-listed operation/reason/action values, identifier formats, and text limits before any database call.
+- Use server-generated row IDs and timestamps. Set `reporterId`, `blockerId`, `actorUserId`, and initial `status` only on the server.
+- Use an explicit server-verified moderator membership/role check for every review or enforcement operation. Never infer moderator status from a client flag or a public profile field.
+- Keep privileged API keys out of the browser, repository, response bodies, and logs. Do not log JWTs, API keys, private message bodies, or reporter identity.
+- Return minimal responses. A report submitter may receive their own report ID and safe status, but never internal notes or the reporter's identity to the reported account.
+- Keep the function's execute access as narrow as the selected invocation model permits. If a public function domain is used, require a valid user JWT on every protected route.
+- Do not enable table permissions for the browser as a shortcut. Any access policy change requires a separate review and two-account authorization tests.
+
+Suggested function boundary (one function with strict routing or several small functions):
+- `block-user`: POST block/unblock and GET own block list.
+- `create-report`: POST a report; server assigns identity, state, and timestamps.
+- `my-reports`: GET only the caller's report summaries.
+- `moderation-review`: moderator-only queue/review/action/restore operations.
+
+The first implementation milestone is a non-production function package and automated tests using synthetic identities and records. Do not connect it to unrestricted account creation, issue real user sessions, or enable protected product areas. Before any live deployment, separately approve the adult-eligibility release gate in `docs/AUTH_SECURITY_SPEC.md`; this moderation work does not satisfy that gate.
+
+## 9. Release gate
 
 Schema provisioning alone does not enable the feature. Do not expose or activate it until Appwrite Functions, authorization rules, moderator role management, retention policy, appeal process, and abuse tests are implemented and reviewed. The tables must remain private with empty table permissions and row security enabled. This specification is not an independent security audit.
