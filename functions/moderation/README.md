@@ -52,6 +52,19 @@ The authenticated Function router now contains these private server-side routes:
 
 The store derives the sender/actor from the verified Appwrite JWT, checks the bidirectional block guard before creating or accepting a request, writes rows with empty permissions, and creates notifications for new and accepted requests. Notification reads and updates are scoped to the authenticated recipient. Profile lookup returns only a minimal public projection. This is still scaffold code: it has not been deployed or integration-tested against Appwrite. Duplicate-request checks are read-then-write and are not transactionally race-safe; do not expose these routes in production until concurrency controls/transaction behavior are implemented and tested. Profile lookup currently has no persistent rate limiter. Do not expose it publicly until per-caller rate limiting and anti-enumeration controls are implemented and tested.
 
+
+## Private conversation and message endpoints (scaffold)
+
+The same authenticated Function now contains:
+- `POST /conversations` with `friendUserId`: create or return the one-to-one conversation for an existing friend.
+- `GET /conversations`: list conversations in which the authenticated caller is a participant.
+- `GET /messages?conversationId=...`: return the latest 50 messages for a conversation.
+- `POST /messages` with `conversationId` and `body`: send a text message (maximum 4,000 characters).
+
+The server derives the sender from the Appwrite JWT, requires a confirmed friendship, checks blocks in both directions on every conversation/message operation, verifies conversation membership, writes message rows with empty permissions, and applies a basic server-side limit of 30 messages per sender per minute. The schema bootstrap now defines private `conversations` and `messages` tables with a canonical unique participant-pair index and message lookup indexes.
+
+This is not a live chat service: the tables must first be provisioned by manually running the existing `Setup Appwrite NOX_CORE TablesDB` workflow on this branch. No Function has been deployed, and no Appwrite integration test, two-account test, Realtime delivery, pagination, message editing/deletion, or end-to-end UI connection has been completed. Do not enable browser-side database access. The current endpoint returns the latest 50 messages only.
+
 ## Intentionally not enabled
 
 Moderator review/action routes still return `501 not_implemented`. Message/profile reports are rejected until their source content and authorization model are implemented. Moderator routes use an exact-match allowlist from the protected Function environment variable `NOX_MODERATOR_USER_IDS` (comma-separated Appwrite Auth user IDs). Missing or malformed configuration fails closed. Provision this variable only through the Appwrite Console or approved secret-management process; never put it in the repository or browser. This is deliberate: the private TablesDB tables exist and the scaffold contains server-side row persistence for account reports and user blocks, but the persistence path has not yet been integration-tested against a deployed Function. Moderator review/actions, approved moderator membership, appeals/retention policy, and end-to-end enforcement in friend requests, messages, and presence are not implemented.
@@ -75,4 +88,4 @@ npm test
 Tests use synthetic IDs and do not connect to Appwrite.
 
 
-Source validation is part of CI: the workflow currently runs eight policy tests and Node.js syntax checks for all three source modules. These are not database integration tests. The latest verified run is GitHub Actions run `44112983985` on the current branch head.
+Source validation is part of CI: the workflow currently runs policy tests and Node.js syntax checks for all three source modules. These are not database integration tests. The latest verified run is GitHub Actions run `44112983985` on the current branch head.
