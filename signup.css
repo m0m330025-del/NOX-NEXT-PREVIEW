@@ -40,3 +40,18 @@ body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;back
 .field select:invalid{color:#a6b2ad}
 .field input[type=date]{direction:ltr;text-align:right}
 .age-hint{font-size:10px;line-height:1.8;color:#728b83;background:#f1f6f3;border-right:3px solid #91b5a8;padding:7px 10px;margin:0 0 3px;border-radius:7px}
+
+/* Original NOX purple, pink and gold palette for account screens */
+:root{--ink:#20164d;--muted:#77719a;--line:#e7e0ff;--paper:#fff;--navy:#160b49;--purple:#6722ed;--pink:#ec36ad;--gold:#ffd45f}
+body{background:radial-gradient(circle at 12% 15%,#e9e2ff 0,transparent 34%),linear-gradient(135deg,#e9e2ff,#f8f6ff 55%,#e7e1ff);color:var(--ink)}
+.login-shell,.signup-shell{border-color:#e7e0ff;box-shadow:0 28px 70px #32107822,0 8px 18px #32107812}
+.brand-panel{background:linear-gradient(145deg,#2b126d,#5420b7 58%,#7a25d5);color:#fff}
+.brand-mark,.mini-mark{color:#ffd45f;border-color:#ffd45f;background:#24105d;box-shadow:0 8px 0 #160b49,0 16px 26px #160b4966}
+.eyebrow{color:#ffd45f}.brand-panel h1{color:#fff}.brand-copy{color:#e8ddff}
+.orbit{border-color:#d7a5ff}.floating-card{background:#ffffffdf;border-color:#f3eaff;color:#5b27a9;box-shadow:0 12px 24px #160b4933}
+.form-heading{color:#6722ed}.form-panel h2{color:#20164d}.subheading{color:#77719a}
+.field{border-color:#e7e0ff;background:#faf8ff;color:#8a54d8}.field:focus-within{border-color:#9c35f1;box-shadow:0 0 0 4px #9c35f122}
+.field input::placeholder{color:#aaa0c6}.show-password{color:#6722ed}.terms input{accent-color:#6722ed}
+.submit-button{background:linear-gradient(110deg,#6722ed,#ec36ad);box-shadow:0 6px 0 #4c1a9b26,0 13px 22px #6722ed25}
+.back-link,.signup-line a,.form-options a{color:#6722ed}
+.secure-note{color:#8b7cae}
