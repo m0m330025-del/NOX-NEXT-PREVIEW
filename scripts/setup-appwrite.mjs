@@ -1,115 +1,110 @@
 /**
- * One-time NOX_CORE bootstrap for Appwrite DocumentsDB.
- *
- * Uses the current schemaless DocumentsDB API. Collections do not have
- * predefined attributes; document fields are validated by trusted functions.
- * Never expose APPWRITE_API_KEY to the browser or commit it.
+ * Idempotent NOX_CORE bootstrap for Appwrite TablesDB.
+ * Uses the existing serverless database; never creates or deletes the database.
+ * Tables remain private and row-level security is enabled.
  */
-import { Client, DocumentsDB, DocumentsDBIndexType } from "node-appwrite";
+import { Client, TablesDB } from "node-appwrite";
 
 const endpoint = process.env.APPWRITE_ENDPOINT || "https://fra.cloud.appwrite.io/v1";
 const projectId = process.env.APPWRITE_PROJECT_ID || "6af9ca51000735dfb692";
+const databaseId = process.env.APPWRITE_DATABASE_ID || "6afc583f00382386b997";
 const apiKey = process.env.APPWRITE_API_KEY;
 
 if (!apiKey) {
-  console.error("Missing APPWRITE_API_KEY. Supply it only as a protected environment secret.");
+  console.error("Missing APPWRITE_API_KEY. Use a protected environment secret.");
   process.exit(1);
 }
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey);
-const db = new DocumentsDB(client);
-const databaseId = "nox_core";
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function ensure(label, create, get) {
-  try {
-    await create();
-    console.log("Created:", label);
-  } catch (error) {
-    if (error?.code !== 409) throw error;
-    await get(); // A 409 is accepted only if the expected resource can be fetched.
-    console.log("Already exists and verified:", label);
-  }
+const db = new TablesDB(client);
+const database = await db.get({ databaseId });
+if (database.$id !== databaseId || database.name !== "NOX_CORE") {
+  throw new Error("Configured database ID does not match NOX_CORE.");
 }
+console.log("Verified existing database:", database.$id, database.name);
 
-async function waitForIndex(label, getIndex, timeoutMs = 120_000) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    const index = await getIndex();
-    if (index.status === "available") {
-      console.log("Ready:", label);
-      return;
-    }
-    if (index.status === "failed") {
-      throw new Error(`${label} entered failed status.`);
-    }
-    await sleep(2_000);
+const definitions = [
+  {
+    id: "users", name: "Users",
+    columns: [
+      { key: "authUserId", type: "varchar", size: 36, required: true },
+      { key: "noxId", type: "varchar", size: 32, required: true },
+      { key: "displayName", type: "varchar", size: 80, required: true },
+      { key: "avatarFileId", type: "varchar", size: 36, required: false },
+      { key: "createdAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "authUserId_unique", type: "unique", attributes: ["authUserId"] },
+      { key: "noxId_unique", type: "unique", attributes: ["noxId"] }
+    ]
+  },
+  {
+    id: "friend_requests", name: "Friend Requests",
+    columns: [
+      { key: "senderId", type: "varchar", size: 36, required: true },
+      { key: "recipientId", type: "varchar", size: 36, required: true },
+      { key: "status", type: "varchar", size: 16, required: true },
+      { key: "createdAt", type: "datetime", required: true },
+      { key: "updatedAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "recipient_status", type: "key", attributes: ["recipientId", "status"] },
+      { key: "sender_status", type: "key", attributes: ["senderId", "status"] }
+    ]
+  },
+  {
+    id: "friendships", name: "Friendships",
+    columns: [
+      { key: "userAId", type: "varchar", size: 36, required: true },
+      { key: "userBId", type: "varchar", size: 36, required: true },
+      { key: "createdAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "userA_userB_unique", type: "unique", attributes: ["userAId", "userBId"] },
+      { key: "userB_lookup", type: "key", attributes: ["userBId"] }
+    ]
+  },
+  {
+    id: "notifications", name: "Notifications",
+    columns: [
+      { key: "recipientId", type: "varchar", size: 36, required: true },
+      { key: "type", type: "varchar", size: 40, required: true },
+      { key: "referenceId", type: "varchar", size: 36, required: false },
+      { key: "isRead", type: "boolean", required: true },
+      { key: "createdAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "recipient_created", type: "key", attributes: ["recipientId", "createdAt"] }
+    ]
   }
-  throw new Error(`Timed out waiting for ${label} to become available.`);
-}
-
-await ensure(
-  `database ${databaseId}`,
-  () => db.create({ databaseId, name: "NOX_CORE", enabled: true }),
-  () => db.get({ databaseId })
-);
-
-const collections = [
-  { id: "users", name: "Users" },
-  { id: "friend_requests", name: "Friend Requests" },
-  { id: "friendships", name: "Friendships" },
-  { id: "notifications", name: "Notifications" },
 ];
 
-for (const collection of collections) {
-  await ensure(
-    `collection ${collection.id}`,
-    () => db.createCollection({
-      databaseId,
-      collectionId: collection.id,
-      name: collection.name,
-      permissions: [],
-      documentSecurity: true,
-    }),
-    () => db.getCollection({ databaseId, collectionId: collection.id })
-  );
-}
+const current = await db.listTables({ databaseId, total: true });
+const currentIds = new Set(current.tables.map((item) => item.$id));
 
-const indexes = [
-  { collectionId: "users", key: "authUserId_unique", type: DocumentsDBIndexType.Unique, attributes: ["authUserId"] },
-  { collectionId: "users", key: "noxId_unique", type: DocumentsDBIndexType.Unique, attributes: ["noxId"] },
-  { collectionId: "friend_requests", key: "recipient_status", type: DocumentsDBIndexType.Key, attributes: ["recipientId", "status"] },
-  { collectionId: "friend_requests", key: "sender_status", type: DocumentsDBIndexType.Key, attributes: ["senderId", "status"] },
-  { collectionId: "friendships", key: "userA_userB_unique", type: DocumentsDBIndexType.Unique, attributes: ["userAId", "userBId"] },
-  { collectionId: "friendships", key: "userB_lookup", type: DocumentsDBIndexType.Key, attributes: ["userBId"] },
-  { collectionId: "notifications", key: "recipient_created", type: DocumentsDBIndexType.Key, attributes: ["recipientId", "createdAt"] },
-];
-
-for (const index of indexes) {
-  const label = `${index.collectionId} index ${index.key}`;
-  await ensure(
-    label,
-    () => db.createIndex({
-      databaseId,
-      collectionId: index.collectionId,
-      key: index.key,
-      type: index.type,
-      attributes: index.attributes,
-    }),
-    () => db.getIndex({
-      databaseId,
-      collectionId: index.collectionId,
-      key: index.key,
-    })
-  );
-  await waitForIndex(label, () => db.getIndex({
+for (const table of definitions) {
+  if (currentIds.has(table.id)) {
+    const verified = await db.getTable({ databaseId, tableId: table.id });
+    console.log("Already exists:", verified.$id);
+    continue;
+  }
+  const created = await db.createTable({
     databaseId,
-    collectionId: index.collectionId,
-    key: index.key,
-  }));
+    tableId: table.id,
+    name: table.name,
+    permissions: [],
+    rowSecurity: true,
+    columns: table.columns,
+    indexes: table.indexes
+  });
+  console.log("Created private table:", created.$id);
 }
 
-console.log("NOX_CORE DocumentsDB bootstrap finished.");
-console.log("Collections remain private; no client permissions or friend APIs were enabled.");
-console.log("Next: implement and security-test authenticated Appwrite Functions before connecting the frontend.");
+const finalList = await db.listTables({ databaseId, total: true });
+const finalIds = new Set(finalList.tables.map((item) => item.$id));
+for (const table of definitions) {
+  if (!finalIds.has(table.id)) throw new Error("Missing expected table: " + table.id);
+}
+console.log("NOX_CORE TablesDB bootstrap complete:", definitions.map((item) => item.id).join(", "));
+console.log("All tables have empty table permissions and rowSecurity enabled.");
+console.log("No public access or friend APIs were enabled.");
