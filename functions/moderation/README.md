@@ -89,3 +89,10 @@ Tests use synthetic IDs and do not connect to Appwrite.
 
 
 Source validation is part of CI: the workflow currently runs policy tests and Node.js syntax checks for all three source modules. These are not database integration tests. The latest verified run is GitHub Actions run `44112983985` on the current branch head.
+
+
+## Friend acceptance retry behavior
+
+Friendship rows now use a deterministic ID derived from the canonical participant pair. Repeated acceptance therefore targets the same row, and the existing unique participant-pair index remains a second guard. Acceptance notifications also use deterministic event IDs, preventing repeated accepts from creating duplicate notifications. Repeating an already accepted request by its recipient returns the accepted result after verifying that the friendship still exists. A block is checked before returning that result.
+
+**Concurrency limitation:** Appwrite TablesDB operations here are separate writes, not a transaction or compare-and-swap. The deterministic IDs prevent duplicate friendship and notification rows, but they do not make the request-status transition atomic with friendship creation. A simultaneous accept/decline or accept/cancel can still leave a friendship row that needs reconciliation. Do not treat this as production-grade transactional behavior; add a server-side transactional/state-transition mechanism or a reconciliation job and test races before release.
