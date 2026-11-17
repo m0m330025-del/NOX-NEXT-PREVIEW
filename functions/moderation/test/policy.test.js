@@ -137,3 +137,21 @@ test("only the sender can cancel a pending request", async () => {
   assert.equal(canCancelFriendRequest(request, "recipient_1"), false);
   assert.equal(canCancelFriendRequest({ ...request, status: "declined" }, "sender_1"), false);
 });
+
+
+test("validates private message text and enforces the size limit", async () => {
+  const { validateMessageBody } = await import("../src/policy.js");
+  assert.deepEqual(validateMessageBody("  hello NOX  "), { ok: true, value: "hello NOX" });
+  assert.equal(validateMessageBody("   ").ok, false);
+  assert.equal(validateMessageBody("x".repeat(4001)).ok, false);
+  assert.equal(validateMessageBody(null).ok, false);
+});
+
+test("conversation access requires the exact canonical participant pair", async () => {
+  const { canAccessConversation, canReadOrSendMessage } = await import("../src/policy.js");
+  const conversation = { participantAId: "alice_1", participantBId: "bob_22" };
+  assert.equal(canAccessConversation(conversation, "bob_22", "alice_1"), true);
+  assert.equal(canAccessConversation(conversation, "mallory_1", "alice_1"), false);
+  assert.equal(canReadOrSendMessage(conversation, "alice_1"), true);
+  assert.equal(canReadOrSendMessage(conversation, "mallory_1"), false);
+});
