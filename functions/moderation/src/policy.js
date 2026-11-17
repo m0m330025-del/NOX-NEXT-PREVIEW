@@ -78,3 +78,20 @@ export function isModerator(userId, configuredIds = "") {
   );
   return allowed.has(userId);
 }
+
+
+/**
+ * Shared server-side guard for friend requests and private conversations.
+ * The callback must query the private blocks table, never client-supplied data.
+ */
+export async function isBlockedEitherWay(userAId, userBId, findBlock) {
+  if (!isValidId(userAId) || !isValidId(userBId) || userAId === userBId) {
+    throw new Error("invalid_user_pair");
+  }
+  if (typeof findBlock !== "function") throw new Error("missing_block_lookup");
+  const [aBlockedB, bBlockedA] = await Promise.all([
+    findBlock(userAId, userBId),
+    findBlock(userBId, userAId)
+  ]);
+  return Boolean(aBlockedB || bBlockedA);
+}
