@@ -34,12 +34,20 @@ AI-assisted technical review against Appwrite SDK usage patterns, backend securi
 - `db/migrations/001_friends_schema.sql` — retire the obsolete PostgreSQL migration to prevent accidental execution.
 - `scripts/setup-appwrite.mjs` — make notification `isRead` required, matching the specification.
 
+### Review 002 — workflow hardening
+
+- Pinned the bootstrap dependency to `node-appwrite@31.3.0` rather than installing an unbounded latest version. The package release notes identify this SDK line as targeting Appwrite Cloud server 2.7.x.
+- Added an explicit missing-secret check before installation or deployment steps.
+- Added a concurrency group so two manual schema bootstraps cannot overlap.
+- Made `notifications.isRead` required, matching the documented data model.
+- Replaced the retired PostgreSQL SQL migration with a clear non-executable notice.
+
 ### Not yet verified
 
-- GitHub Actions workflow execution.
+- GitHub Actions workflow execution. Repository Actions history currently shows no run for `setup-appwrite.yml`.
 - Presence and correctness of the `APPWRITE_API_KEY` GitHub Secret.
 - Existence of the Appwrite project and database.
 - Successful creation of collections, attributes, and indexes in the live Appwrite project.
 - Authenticated functions, permission tests, realtime behavior, and cross-device tests.
 
-**Decision:** The bootstrap code has received an initial static review and two corrections have been committed. The backend is **not approved for production** until the remaining deployment and security tests pass.
+**Decision:** The bootstrap code has received two rounds of AI-assisted static review and the identified issues above have been corrected in the repository. This is not an external human review. The backend is **not approved for production** until the remaining deployment and security tests pass.
