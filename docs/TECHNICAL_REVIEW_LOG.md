@@ -107,3 +107,14 @@ AI-assisted technical review against Appwrite SDK usage patterns, backend securi
 - The application is not production-ready: authentication, trusted server operations, authorization, abuse controls, and realtime features remain unimplemented.
 - Next engineering task: harden the bootstrap's verification/logging, then design and deploy a minimal authenticated backend operation with least-privilege permissions. Keep the existing tables private; do not enable public client writes.
 - This is an AI-assisted static/code and workflow review, not a human engineering sign-off or external security audit.
+
+### Review 005 — Bootstrap security assertions and repeat-run logs (2026-11-17)
+
+**Changes committed**
+- The bootstrap now fetches each table's persisted configuration and stops unless `rowSecurity === true` and `permissions` is an empty array.
+- Index creation now distinguishes a newly created index from an index that already exists after an HTTP 409 conflict; it no longer labels both cases as newly created.
+
+**Verification status**
+- Static source update committed in `scripts/setup-appwrite.mjs`.
+- These new assertions have **not yet been executed against Appwrite**. A fresh manual `workflow_dispatch` run is required to verify the SDK response shape and the existing table settings.
+- Until that run succeeds, treat Review 005 as a code change awaiting CI/runtime verification, not as a passed deployment check.
