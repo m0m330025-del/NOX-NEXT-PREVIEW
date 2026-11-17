@@ -30,5 +30,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run isolated policy tests
+      - name: Install pinned dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Run unit and SDK compatibility tests
         run: npm test && npm run check
