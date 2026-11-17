@@ -312,7 +312,7 @@ export function createModerationStore() {
   }
 
   async function ensureConversationMember(conversationId, userId, role = "member") {
-    const rowId = stableRowId("cm", `${conversationId}:${userId}`);
+    const rowId = stableRowId("m", `${conversationId}:${userId}`);
     try {
       await db.createRow({
         databaseId: DATABASE_ID,
