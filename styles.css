@@ -122,3 +122,18 @@ body{background:linear-gradient(135deg,#eef3f1,#f8faf9 48%,#edf3f2);color:var(--
 .my-qr-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px}.my-qr-code{width:170px;height:170px;background:white;border:1px solid #e3ebe7;border-radius:14px;display:grid;place-items:center;color:#668d85;font-weight:900}.my-qr-code img,.my-qr-code canvas{max-width:100%;max-height:100%}.my-qr-card>b{font-size:16px;direction:ltr;color:#405e59}.my-qr-card>small{font-size:11px;color:#7e908b;text-align:center}.my-qr-card button{min-width:150px}
 .friend-result{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:10px;margin-top:16px;padding:12px;border:1px solid #dce9e3;background:#f3f8f5;border-radius:16px}.result-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#d8e9e2;color:#5b8379;font-size:23px;font-weight:900}.result-info{display:grid;gap:2px}.result-info b{font-size:13px;color:#385451}.result-info small{font-size:10px;color:#81938e;direction:ltr;text-align:right}.result-safe{font-size:9px;color:#648b7e;grid-column:2/4}.send-request{grid-column:1/-1;width:100%}.friend-privacy{border-top:1px solid #e9efec;padding-top:12px;margin:16px 0 0;color:#81918d;font-size:10px;line-height:1.8}
 @media(max-width:760px){.friend-modal{padding:10px;align-items:flex-end}.friend-modal-card{border-radius:22px 22px 16px 16px;padding:18px;max-height:90vh}.friend-modal-header h2{font-size:18px}.scanner-frame{height:210px}.add-friend-trigger{padding:8px 10px;font-size:11px}}
+
+
+/* Mobile navigation and friend shortcut fixes */
+body{perspective:none!important}
+.app-frame{transform-style:flat!important}
+.mobile-nav{position:fixed!important;bottom:0!important;right:0!important;left:0!important;z-index:50!important}
+.mobile-add-friend{border:1px solid #c8d9d6!important;border-radius:20px!important;background:#dce9e6!important;color:#38595a!important;padding:7px 10px!important;font-size:11px!important;font-weight:800!important;white-space:nowrap}
+@media(max-width:760px){
+  .mobile-actions{align-items:center;gap:8px}
+  .mobile-header{position:sticky;top:0;z-index:30}
+  .mobile-add-friend{display:inline-flex;align-items:center;justify-content:center}
+  .mobile-nav{height:calc(67px + env(safe-area-inset-bottom))!important;padding-bottom:env(safe-area-inset-bottom)!important}
+  .toast{bottom:calc(78px + env(safe-area-inset-bottom))!important;z-index:70}
+  .friend-modal{z-index:100!important}
+}
