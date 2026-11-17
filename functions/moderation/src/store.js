@@ -130,10 +130,28 @@ export function createModerationStore() {
     }));
   }
 
+  async function getRowOrNull(tableId, rowId) {
+    try {
+      return await db.getRow({ databaseId: DATABASE_ID, tableId, rowId });
+    } catch (error) {
+      if (error?.code === 404 || error?.type === "row_not_found") return null;
+      throw error;
+    }
+  }
+
+  async function rollbackTransaction(transactionId) {
+    try {
+      await db.updateTransaction({ transactionId, rollback: true });
+    } catch {
+      // A transaction may already be committed, failed, or expired.
+    }
+  }
+
   async function respondToFriendRequest(userId, requestId, decision) {
-    const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
+    const row = await getRowOrNull("friend_requests", requestId);
     if (!row || row.recipientId !== userId) return { error: "request_unavailable" };
     if (await isBlocked(row.senderId, row.recipientId)) return { error: "interaction_unavailable" };
+
     if (row.status === "accepted" && decision === "accept") {
       const existing = await findFriendship(row.senderId, row.recipientId);
       if (!existing) return { error: "request_unavailable" };
@@ -143,41 +161,85 @@ export function createModerationStore() {
     if (!canRespondToFriendRequest(row, userId, decision)) return { error: "request_unavailable" };
 
     const now = new Date().toISOString();
-    if (decision === "decline") {
-      await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
-        data: { status: "declined", updatedAt: now } });
-      return { status: "declined" };
-    }
-
-    const pair = canonicalFriendPair(row.senderId, row.recipientId);
-    if (!pair.ok) return { error: "request_unavailable" };
-    const { userAId, userBId } = pair;
-    const friendshipId = stableRowId("f", `${userAId}:${userBId}`);
+    const tx = await db.createTransaction();
     try {
-      await db.createRow({ databaseId: DATABASE_ID, tableId: "friendships", rowId: friendshipId,
-        data: { userAId, userBId, createdAt: now }, permissions: [] });
-    } catch (error) {
-      if (error?.code !== 409 && error?.type !== "row_already_exists" && error?.type !== "document_already_exists") throw error;
-      const existing = await findFriendship(userAId, userBId);
-      if (!existing) throw error;
-    }
+      await db.updateRow({
+        databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
+        data: { status: decision === "accept" ? "accepted" : "declined", updatedAt: now },
+        transactionId: tx.$id
+      });
 
-    const current = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
-    if (current.status === "pending") {
-      await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
-        data: { status: "accepted", updatedAt: now } });
-    } else if (current.status !== "accepted") {
-      return { error: "request_unavailable" };
+      if (decision === "accept") {
+        const pair = canonicalFriendPair(row.senderId, row.recipientId);
+        if (!pair.ok) {
+          await rollbackTransaction(tx.$id);
+          return { error: "request_unavailable" };
+        }
+        const { userAId, userBId } = pair;
+        const friendshipId = stableRowId("f", `${userAId}:${userBId}`);
+        const [existingFriendship, existingNotification] = await Promise.all([
+          findFriendship(userAId, userBId),
+          getRowOrNull("notifications", stableRowId("n", `${row.senderId}:friend_request_accepted:${requestId}`))
+        ]);
+
+        if (!existingFriendship) {
+          await db.createRow({
+            databaseId: DATABASE_ID, tableId: "friendships", rowId: friendshipId,
+            data: { userAId, userBId, createdAt: now }, permissions: [], transactionId: tx.$id
+          });
+        }
+        if (!existingNotification) {
+          const notificationId = stableRowId("n", `${row.senderId}:friend_request_accepted:${requestId}`);
+          await db.createRow({
+            databaseId: DATABASE_ID, tableId: "notifications", rowId: notificationId,
+            data: {
+              recipientId: row.senderId, type: "friend_request_accepted",
+              referenceId: requestId, isRead: false, createdAt: now
+            },
+            permissions: [], transactionId: tx.$id
+          });
+        }
+      }
+
+      await db.updateTransaction({ transactionId: tx.$id, commit: true });
+      return { status: decision === "accept" ? "accepted" : "declined", replayed: false };
+    } catch (error) {
+      await rollbackTransaction(tx.$id);
+      if (error?.code === 409 || error?.type === "transaction_conflict" ||
+          error?.type === "row_already_exists" || error?.type === "document_already_exists") {
+        const current = await getRowOrNull("friend_requests", requestId);
+        if (decision === "accept" && current?.status === "accepted") {
+          const friendship = await findFriendship(row.senderId, row.recipientId);
+          if (friendship) {
+            await createNotification(row.senderId, "friend_request_accepted", requestId);
+            return { status: "accepted", replayed: true };
+          }
+        }
+        return { error: "request_unavailable" };
+      }
+      throw error;
     }
-    await createNotification(row.senderId, "friend_request_accepted", requestId);
-    return { status: "accepted", replayed: current.status === "accepted" };
   }
-async function cancelFriendRequest(userId, requestId) {
-    const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
+
+  async function cancelFriendRequest(userId, requestId) {
+    const row = await getRowOrNull("friend_requests", requestId);
     if (!canCancelFriendRequest(row, userId)) return { error: "request_unavailable" };
-    await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
-      data: { status: "cancelled", updatedAt: new Date().toISOString() } });
-    return { status: "cancelled" };
+    const tx = await db.createTransaction();
+    try {
+      await db.updateRow({
+        databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
+        data: { status: "cancelled", updatedAt: new Date().toISOString() },
+        transactionId: tx.$id
+      });
+      await db.updateTransaction({ transactionId: tx.$id, commit: true });
+      return { status: "cancelled" };
+    } catch (error) {
+      await rollbackTransaction(tx.$id);
+      if (error?.code === 409 || error?.type === "transaction_conflict") {
+        return { error: "request_unavailable" };
+      }
+      throw error;
+    }
   }
 
   async function listFriendships(userId) {
