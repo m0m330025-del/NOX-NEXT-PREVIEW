@@ -3,7 +3,14 @@ import { isModerator, validateBlockTarget, validateReportInput } from "./policy.
 import { createModerationStore } from "./store.js";
 
 const json = (res, status, body) => res.json(body, status);
-const getRoute = (path = "") => path.replace(/\\/+$/, "") || "/";
+
+function getRoute(path = "") {
+  let normalized = path;
+  while (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized || "/";
+}
 
 export default async ({ req, res, log }) => {
   if (req.method === "OPTIONS") return res.text("", 204);
@@ -43,7 +50,8 @@ export default async ({ req, res, log }) => {
     }
     try {
       const result = await createModerationStore().createReport(caller.$id, checked.value);
-      if (result.error) return json(res, 404, { error: result.error });
+      if (result.error === "target_not_found") return json(res, 404, { error: result.error });
+      if (result.error === "report_rate_limited") return json(res, 429, { error: result.error });
       return json(res, 201, { reportId: result.reportId, status: result.status });
     } catch {
       log("Report persistence failed; request details were not logged.");
