@@ -18,9 +18,9 @@
 
 ## 2. Product rule still required before activation
 
-The exact **jewels-earned formula per qualifying gift** has not been specified. The gift event must store the authoritative gift catalog value in NXC, but the service must not guess how many jewels that value awards.
+**Approved formula:** each **1 NXC** of the successfully received gift's authoritative catalog value awards **1 jewel** to an eligible female recipient. For example, a qualifying gift valued at 100 NXC awards 100 jewels.
 
-Represent this as a versioned server-side reward policy. Keep jewel awarding disabled until the product owner explicitly approves the formula. Never accept a client-supplied jewels amount or reward multiplier.
+The server must calculate the award from the gift catalog value snapshotted at successful gift recording. Store the applied reward-policy version with the event. Never accept a client-supplied jewels amount or reward multiplier.
 
 ## 3. Data model proposal
 
@@ -169,7 +169,7 @@ Never edit or delete completed ledger events. Corrections, if ever required for 
 2. A retry of the same gift does not duplicate progression or jewels.
 3. A failed gift creates no progression and no jewels.
 4. The gift's catalog value is snapshotted from the server, not accepted from the client.
-5. Awarding is rejected while no approved jewel reward policy is active.
+5. The approved 1 NXC = 1 jewel policy is applied server-side; a client cannot override its version or amount.
 6. A completed gift has no normal cancellation operation.
 
 ### Conversion
@@ -203,6 +203,6 @@ This document does not create tables, indexes, functions, or environment variabl
 
 The current Appwrite Function is connected to the GitHub branch. Any backend commit may trigger a redeploy. Do not change its runtime as part of this design-only step.
 
-## 9. Open approval item
+## 9. Approval status
 
-**Jewels award formula:** specify how the NXC catalog value of a received gift maps to the number of jewels awarded. Until this is approved, the data model and conversion contract can be reviewed, but jewel awarding and conversion must remain disabled in production.
+The product owner approved the award formula: **1 NXC of qualifying gift value = 1 jewel**. The formula is now specified for implementation review. Production activation still requires backend implementation, atomicity verification, automated tests, and deployment checks.
