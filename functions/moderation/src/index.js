@@ -1,5 +1,5 @@
 import { Client, Account } from "node-appwrite";
-import { validateBlockTarget, validateReportInput } from "./policy.js";
+import { isModerator, validateBlockTarget, validateReportInput } from "./policy.js";
 
 const json = (res, status, body) => res.json(body, status);
 
@@ -63,8 +63,13 @@ export default async ({ req, res, log }) => {
     }
 
     if (route.startsWith("/moderation")) {
-      // No moderator role source has been approved or provisioned yet.
-      return json(res, 403, { error: "moderator_access_not_configured" });
+      const moderatorIds = process.env.NOX_MODERATOR_USER_IDS ?? "";
+      if (!isModerator(caller.$id, moderatorIds)) {
+        return json(res, 403, { error: "forbidden" });
+      }
+      // Authorization is in place; moderation queue/actions remain deliberately
+      // disabled until audit, appeal, retention, and TablesDB write paths ship.
+      return json(res, 501, { error: "not_implemented", feature: "moderation_operations" });
     }
 
     return json(res, 404, { error: "not_found" });
