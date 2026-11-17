@@ -65,6 +65,57 @@ const definitions = [
     ]
   },
   {
+    id: "blocks", name: "User Blocks",
+    columns: [
+      { key: "blockerId", type: "varchar", size: 36, required: true },
+      { key: "blockedId", type: "varchar", size: 36, required: true },
+      { key: "createdAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "blocker_blocked_unique", type: "unique", columns: ["blockerId", "blockedId"] },
+      { key: "blocker_lookup", type: "key", columns: ["blockerId"] },
+      { key: "blocked_lookup", type: "key", columns: ["blockedId"] }
+    ]
+  },
+  {
+    id: "reports", name: "User Reports",
+    columns: [
+      { key: "reporterId", type: "varchar", size: 36, required: true },
+      { key: "targetUserId", type: "varchar", size: 36, required: true },
+      { key: "contentType", type: "varchar", size: 24, required: true },
+      { key: "contentId", type: "varchar", size: 36, required: false },
+      { key: "reason", type: "varchar", size: 32, required: true },
+      { key: "description", type: "varchar", size: 1000, required: false },
+      { key: "status", type: "varchar", size: 24, required: true },
+      { key: "createdAt", type: "datetime", required: true },
+      { key: "updatedAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "reporter_created", type: "key", columns: ["reporterId", "createdAt"] },
+      { key: "target_created", type: "key", columns: ["targetUserId", "createdAt"] },
+      { key: "status_created", type: "key", columns: ["status", "createdAt"] }
+    ]
+  },
+  {
+    id: "moderation_actions", name: "Moderation Actions",
+    columns: [
+      { key: "targetUserId", type: "varchar", size: 36, required: true },
+      { key: "actorUserId", type: "varchar", size: 36, required: true },
+      { key: "actionType", type: "varchar", size: 32, required: true },
+      { key: "reasonCode", type: "varchar", size: 48, required: true },
+      { key: "rationale", type: "varchar", size: 1000, required: false },
+      { key: "startsAt", type: "datetime", required: true },
+      { key: "expiresAt", type: "datetime", required: false },
+      { key: "reportId", type: "varchar", size: 36, required: false },
+      { key: "createdAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "target_created", type: "key", columns: ["targetUserId", "createdAt"] },
+      { key: "report_lookup", type: "key", columns: ["reportId"] },
+      { key: "action_created", type: "key", columns: ["actionType", "createdAt"] }
+    ]
+  },
+  {
     id: "notifications", name: "Notifications",
     columns: [
       { key: "recipientId", type: "varchar", size: 36, required: true },
