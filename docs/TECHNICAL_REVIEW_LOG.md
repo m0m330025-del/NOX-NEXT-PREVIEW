@@ -100,3 +100,21 @@ The moderation design is documented but not operational. Review proposed schemas
 
 **Decision**
 The three tables are ready for private schema provisioning. Feature activation remains blocked pending trusted backend enforcement, role checks, retention/appeal handling, and security tests.
+
+
+### Review 010 — Moderation tables provisioned and Functions boundary defined (2026-11-17)
+
+**Verified execution**
+- Workflow `Setup Appwrite NOX_CORE TablesDB` run #13 completed successfully.
+- Run ID: `44111416915`; checked-out commit: `22bfa24`.
+- The execution logs verified all seven tables: `users`, `friend_requests`, `friendships`, `blocks`, `reports`, `moderation_actions`, and `notifications`.
+- The logs verified expected columns and indexes, empty table permissions, and row-level security enabled for each table.
+- The run's Node.js 20 and Ubuntu runner notices were deprecation/migration notices, not execution failures.
+
+**Implementation planning**
+- Expanded `docs/MODERATION_BLOCKING_SPEC.md` with the Appwrite Functions trust boundary: require and validate the invoking user's JWT, derive caller identity server-side, verify moderator roles server-side, and keep privileged function keys scoped and private.
+- Updated `docs/FRIENDS_BACKEND_SPEC.md` to reflect the seven-table verified state.
+- No Functions, client permissions, account sessions, or moderation user flows were deployed or enabled by this review.
+
+**Decision**
+The seven-table private schema is provisioned and verified. Blocking, reporting, moderation actions, authentication, and friend APIs remain non-operational until separately implemented and tested. Adult-only access remains disabled pending the independent server-side eligibility release gate. This is an AI-assisted technical review, not an independent security audit.
