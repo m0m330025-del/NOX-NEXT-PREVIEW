@@ -31,4 +31,4 @@ jobs:
         with:
           node-version: 22
       - name: Run isolated policy tests
-        run: npm test
+        run: npm test && npm run check
