@@ -104,7 +104,7 @@ const schemas = [
       ["type", 40, true],
       ["referenceId", 64, false],
     ],
-    booleans: [["isRead", false]],
+    booleans: [["isRead", true]],
     datetimes: [["createdAt", true]],
     indexes: [["recipient_created", ["recipientId", "createdAt"], IndexType.Key]],
   },
