@@ -425,6 +425,7 @@ export function createModerationStore() {
     if (recent.rows.length >= 30) return { error: "message_rate_limited" };
 
     const now = new Date().toISOString();
+    let replayed = false;
     try {
       row = await db.createRow({
         databaseId: DATABASE_ID, tableId: "messages", rowId: idempotencyKey.toLowerCase(),
@@ -443,6 +444,7 @@ export function createModerationStore() {
       // verify every immutable field before treating this as a successful retry.
       if (error?.code !== 409 && error?.type !== "row_already_exists" && error?.type !== "document_already_exists") throw error;
       row = await db.getRow({ databaseId: DATABASE_ID, tableId: "messages", rowId: idempotencyKey.toLowerCase() });
+      replayed = true;
       if (row.senderId !== callerId || row.conversationId !== conversationId || row.body !== checked.value) {
         return { error: "idempotency_key_conflict" };
       }
@@ -453,7 +455,7 @@ export function createModerationStore() {
       databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId,
       data: { updatedAt: latestMessageAt, lastMessageAt: latestMessageAt }
     });
-    return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt }, replayed: row.createdAt !== now };
+    return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt }, replayed };
   }
 
   async function createBlock(blockerId, blockedId) {
