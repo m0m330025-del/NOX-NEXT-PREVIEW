@@ -79,7 +79,7 @@ The original concept included an owner balance displayed as **∞**. Engineering
 
 ### 2.7 No user withdrawals
 
-There is **no user withdrawal, payout, or NXC-to-EGP conversion**. Users cannot cash out NXC or transfer NXC to a bank account or mobile wallet. The application owner alone receives the real-money proceeds from NXC purchases through the approved payment provider. The customer UI and admin console must not display a user cash-out feature.
+NOX does not provide **in-app cash-out, payout, or NXC-to-EGP conversion**. Users cannot withdraw NXC to a bank account or mobile wallet through NOX. The application owner alone receives the real-money proceeds from the original sale/issuance of NXC through the approved payment provider. The product owner has described possible private, off-platform money arrangements between members; these are not processed, verified, guaranteed, or mediated by NOX. NOX must not add cash listings, escrow, payment collection, payout, or dispute handling for those arrangements. Ordinary in-app NXC transfers remain subject to wallet controls and must never be presented as proof that an external payment occurred.
 
 
 
@@ -118,6 +118,24 @@ Implementation rules:
 - Do not count failed, cancelled, or reversed gifts toward progression. Define how a later refund/reversal affects the recipient's progression history.
 - Gift-based progression is an entitlement metric only. It does not create a cash balance or allow the recipient to withdraw or redeem NXC.
 - Keep the female gift-progression total separate from the user's spendable wallet balance and from any cash/payment records.
+
+### 3A.2A Female jewels balance and conversion to NXC
+
+The product owner has added a separate **jewels** reward unit for female accounts:
+
+- Female accounts earn jewels from the authoritative NXC catalog value of gifts successfully received.
+- Conversion rate: **2 jewels = 1 NXC**.
+- Converting jewels to NXC must not reduce, erase, or recalculate downward the cumulative received-gift progression total. Progression is based on the historical qualifying gift events, not the remaining jewels balance.
+- Converted NXC is credited to the same central NXC wallet used by the rest of the application. It is not a second wallet and must not be minted outside the ledger.
+- Each qualifying gift event must be recorded once and linked to its original gift transaction. A conversion consumes only the convertible jewels balance; it does not consume or rewrite the progression event.
+- Store amounts as integers. The product owner must decide how an odd jewel remainder is handled before production implementation; do not silently round up or discard it.
+- Conversion must be a server-side, atomic, idempotent transaction with a unique reference, a debit from the jewels liability/account and a matching NXC credit. Concurrent requests must not convert the same jewels twice.
+- Keep three concepts distinct in data and UI: (1) cumulative received-gift progression, (2) currently available unconverted jewels, and (3) spendable NXC wallet balance.
+- The UI must show the conversion rate, previewed output, confirmation, success/failure state, and transaction history. A client-side calculator is not evidence that a conversion occurred.
+
+**Peer-to-peer cash arrangements are outside the NOX product scope:** the owner has stated that any private agreement between members about money is between those members and is not handled by the owner. Accordingly, NOX must not provide cash listings, buyer/seller matching, cash price negotiation, escrow, cash collection, payouts, cash balances, or dispute settlement for such arrangements. The ordinary NXC transfer feature remains an in-app currency transfer and must not be described as proof, facilitation, or guarantee of any external cash payment. Do not build a gender-specific cash marketplace or imply that NOX verifies or endorses private arrangements. Any future in-app cash feature would require a separate product, legal, age-eligibility, payment-provider, fraud, and compliance review before design or implementation.
+
+**Still undecided:** treatment of odd jewel remainders; whether gift reversals after conversion create a progression correction, a jewels debt, or another remedy; and whether already converted NXC can be reversed or frozen in a dispute. These require explicit product and compliance decisions. Do not invent automatic clawback or negative-balance behavior.
 
 ### 3A.3 Upgrade experience
 
@@ -259,7 +277,7 @@ These are blockers or explicit decisions, not values to guess:
 | Reward eligibility | Eligible vs transferable balance mentioned | Define earning and release rules |
 | Game expenses | Included in central wallet | Define allowed spend types, limits, refund rules |
 | Owner ∞ display | Concept only | Confirm display-only treatment; never represent as a real unlimited balance |
-| User cash-out | Explicitly excluded | No withdrawal or NXC-to-EGP conversion for users; only the owner receives NXC sale proceeds |
+| In-app cash-out / member cash marketplace | Not part of NOX scope | No NOX cash collection, escrow, payout, listings, or dispute handling; ordinary NXC transfers remain in-app currency movements |
 | Refunds / chargebacks | Not fully specified | Define reversal, negative-balance, and fraud policy |
 | Limits and fees | Not specified | Define per-transaction/daily limits, fees, and escalation rules |
 | Spotify | Shared queue and one song / member / 15 minutes | Validate API, playback rights, regional availability, and enforcement approach |
@@ -288,7 +306,7 @@ These are blockers or explicit decisions, not values to guess:
 
 **Phase 4 — Payments:** integrate provider test mode, signed webhook verification, reconciliation, refunds, and operational monitoring. Production activation only after review and approval.
 
-**No cash-out phase:** user withdrawals and NXC-to-cash conversion are not part of NOX.
+**No in-app cash marketplace or payout phase:** NOX does not process member-to-member cash arrangements. Jewels-to-NXC conversion is a separate internal ledger transaction and does not reduce gift-based progression.
 
 ## 8. Required review outcome
 
