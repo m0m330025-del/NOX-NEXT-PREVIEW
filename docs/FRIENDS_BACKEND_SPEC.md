@@ -174,3 +174,9 @@ This specification describes the intended Appwrite implementation. It does not i
 ## Private message retry safety
 
 The private `POST /messages` contract requires `idempotencyKey` as a client-generated UUID. The server uses that UUID as the Appwrite message row ID. Repeating the same request with the same key and identical authenticated sender, conversation, and normalized body returns the existing message instead of creating a duplicate. Reusing a key with different content or ownership returns HTTP 409. Clients must preserve the key across network retries. If the message row was created but the conversation summary update failed, a retry repairs the summary timestamp without adding another message. This behavior is implemented in the scaffold and still requires Appwrite integration/concurrency testing before production.
+
+## Friend acceptance retry safety and concurrency boundary
+
+Friendship persistence uses a deterministic row ID derived from the canonical sorted user pair, while the unique pair index remains enabled. Acceptance notifications use deterministic event IDs, so retries do not create duplicate rows. The recipient can repeat an accept after the request is accepted; the backend verifies the friendship exists and returns the accepted state. Blocks are checked before this replay response.
+
+This does not provide an atomic transaction across the friendship row and request status. Concurrent accept/decline/cancel operations can still race because the current TablesDB flow has no conditional compare-and-swap in this implementation. The scaffold must not be considered race-safe for production until a supported transaction/state-transition mechanism or reconciliation workflow is implemented and exercised with concurrent integration tests.
