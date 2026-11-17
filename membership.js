@@ -1,7 +1,50 @@
-const thresholds=[{name:"Silver",value:50000},{name:"Gold",value:500000},{name:"Premium",value:5000000},{name:"Premium Gold",value:500000000},{name:"Premium Black",value:null}];
-let kind="male",value=72500;const fmt=n=>new Intl.NumberFormat("en-US").format(n);
-function render(){const ix=thresholds.findIndex(t=>t.value!==null&&value<t.value);const current=ix<=0?0:ix===-1?4:ix-1;const next=thresholds[Math.min(current+1,4)];const currentTier=thresholds[current];document.getElementById("currentLevel").textContent=currentTier.name;document.getElementById("currentThreshold").textContent=currentTier.value?fmt(currentTier.value)+" NXC":"أعلى فئة";document.getElementById("nextLevel").textContent=next.name;document.getElementById("progressValue").textContent=fmt(value);document.getElementById("metricLabel").textContent=kind==="male"?"إجمالي قيمة الهدايا المرسلة بنجاح":"إجمالي قيمة الهدايا المستلمة بنجاح";const base=currentTier.value||0;const target=next.value;const pct=target?Math.max(0,Math.min(100,((value-base)/(target-base))*100)):100;document.getElementById("barFill").style.width=pct+"%";document.getElementById("remaining").textContent=target?"متبقي "+fmt(Math.max(0,target-value))+" للوصول إلى "+next.name:"وصلت إلى أعلى فئة";document.getElementById("nextName").textContent=next.name;}
-document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("[data-panel]").forEach(p=>p.classList.toggle("active",p.dataset.panel===b.dataset.tab));}));
-document.querySelectorAll("[data-kind]").forEach(b=>b.addEventListener("click",()=>{kind=b.dataset.kind;document.querySelectorAll("[data-kind]").forEach(x=>x.classList.toggle("selected",x===b));render();}));
-document.querySelectorAll("[data-frame]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-frame]").forEach(x=>{x.classList.remove("selected-frame");x.textContent="معاينة الإطار";});b.classList.add("selected-frame");b.textContent="تم الاختيار للمعاينة";const toast=document.getElementById("toast");toast.textContent="تم اختيار الإطار في المعاينة فقط — لم يتم حفظه على الحساب";toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2600);}));
+// NOX membership preview only. No entitlement or wallet data is fabricated here.
+const thresholds = [
+  { name: "Silver", value: 50000 },
+  { name: "Gold", value: 500000 },
+  { name: "Premium", value: 5000000 },
+  { name: "Premium Gold", value: 500000000 },
+  { name: "Premium Black", value: null }
+];
+
+function render() {
+  // Progress is intentionally unavailable until the authenticated backend supplies it.
+  document.getElementById("currentLevel").textContent = "بانتظار بيانات الحساب";
+  document.getElementById("currentThreshold").textContent = "—";
+  document.getElementById("nextLevel").textContent = "Silver";
+  document.getElementById("progressValue").textContent = "—";
+  document.getElementById("metricLabel").textContent =
+    "سيُحدد المقياس تلقائيًا: الهدايا المرسلة أو المستلمة حسب نوع الحساب";
+  document.getElementById("barFill").style.width = "0%";
+  document.getElementById("remaining").textContent =
+    "الحد الأول Silver هو 50,000 NXC — التقدم ينتظر بيانات الخادم";
+  document.getElementById("nextName").textContent = "Silver";
+}
+
+document.querySelectorAll("[data-tab]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-tab]").forEach(item =>
+      item.classList.toggle("active", item === button)
+    );
+    document.querySelectorAll("[data-panel]").forEach(panel =>
+      panel.classList.toggle("active", panel.dataset.panel === button.dataset.tab)
+    );
+  });
+});
+
+document.querySelectorAll("[data-frame]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-frame]").forEach(item => {
+      item.classList.remove("selected-frame");
+      item.textContent = "معاينة الإطار";
+    });
+    button.classList.add("selected-frame");
+    button.textContent = "تم اختيار المعاينة";
+    const toast = document.getElementById("toast");
+    toast.textContent = "معاينة فقط — لم يتم حفظ الإطار أو تغيير استحقاق الحساب";
+    toast.classList.add("show");
+    window.setTimeout(() => toast.classList.remove("show"), 2600);
+  });
+});
+
 render();
