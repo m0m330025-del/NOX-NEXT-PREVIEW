@@ -128,3 +128,21 @@ export function canRespondToFriendRequest(request, callerId, decision) {
 export function canCancelFriendRequest(request, callerId) {
   return Boolean(request && request.status === "pending" && request.senderId === callerId);
 }
+
+
+export function validateMessageBody(value) {
+  if (typeof value !== "string") return { ok: false, error: "invalid_message" };
+  const body = value.trim();
+  if (!body || body.length > 4000) return { ok: false, error: "invalid_message" };
+  return { ok: true, value: body };
+}
+
+export function canAccessConversation(conversation, callerId, otherUserId) {
+  if (!conversation || !isValidId(callerId) || !isValidId(otherUserId) || callerId === otherUserId) return false;
+  const pair = canonicalFriendPair(callerId, otherUserId);
+  return pair.ok && conversation.participantAId === pair.userAId && conversation.participantBId === pair.userBId;
+}
+
+export function canReadOrSendMessage(conversation, callerId) {
+  return Boolean(conversation && (conversation.participantAId === callerId || conversation.participantBId === callerId));
+}
