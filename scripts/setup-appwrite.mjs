@@ -93,11 +93,38 @@ for (const table of definitions) {
     tableId: table.id,
     name: table.name,
     permissions: [],
-    rowSecurity: true,
-    columns: table.columns,
-    indexes: table.indexes
+    rowSecurity: true
   });
   console.log("Created private table:", created.$id);
+  for (const column of table.columns) {
+    const method = {
+      varchar: "createVarcharColumn",
+      datetime: "createDatetimeColumn",
+      boolean: "createBooleanColumn"
+    }[column.type];
+    if (!method || typeof db[method] !== "function") {
+      throw new Error("Unsupported TablesDB column type or SDK method: " + column.type);
+    }
+    const args = {
+      databaseId,
+      tableId: table.id,
+      key: column.key,
+      required: column.required
+    };
+    if (column.type === "varchar") args.size = column.size;
+    await db[method](args);
+    console.log("Created column:", table.id + "." + column.key);
+  }
+  for (const index of table.indexes) {
+    await db.createIndex({
+      databaseId,
+      tableId: table.id,
+      key: index.key,
+      type: index.type,
+      attributes: index.attributes
+    });
+    console.log("Created index:", table.id + "." + index.key);
+  }
 }
 
 const finalList = await db.listTables({ databaseId, total: true });
