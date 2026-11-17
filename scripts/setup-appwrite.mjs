@@ -100,8 +100,9 @@ for (const table of definitions) {
   if (verifiedTable.rowSecurity !== true) {
     throw new Error("Row-level security is not enabled for table: " + table.id);
   }
-  if (!Array.isArray(verifiedTable.permissions) || verifiedTable.permissions.length !== 0) {
-    throw new Error("Table permissions must remain empty for private table: " + table.id);
+  // Appwrite Table models expose table permissions as $permissions.
+  if (!Array.isArray(verifiedTable.$permissions) || verifiedTable.$permissions.length !== 0) {
+    throw new Error("Table $permissions must remain empty for private table: " + table.id);
   }
   console.log("Verified private table and row security:", verifiedTable.$id);
 
