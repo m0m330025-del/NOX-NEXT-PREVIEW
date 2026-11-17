@@ -36,17 +36,18 @@ All routes require an Appwrite user JWT and derive the caller ID from the verifi
 - `POST /reports` (account reports only; server sets reporter, status, and timestamps)
 - `GET /reports` (only the caller's own safe report summaries)
 
-Rows are written with empty row permissions. These routes do not grant browser access to TablesDB.
+Rows are written with empty row permissions. These routes do not grant browser access to TablesDB. The current store writes rows server-side using the dedicated function API key; this has not yet been verified against a deployed Appwrite Function or tested end-to-end against the live database.
 
 ## Intentionally not enabled
 
-Moderator review/action routes still return `501 not_implemented`. Message/profile reports are rejected until their source content and authorization model are implemented. Moderator routes use an exact-match allowlist from the protected Function environment variable `NOX_MODERATOR_USER_IDS` (comma-separated Appwrite Auth user IDs). Missing or malformed configuration fails closed. Provision this variable only through the Appwrite Console or approved secret-management process; never put it in the repository or browser. This is deliberate: the private TablesDB tables exist, but row persistence, moderator membership, appeals/retention policy, and end-to-end enforcement have not yet been implemented.
+Moderator review/action routes still return `501 not_implemented`. Message/profile reports are rejected until their source content and authorization model are implemented. Moderator routes use an exact-match allowlist from the protected Function environment variable `NOX_MODERATOR_USER_IDS` (comma-separated Appwrite Auth user IDs). Missing or malformed configuration fails closed. Provision this variable only through the Appwrite Console or approved secret-management process; never put it in the repository or browser. This is deliberate: the private TablesDB tables exist and the scaffold contains server-side row persistence for account reports and user blocks, but the persistence path has not yet been integration-tested against a deployed Function. Moderator review/actions, approved moderator membership, appeals/retention policy, and end-to-end enforcement in friend requests, messages, and presence are not implemented.
 
 Do not grant broad table permissions or deploy this scaffold as a live moderation service. Before implementation continues, define and review:
 1. Provision `NOX_MODERATOR_USER_IDS` through protected Appwrite Function configuration, with a documented owner approval and periodic access review.
-2. Minimal server-side TablesDB scopes and row access strategy.
-3. The full set of private-message, friend-request, and presence endpoints that must enforce blocks in both directions.
-4. Report retention, appeal, and reviewer access rules.
+2. Replace or further constrain the project-wide `rows.read` / `rows.write` API key scopes where Appwrite's scope model permits; do not mistake these scopes for table-level isolation.
+3. Deploy only to a non-production Appwrite Function environment and integration-test row create/list/delete against synthetic accounts.
+4. The full set of private-message, friend-request, and presence endpoints that must enforce blocks in both directions.
+5. Report retention, appeal, and reviewer access rules.
 
 ## Local tests
 
@@ -60,4 +61,4 @@ npm test
 Tests use synthetic IDs and do not connect to Appwrite.
 
 
-Source validation is part of CI: the workflow runs the eight policy tests and Node.js syntax checks for all three source modules. The most recent route-normalization correction is included in the current branch head.
+Source validation is part of CI: the workflow currently runs eight policy tests and Node.js syntax checks for all three source modules. These are not database integration tests. The latest verified run is GitHub Actions run `44112983985` on the current branch head.
