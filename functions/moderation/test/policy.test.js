@@ -95,3 +95,17 @@ test("block guard rejects invalid or identical user pairs", async () => {
   await assert.rejects(() => isBlockedEitherWay("same", "same", async () => false), /invalid_user_pair/);
   await assert.rejects(() => isBlockedEitherWay("", "bob", async () => false), /invalid_user_pair/);
 });
+
+
+test("normalizes valid NOX IDs", async () => {
+  const { validateNoxId } = await import("../src/policy.js");
+  assert.deepEqual(validateNoxId("  abC_1234 "), { ok: true, value: "ABC_1234" });
+});
+
+test("rejects malformed NOX IDs and request IDs", async () => {
+  const { validateNoxId, validateRequestId } = await import("../src/policy.js");
+  assert.equal(validateNoxId("ab").ok, false);
+  assert.equal(validateNoxId("bad id!").ok, false);
+  assert.equal(validateRequestId("../other").ok, false);
+  assert.equal(validateRequestId("req_123").ok, true);
+});
