@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#21105b">
+  <meta name="description" content="NOX NEXT — عالمك الاجتماعي في مكان واحد">
+  <title>NOX NEXT — Social Universe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+<div class="app-frame">
+  <header class="mobile-header">
+    <a class="brand brand-mobile" href="#home"><span class="brand-symbol">N</span><span><b>NOX NEXT</b><small>NOX Social Universe</small></span></a>
+    <div class="mobile-actions"><button class="icon-button" aria-label="بحث" data-action="focus-search">⌕</button><button class="icon-button notification-button" aria-label="الإشعارات">♧<i>12</i></button></div>
+  </header>
+
+  <aside class="sidebar">
+    <a class="brand brand-desktop" href="#home"><span class="brand-symbol">N</span><span><b>NOX NEXT</b><small>NOX Social Universe</small></span></a>
+    <nav class="primary-nav" aria-label="القائمة الرئيسية">
+      <a class="nav-link active" href="#home" data-nav="home"><span>⌂</span>الرئيسية</a>
+      <a class="nav-link" href="#friends" data-nav="friends"><span>♧</span>الأصدقاء</a>
+      <a class="nav-link" href="#messages" data-nav="messages"><span>☏</span>المحادثات <i class="nav-count">3</i></a>
+      <a class="nav-link" href="#calls" data-nav="calls"><span>◖</span>المكالمات</a>
+      <a class="nav-link" href="#stories" data-nav="stories"><span>◉</span>الحالات</a>
+      <a class="nav-link" href="#reels" data-nav="reels"><span>▷</span>المقاطع</a>
+      <a class="nav-link" href="./nox-kiss.html"><span>♡</span>NOX KISS</a>
+      <a class="nav-link" href="#gifts" data-nav="gifts"><span>♙</span>الهدايا</a>
+      <a class="nav-link" href="#settings" data-nav="settings"><span>⚙</span>الإعدادات</a>
+    </nav>
+    <button class="logout-button" type="button" data-action="demo-notice">تسجيل الخروج <span>⇥</span></button>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <label class="search-box"><span>⌕</span><input id="global-search" type="search" placeholder="ابحث عن الأصدقاء أو المحتوى..." aria-label="بحث عام"></label>
+      <div class="topbar-user"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces" alt=""><b>ريم</b><span>⌄</span><button class="icon-button notification-button" aria-label="الإشعارات">♧<i>12</i></button></div>
+    </header>
+
+    <main class="feed-layout" id="home">
+      <section class="feed-column">
+        <section class="stories-panel" id="stories" aria-label="الحالات">
+          <div class="stories-track">
+            <button class="story add-story" data-action="demo-notice"><span class="story-ring add-ring">＋</span><b>إضافة حالة</b></button>
+            <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=120&h=120&fit=crop" alt=""></span><b>سارة</b></button>
+            <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=faces" alt=""></span><b>مريم</b></button>
+            <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?w=120&h=120&fit=crop" alt=""></span><b>أحمد</b></button>
+            <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=120&h=120&fit=crop" alt=""></span><b>دودي</b></button>
+            <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=120&h=120&fit=crop" alt=""></span><b>ليلى</b></button>
+          </div>
+          <button class="story-next" aria-label="الحالات التالية">‹</button>
+        </section>
+
+        <section class="composer card">
+          <div class="composer-top"><img class="avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces" alt=""><button class="composer-prompt" data-action="demo-notice">ماذا يدور في ذهنك؟ ...</button><span class="smile">☺</span></div>
+          <div class="composer-actions"><button data-action="demo-notice"><span class="photo-icon">▣</span>إضافة صور</button><button data-action="demo-notice"><span class="video-icon">▶</span>إضافة فيديوهات</button><button data-action="demo-notice"><span class="gift-icon">♔</span>إرسال هدية</button><button class="publish-button" data-action="demo-notice">نشر <span>➤</span></button></div>
+        </section>
+
+        <article class="post card" id="post-sara">
+          <header class="post-header"><img class="avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces" alt=""><div class="post-author"><b>سارة محمد <span class="verified">✓</span></b><small>منذ 5 دقائق</small></div><button class="more-button" aria-label="المزيد">•••</button></header>
+          <p class="post-copy">أجمل لحظات الحياة .. هي مع من نحب <span>💜</span></p>
+          <img class="post-image" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1100&h=720&fit=crop" alt="صورة مشاركة من سارة">
+          <div class="post-stats"><span>👍 ❤️ 😮 <b>2.8K</b></span><span>120 تعليقًا　 مشاركة</span></div>
+          <div class="post-actions"><button data-action="like">♡ <span>أعجبني</span></button><button data-action="demo-notice">▢ <span>تعليق</span></button><button data-action="demo-notice">♧ <span>مشاركة</span></button></div>
+        </article>
+      </section>
+
+      <aside class="right-column">
+        <section class="friends-panel card" id="friends"><header><h2>👑 أبرز الأصدقاء</h2><button data-action="demo-notice">عرض الكل</button></header>
+          <ul class="friend-list">
+            <li><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=90&h=90&fit=crop&crop=faces" alt=""><b>أحمد المصري</b><i></i></li>
+            <li><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=90&h=90&fit=crop&crop=faces" alt=""><b>مريم جمال</b><i></i></li>
+            <li><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=90&h=90&fit=crop&crop=faces" alt=""><b>كريم السيد</b><i></i></li>
+            <li><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=90&h=90&fit=crop&crop=faces" alt=""><b>ليلى محمد</b><i></i></li>
+            <li><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=90&h=90&fit=crop&crop=faces" alt=""><b>يوسف ناصر</b><i></i></li>
+          </ul>
+        </section>
+        <a class="kiss-promo" href="./nox-kiss.html"><span class="crown">♛</span><b>NOX KISS</b><strong>غرفة الترفيه والمرح</strong><span class="kiss-cta">ادخل الآن　➜</span></a>
+      </aside>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="تنقل الهاتف">
+    <a class="active" href="#home" data-nav="home"><span>⌂</span>الرئيسية</a>
+    <a href="#friends" data-nav="friends"><span>♧</span>الأصدقاء</a>
+    <a href="#messages" data-nav="messages"><span>☏</span>المحادثات<i class="nav-count">3</i></a>
+    <a href="#reels" data-nav="reels"><span>▷</span>المقاطع</a>
+    <button type="button" data-action="more-menu"><span>•••</span>المزيد</button>
+  </nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+</body>
+</html>
