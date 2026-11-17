@@ -66,6 +66,7 @@ document.getElementById('signup-form').addEventListener('submit',event=>{
  if(age<18){notice.textContent='عذرًا، هذه اللعبة مخصصة لمن أتم 18 عامًا أو أكثر، ولا يمكن إكمال التسجيل.';return;}
  if(password!==confirm){notice.textContent='كلمتا المرور غير متطابقتين؛ راجع البيانات وحاول مرة أخرى.';return;}
  const newId='NOX-'+String(Math.floor(100+Math.random()*900))+'-'+String(Math.floor(100+Math.random()*900));
+ localStorage.setItem('noxDemoId',newId);
  notice.textContent='اجتاز النموذج فحص العمر المبدئي فقط. إنشاء الحساب والتحقق الحقيقي يحتاجان إلى خادم آمن.';
  const idResult=document.getElementById('nox-id-result'); idResult.hidden=false;
  idResult.innerHTML='<strong>معرّف NOX التجريبي المقترح</strong><br><span dir="ltr" style="font-size:22px;font-weight:900;letter-spacing:2px">'+newId+'</span><br>المعرّف النهائي يجب أن يصدر من الخادم لضمان عدم التكرار.';
