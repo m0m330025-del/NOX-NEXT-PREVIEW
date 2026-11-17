@@ -37,9 +37,6 @@ export function initApp() {
       showNotice("البحث عن الأعضاء والمحتوى سيُربط بقاعدة البيانات لاحقًا");
     }
   });
-}
-
-
 
   // NOX NEXT friend add flow (front-end preview; server verification comes later).
   const friendNotice = message => window.dispatchEvent(new CustomEvent("nox:notice", { detail: message }));
@@ -215,3 +212,5 @@ export function initApp() {
       friendModal.setAttribute("aria-hidden", "true");
     }
   });
+
+}
