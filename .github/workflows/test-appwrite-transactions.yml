@@ -1,0 +1,30 @@
+name: Verify NOX Appwrite transactions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  appwrite-transaction-integration:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions/moderation
+    env:
+      APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
+      APPWRITE_PROJECT_ID: 6af9ca51000735dfb692
+      APPWRITE_DATABASE_ID: 6afc583f00382386b997
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify Appwrite transaction commit and rollback
+        run: node --test test/appwrite-transactions.integration.test.js
