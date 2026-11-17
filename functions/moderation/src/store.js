@@ -133,6 +133,7 @@ export function createModerationStore() {
   async function respondToFriendRequest(userId, requestId, decision) {
     const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
     if (!row || row.recipientId !== userId) return { error: "request_unavailable" };
+    if (await isBlocked(row.senderId, row.recipientId)) return { error: "interaction_unavailable" };
     if (row.status === "accepted" && decision === "accept") {
       const existing = await findFriendship(row.senderId, row.recipientId);
       if (!existing) return { error: "request_unavailable" };
@@ -140,7 +141,6 @@ export function createModerationStore() {
       return { status: "accepted", replayed: true };
     }
     if (!canRespondToFriendRequest(row, userId, decision)) return { error: "request_unavailable" };
-    if (await isBlocked(row.senderId, row.recipientId)) return { error: "interaction_unavailable" };
 
     const now = new Date().toISOString();
     if (decision === "decline") {
