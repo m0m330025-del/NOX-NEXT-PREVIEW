@@ -62,7 +62,7 @@ Duplicate reports may be grouped for moderator review without treating report vo
 
 ## 3. Proposed Appwrite TablesDB data model
 
-These are proposed tables only. Do not add them to the bootstrap workflow until the schema and permission plan have been reviewed.
+These tables are approved for private schema provisioning only after review of the definitions and indexes below. Provisioning creates empty tables with empty table permissions and row security enabled; it does not deploy APIs, grant client access, or activate moderation.
 
 ### blocks
 
@@ -72,7 +72,7 @@ These are proposed tables only. Do not add them to the bootstrap workflow until 
 | blockedId | string | yes | Target Auth user ID |
 | createdAt | datetime | yes | Server-generated timestamp |
 
-Add a unique index on (blockerId, blockedId) and indexes for lookups by each side. Reject self-blocks. Repeated block calls must be idempotent.
+Indexes: unique (blockerId, blockedId), key (blockerId), and key (blockedId). Reject self-blocks in the trusted backend. Repeated block calls must be idempotent.
 
 ### reports
 
@@ -88,7 +88,7 @@ Add a unique index on (blockerId, blockedId) and indexes for lookups by each sid
 | createdAt | datetime | yes | Server-generated timestamp |
 | updatedAt | datetime | yes | Server-generated timestamp |
 
-Do not store uploaded identity documents or unnecessary sensitive material in this table. If evidence storage is later required, use private storage, narrow access, retention limits, and a separately reviewed design.
+Indexes: key (reporterId, createdAt), key (targetUserId, createdAt), and key (status, createdAt). Keep description length-limited (maximum 1000 characters). Do not store uploaded identity documents or unnecessary sensitive material in this table. If evidence storage is later required, use private storage, narrow access, retention limits, and a separately reviewed design.
 
 ### moderation_actions
 
@@ -104,7 +104,7 @@ Do not store uploaded identity documents or unnecessary sensitive material in th
 | reportId | string | no | Related report |
 | createdAt | datetime | yes | Server-generated timestamp |
 
-Treat this as an append-only audit record. Corrections should be recorded as new events rather than silently rewriting history. Do not expose internal moderator notes to ordinary users.
+Indexes: key (targetUserId, createdAt), key (reportId), and key (actionType, createdAt). Treat this as an append-only audit record. Corrections should be recorded as new events rather than silently rewriting history. Do not expose internal moderator notes to ordinary users.
 
 ## 4. Server-side authorization and enforcement
 
@@ -159,4 +159,4 @@ For every direct-message, friend-request, presence, and other private interactio
 
 ## 8. Release gate
 
-Do not enable the feature until the proposed tables, indexes, Appwrite permissions, Functions, moderator role management, retention policy, appeal process, and abuse tests are implemented and reviewed. This specification is a design document, not a deployed moderation system or independent security audit.
+Schema provisioning alone does not enable the feature. Do not expose or activate it until Appwrite Functions, authorization rules, moderator role management, retention policy, appeal process, and abuse tests are implemented and reviewed. The tables must remain private with empty table permissions and row security enabled. This specification is not an independent security audit.
