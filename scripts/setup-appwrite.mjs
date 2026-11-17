@@ -129,8 +129,11 @@ const definitions = [
     ]
   },
   {
-    id: "conversations", name: "Private Conversations",
+    id: "conversations", name: "Conversations",
     columns: [
+      { key: "type", type: "varchar", size: 16, required: true },
+      { key: "title", type: "varchar", size: 120, required: false },
+      { key: "createdById", type: "varchar", size: 36, required: true },
       { key: "participantAId", type: "varchar", size: 36, required: true },
       { key: "participantBId", type: "varchar", size: 36, required: true },
       { key: "createdAt", type: "datetime", required: true },
@@ -139,21 +142,42 @@ const definitions = [
     ],
     indexes: [
       { key: "participant_pair_unique", type: "unique", columns: ["participantAId", "participantBId"] },
-      { key: "participant_b_lookup", type: "key", columns: ["participantBId"] },
+      { key: "participant_a_lookup", type: "key", columns: ["participantAId", "updatedAt"] },
+      { key: "participant_b_lookup", type: "key", columns: ["participantBId", "updatedAt"] },
+      { key: "created_by_updated", type: "key", columns: ["createdById", "updatedAt"] },
       { key: "last_message_lookup", type: "key", columns: ["lastMessageAt"] }
     ]
   },
   {
-    id: "messages", name: "Private Messages",
+    id: "messages", name: "Messages",
     columns: [
       { key: "conversationId", type: "varchar", size: 36, required: true },
       { key: "senderId", type: "varchar", size: 36, required: true },
       { key: "body", type: "varchar", size: 4000, required: true },
-      { key: "createdAt", type: "datetime", required: true }
+      { key: "messageType", type: "varchar", size: 16, required: true },
+      { key: "clientMessageId", type: "varchar", size: 64, required: true },
+      { key: "createdAt", type: "datetime", required: true },
+      { key: "editedAt", type: "datetime", required: false }
     ],
     indexes: [
       { key: "conversation_created", type: "key", columns: ["conversationId", "createdAt"] },
-      { key: "sender_created", type: "key", columns: ["senderId", "createdAt"] }
+      { key: "sender_created", type: "key", columns: ["senderId", "createdAt"] },
+      { key: "client_message_unique", type: "unique", columns: ["senderId", "clientMessageId"] }
+    ]
+  },
+  {
+    id: "conversation_members", name: "Conversation Members",
+    columns: [
+      { key: "conversationId", type: "varchar", size: 36, required: true },
+      { key: "userId", type: "varchar", size: 36, required: true },
+      { key: "role", type: "varchar", size: 16, required: true },
+      { key: "joinedAt", type: "datetime", required: true },
+      { key: "lastReadAt", type: "datetime", required: false }
+    ],
+    indexes: [
+      { key: "conversation_user_unique", type: "unique", columns: ["conversationId", "userId"] },
+      { key: "member_conversations", type: "key", columns: ["userId", "joinedAt"] },
+      { key: "conversation_members_lookup", type: "key", columns: ["conversationId", "joinedAt"] }
     ]
   }
 ];
