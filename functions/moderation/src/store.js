@@ -285,7 +285,15 @@ export function createModerationStore() {
       try {
         conversation = await db.createRow({
           databaseId: DATABASE_ID, tableId: "conversations", rowId: ID.unique(),
-          data: { participantAId: pair.userAId, participantBId: pair.userBId, createdAt: now, updatedAt: now },
+          data: {
+            type: "direct",
+            title: "",
+            createdById: callerId,
+            participantAId: pair.userAId,
+            participantBId: pair.userBId,
+            createdAt: now,
+            updatedAt: now
+          },
           permissions: []
         });
       } catch (error) {
@@ -294,7 +302,46 @@ export function createModerationStore() {
         if (!conversation) throw error;
       }
     }
+    // Ensure both participants have private membership rows, including for
+    // conversations created before membership records were introduced.
+    await Promise.all([
+      ensureConversationMember(conversation.$id, pair.userAId, pair.userAId === conversation.createdById ? "owner" : "member"),
+      ensureConversationMember(conversation.$id, pair.userBId, pair.userBId === conversation.createdById ? "owner" : "member")
+    ]);
     return { conversationId: conversation.$id, friendUserId, createdAt: conversation.createdAt, lastMessageAt: conversation.lastMessageAt ?? null };
+  }
+
+  async function ensureConversationMember(conversationId, userId, role = "member") {
+    const rowId = stableRowId("cm", `${conversationId}:${userId}`);
+    try {
+      await db.createRow({
+        databaseId: DATABASE_ID,
+        tableId: "conversation_members",
+        rowId,
+        data: {
+          conversationId,
+          userId,
+          role,
+          joinedAt: new Date().toISOString()
+        },
+        permissions: []
+      });
+    } catch (error) {
+      if (error?.code !== 409 && error?.type !== "row_already_exists" && error?.type !== "document_already_exists") throw error;
+    }
+  }
+
+  async function hasConversationMembership(conversationId, userId) {
+    const result = await db.listRows({
+      databaseId: DATABASE_ID,
+      tableId: "conversation_members",
+      queries: [
+        Query.equal("conversationId", conversationId),
+        Query.equal("userId", userId),
+        Query.limit(1)
+      ]
+    });
+    return result.rows.length > 0;
   }
 
   async function listConversations(callerId) {
@@ -322,6 +369,7 @@ export function createModerationStore() {
   async function getAuthorizedConversation(callerId, conversationId) {
     const conversation = await db.getRow({ databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId });
     if (!canReadOrSendMessage(conversation, callerId)) return { error: "conversation_unavailable" };
+    if (!(await hasConversationMembership(conversationId, callerId))) return { error: "conversation_unavailable" };
     const friendUserId = conversation.participantAId === callerId ? conversation.participantBId : conversation.participantAId;
     if (await isBlocked(callerId, friendUserId)) return { error: "interaction_unavailable" };
     if (!(await findFriendship(callerId, friendUserId))) return { error: "friendship_required" };
@@ -380,7 +428,14 @@ export function createModerationStore() {
     try {
       row = await db.createRow({
         databaseId: DATABASE_ID, tableId: "messages", rowId: idempotencyKey.toLowerCase(),
-        data: { conversationId, senderId: callerId, body: checked.value, createdAt: now },
+        data: {
+          conversationId,
+          senderId: callerId,
+          body: checked.value,
+          messageType: "text",
+          clientMessageId: idempotencyKey.toLowerCase(),
+          createdAt: now
+        },
         permissions: []
       });
     } catch (error) {
