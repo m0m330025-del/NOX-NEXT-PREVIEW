@@ -37,7 +37,7 @@
 <script>
 const password=document.getElementById('password');
 document.getElementById('toggle-password').addEventListener('click',()=>{const show=password.type==='password';password.type=show?'text':'password';document.getElementById('toggle-password').textContent=show?'إخفاء':'إظهار';});
-document.getElementById('login-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('notice').textContent='هذه معاينة فقط؛ لم يتم التحقق من الحساب أو إنشاء جلسة حقيقية.';window.location.href='./home.html';});
+document.getElementById('login-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('notice').textContent='تسجيل الدخول غير متاح بعد. لن يتم إرسال بياناتك أو فتح التطبيق حتى تكتمل المصادقة والتحقق الآمن من أهلية الحساب.';});
 document.getElementById('forgot-link').addEventListener('click',e=>{e.preventDefault();document.getElementById('notice').textContent='استعادة كلمة المرور ستُفعّل بعد ربط نظام الحسابات.';});
 
 </script>
