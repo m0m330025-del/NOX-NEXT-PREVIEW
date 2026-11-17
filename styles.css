@@ -137,3 +137,39 @@ body{perspective:none!important}
   .toast{bottom:calc(78px + env(safe-area-inset-bottom))!important;z-index:70}
   .friend-modal{z-index:100!important}
 }
+
+
+/* NOX calm sage theme: final mobile overrides */
+@media(max-width:760px){
+  body{background:#eef3f1!important}
+  .mobile-header{
+    background:linear-gradient(110deg,#496b67,#6f918a)!important;
+    color:#fff!important;
+    box-shadow:0 3px 14px rgba(47,79,75,.12)!important
+  }
+  .mobile-header .brand-mobile,.mobile-header .brand-mobile b,
+  .mobile-header .brand-mobile small{color:#fff!important}
+  .mobile-header .brand-symbol{
+    background:#e7efec!important;color:#496b67!important;
+    box-shadow:none!important
+  }
+  .mobile-header .icon-button{
+    background:rgba(255,255,255,.16)!important;
+    border:1px solid rgba(255,255,255,.22)!important;
+    color:#fff!important
+  }
+  .mobile-add-friend{
+    background:#edf4f1!important;color:#456762!important;
+    border:1px solid #d5e3de!important
+  }
+  .mobile-nav{
+    position:fixed!important;inset:auto 0 0 0!important;
+    transform:none!important;will-change:auto!important;
+    background:#fbfdfc!important;border-top:1px solid #dce8e3!important;
+    box-shadow:0 -5px 18px rgba(49,77,71,.10)!important;
+    z-index:100!important
+  }
+  .mobile-nav a,.mobile-nav button{color:#617b75!important}
+  .mobile-nav .active{color:#477c73!important}
+  .feed-layout,.workspace{background:transparent!important}
+}
