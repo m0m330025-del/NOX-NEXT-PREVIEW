@@ -83,7 +83,7 @@ const indexes = [
   { collectionId: "friend_requests", key: "sender_status", type: DocumentsDBIndexType.Key, attributes: ["senderId", "status"] },
   { collectionId: "friendships", key: "userA_userB_unique", type: DocumentsDBIndexType.Unique, attributes: ["userAId", "userBId"] },
   { collectionId: "friendships", key: "userB_lookup", type: DocumentsDBIndexType.Key, attributes: ["userBId"] },
-  { collectionId: "notifications", key: "recipient_created", type: DocumentsDBIndexType.Key, attributes: ["recipientId", "$createdAt"] },
+  { collectionId: "notifications", key: "recipient_created", type: DocumentsDBIndexType.Key, attributes: ["recipientId", "createdAt"] },
 ];
 
 for (const index of indexes) {
