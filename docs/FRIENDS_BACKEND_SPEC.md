@@ -56,6 +56,30 @@ Appwrite Auth owns credentials and authentication sessions. Do not store passwor
 
 The function must sort the two user IDs consistently before writing a friendship. The unique index then prevents duplicate rows for the same canonical pair.
 
+
+### `conversations`
+
+| Attribute | Type | Required | Purpose |
+|---|---|---:|---|
+| `participantAId` | string | yes | First Auth user ID in canonical sorted order |
+| `participantBId` | string | yes | Second Auth user ID in canonical sorted order |
+| `createdAt` | datetime | yes | Server-generated creation time |
+| `updatedAt` | datetime | yes | Server-generated update time |
+| `lastMessageAt` | datetime | no | Server-generated last message timestamp |
+
+A unique index on the canonical participant pair enforces one direct conversation per friendship.
+
+### `messages`
+
+| Attribute | Type | Required | Purpose |
+|---|---|---:|---|
+| `conversationId` | string | yes | Private conversation row ID |
+| `senderId` | string | yes | Authenticated sender ID |
+| `body` | string | yes | Plain text message, maximum 4,000 characters |
+| `createdAt` | datetime | yes | Server-generated creation time |
+
+Message rows are private and have empty row permissions. Only the authenticated conversation participants can read them through the Function.
+
 ### `notifications`
 
 | Attribute | Type | Required | Purpose |
@@ -100,6 +124,19 @@ The moderation Function scaffold now includes authenticated server-side routes f
 
 These routes are not deployed and have not been integration-tested against Appwrite. Profile lookup has no persistent rate limiter yet and must not be publicly exposed until rate limiting and anti-enumeration controls are added. Duplicate pending-request prevention currently uses read-before-write checks and is not safe against concurrent races. Friendship creation and request acceptance are sequential rather than transactional. Treat this as implementation scaffolding only; production enablement requires transaction or idempotency design, concurrency tests, Appwrite integration tests with two synthetic accounts, and verified SDK compatibility. Pure policy tests now cover NOX ID normalization, canonical friendship ordering, and sender/recipient authorization for request transitions; the latest GitHub Actions result has not yet been observed.
 
+
+## Private messaging scaffold
+
+The TablesDB bootstrap script now defines private `conversations` and `messages` tables. The authenticated Function scaffold includes:
+- `POST /conversations` to create or retrieve a direct conversation with an existing friend.
+- `GET /conversations` to list the caller's direct conversations.
+- `GET /messages?conversationId=...` to retrieve the latest 50 messages.
+- `POST /messages` to send plain text up to 4,000 characters.
+
+Conversation participants are stored in canonical sorted order, with a unique pair index. Each read/send operation verifies caller membership, the ongoing friendship, and the bidirectional block guard. Message sender identity is always the authenticated Appwrite account, never a body field. A basic server-side limit of 30 messages per sender per minute is included.
+
+This remains an un-deployed scaffold. The new tables have not yet been provisioned by rerunning the manual setup workflow, and no deployed Function, two-account integration test, Realtime delivery, pagination, attachments, edit/delete, or frontend connection exists yet. Message text must be safely rendered as text by any future client (never injected as HTML). The latest-50 response is a prototype contract, not a complete history pagination design.
+
 ## Block enforcement contract
 
 A shared server-side helper is now present in `functions/moderation/src/policy.js` and exposed by the moderation store as `isBlocked(userAId, userBId)`. It checks both directed records in the private `blocks` table. Every future friend-request create/accept operation and every private-conversation send/open operation must call this guard using identities derived from the authenticated Appwrite session. If either direction is blocked, reject the operation without revealing which user created the block.
@@ -120,7 +157,8 @@ Collect only profile data needed by the product. Keep date of birth private and 
 - [ ] Store the Appwrite API key as a protected GitHub Actions Secret; never paste it into chat or commit it.
 - [x] Run the manual bootstrap workflow and confirm successful runs #12 and #13.
 - [x] Verify all seven tables, columns, indexes, empty permissions, and row security through workflow #13 logs.
-- [ ] Implement authenticated Appwrite Functions for friend operations.
+- [ ] Implement and deploy authenticated Appwrite Functions for friend and private-message operations.
+- [ ] Provision the new private conversations and messages tables by rerunning the manual TablesDB setup workflow on the development branch.
 - [ ] Configure minimum required permissions and test unauthorized access.
 - [ ] Test two separate accounts on two devices: lookup, request, accept, decline, cancel, notification, logout, and reconnect.
 - [ ] Test duplicate and concurrent requests, self-requests, and attempts to act on another user's request.
