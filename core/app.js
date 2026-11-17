@@ -50,7 +50,7 @@ export function initApp() {
   let scanLoop = false;
   let detector = null;
   let pendingFriendId = "";
-  const ownNoxId = (localStorage.getItem("noxUserId") || localStorage.getItem("nox_id") || localStorage.getItem("NOX_ID") || "NOX-123-456").toUpperCase();
+  const ownNoxId = (localStorage.getItem("noxDemoId") || localStorage.getItem("noxUserId") || localStorage.getItem("nox_id") || localStorage.getItem("NOX_ID") || "NOX-123-456").toUpperCase();
 
   function stopFriendCamera() {
     scanLoop = false;
