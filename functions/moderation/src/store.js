@@ -213,12 +213,21 @@ export function createModerationStore() {
       databaseId: DATABASE_ID, tableId: "conversations",
       queries: [Query.or([Query.equal("participantAId", callerId), Query.equal("participantBId", callerId)]), Query.orderDesc("lastMessageAt"), Query.limit(100)]
     });
-    return result.rows.map(row => ({
-      conversationId: row.$id,
-      friendUserId: row.participantAId === callerId ? row.participantBId : row.participantAId,
-      createdAt: row.createdAt,
-      lastMessageAt: row.lastMessageAt ?? null
+    const visible = await Promise.all(result.rows.map(async row => {
+      const friendUserId = row.participantAId === callerId ? row.participantBId : row.participantAId;
+      const [blocked, friendship] = await Promise.all([
+        isBlocked(callerId, friendUserId),
+        findFriendship(callerId, friendUserId)
+      ]);
+      if (blocked || !friendship) return null;
+      return {
+        conversationId: row.$id,
+        friendUserId,
+        createdAt: row.createdAt,
+        lastMessageAt: row.lastMessageAt ?? null
+      };
     }));
+    return visible.filter(Boolean);
   }
 
   async function getAuthorizedConversation(callerId, conversationId) {
