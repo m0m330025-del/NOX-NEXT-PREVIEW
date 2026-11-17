@@ -38,6 +38,17 @@ All routes require an Appwrite user JWT and derive the caller ID from the verifi
 
 Rows are written with empty row permissions. These routes do not grant browser access to TablesDB. The current store writes rows server-side using the dedicated function API key; this has not yet been verified against a deployed Appwrite Function or tested end-to-end against the live database.
 
+## Friend endpoints added to the scaffold
+
+The authenticated Function router now contains these private server-side routes:
+- `POST /friends/requests` with `noxId` (normalized on the server)
+- `GET /friends/requests?direction=incoming|outgoing`
+- `POST /friends/requests/respond` with `requestId` and `decision=accept|decline`
+- `POST /friends/requests/cancel` with `requestId`
+- `GET /friends`
+
+The store derives the sender/actor from the verified Appwrite JWT, checks the bidirectional block guard before creating or accepting a request, and writes rows with empty permissions. This is still scaffold code: it has not been deployed or integration-tested against Appwrite. Duplicate-request checks are read-then-write and are not transactionally race-safe; do not expose these routes in production until concurrency controls/transaction behavior are implemented and tested. Friend profile lookup responses are intentionally not included yet.
+
 ## Intentionally not enabled
 
 Moderator review/action routes still return `501 not_implemented`. Message/profile reports are rejected until their source content and authorization model are implemented. Moderator routes use an exact-match allowlist from the protected Function environment variable `NOX_MODERATOR_USER_IDS` (comma-separated Appwrite Auth user IDs). Missing or malformed configuration fails closed. Provision this variable only through the Appwrite Console or approved secret-management process; never put it in the repository or browser. This is deliberate: the private TablesDB tables exist and the scaffold contains server-side row persistence for account reports and user blocks, but the persistence path has not yet been integration-tested against a deployed Function. Moderator review/actions, approved moderator membership, appeals/retention policy, and end-to-end enforcement in friend requests, messages, and presence are not implemented.
