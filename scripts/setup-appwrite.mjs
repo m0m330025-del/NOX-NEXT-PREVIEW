@@ -83,20 +83,35 @@ const current = await db.listTables({ databaseId, total: true });
 const currentIds = new Set(current.tables.map((item) => item.$id));
 
 for (const table of definitions) {
-  if (currentIds.has(table.id)) {
+  if (!currentIds.has(table.id)) {
+    const created = await db.createTable({
+      databaseId,
+      tableId: table.id,
+      name: table.name,
+      permissions: [],
+      rowSecurity: true
+    });
+    console.log("Created private table:", created.$id);
+    currentIds.add(table.id);
+  } else {
     const verified = await db.getTable({ databaseId, tableId: table.id });
-    console.log("Already exists:", verified.$id);
-    continue;
+    console.log("Verified existing table:", verified.$id);
   }
-  const created = await db.createTable({
+
+  // Reconcile columns even when a table already exists. This makes retries safe
+  // after a partial run (for example, if index creation previously failed).
+  const existingColumns = await db.listColumns({
     databaseId,
     tableId: table.id,
-    name: table.name,
-    permissions: [],
-    rowSecurity: true
+    total: true
   });
-  console.log("Created private table:", created.$id);
+  const columnKeys = new Set(existingColumns.columns.map((item) => item.key));
+
   for (const column of table.columns) {
+    if (columnKeys.has(column.key)) {
+      console.log("Already exists column:", table.id + "." + column.key);
+      continue;
+    }
     const method = {
       varchar: "createVarcharColumn",
       datetime: "createDatetimeColumn",
@@ -115,13 +130,27 @@ for (const table of definitions) {
     await db[method](args);
     console.log("Created column:", table.id + "." + column.key);
   }
+
+  // Appwrite TablesDB createIndex expects "columns", not the legacy
+  // "attributes" property.
+  const existingIndexes = await db.listIndexes({
+    databaseId,
+    tableId: table.id,
+    total: true
+  });
+  const indexKeys = new Set(existingIndexes.indexes.map((item) => item.$id ?? item.key));
+
   for (const index of table.indexes) {
+    if (indexKeys.has(index.key)) {
+      console.log("Already exists index:", table.id + "." + index.key);
+      continue;
+    }
     await db.createIndex({
       databaseId,
       tableId: table.id,
       key: index.key,
       type: index.type,
-      attributes: index.attributes
+      columns: index.attributes
     });
     console.log("Created index:", table.id + "." + index.key);
   }
