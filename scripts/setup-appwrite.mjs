@@ -145,13 +145,30 @@ for (const table of definitions) {
       console.log("Already exists index:", table.id + "." + index.key);
       continue;
     }
-    await db.createIndex({
-      databaseId,
-      tableId: table.id,
-      key: index.key,
-      type: index.type,
-      columns: index.columns
-    });
+    // TablesDB may briefly report a newly-created column as unavailable.
+    // Retry only that transient condition; fail immediately for other errors.
+    let created = false;
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      try {
+        await db.createIndex({
+          databaseId,
+          tableId: table.id,
+          key: index.key,
+          type: index.type,
+          columns: index.columns
+        });
+        created = true;
+        break;
+      } catch (error) {
+        const transient = error?.type === "column_not_available";
+        if (!transient || attempt === 5) throw error;
+        const delayMs = 1000 * (attempt + 1);
+        console.log("Column not ready for index " + table.id + "." + index.key +
+          "; retrying in " + delayMs + "ms");
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+    if (!created) throw new Error("Could not create index: " + table.id + "." + index.key);
     console.log("Created index:", table.id + "." + index.key);
   }
 }
