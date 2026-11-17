@@ -21,11 +21,11 @@ This package is a **non-production scaffold** for the NOX moderation API.
 ## Protected Function environment
 
 Configure these values in the Appwrite Function's protected environment settings, never in frontend code or Git:
-- `NOX_MODERATION_API_KEY`: a dedicated server API key with only the database row read/write scopes required for `users`, `blocks`, and `reports`.
+- `NOX_MODERATION_API_KEY`: a dedicated server API key with only `rows.read` and `rows.write` scopes. Appwrite scopes apply at project level, not individual table level, so this key can technically access rows in other project tables too; keep it server-only, use a separate dedicated key, and review this broader access before any production deployment.
 - `NOX_DATABASE_ID`: optional; defaults to the existing `NOX_CORE` database ID.
 - `NOX_MODERATOR_USER_IDS`: optional comma-separated Auth user IDs; leave unset until moderator identities are formally approved.
 
-The API key is not committed and is not supplied by this repository. Without it, persistence fails closed with a service-unavailable response.
+The API key is not committed and is not supplied by this repository. Without it, persistence fails closed with a service-unavailable response. Appwrite's API key scope model is documented at https://appwrite.io/docs/partners/project/api-keys.
 
 ## Implemented routes in the scaffold
 
