@@ -128,6 +128,39 @@ const definitions = [
       { key: "recipient_created", type: "key", columns: ["recipientId", "createdAt"] }
     ]
   }
+  ,
+  {
+    id: "conversations", name: "Conversations",
+    columns: [
+      { key: "type", type: "varchar", size: 16, required: true },
+      { key: "title", type: "varchar", size: 120, required: false },
+      { key: "createdById", type: "varchar", size: 36, required: true },
+      { key: "createdAt", type: "datetime", required: true },
+      { key: "updatedAt", type: "datetime", required: true },
+      { key: "lastMessageAt", type: "datetime", required: false }
+    ],
+    indexes: [
+      { key: "created_by_updated", type: "key", columns: ["createdById", "updatedAt"] },
+      { key: "last_message_lookup", type: "key", columns: ["lastMessageAt"] }
+    ]
+  },
+  {
+    id: "messages", name: "Messages",
+    columns: [
+      { key: "conversationId", type: "varchar", size: 36, required: true },
+      { key: "senderId", type: "varchar", size: 36, required: true },
+      { key: "body", type: "varchar", size: 4000, required: true },
+      { key: "messageType", type: "varchar", size: 16, required: true },
+      { key: "clientMessageId", type: "varchar", size: 64, required: true },
+      { key: "createdAt", type: "datetime", required: true },
+      { key: "editedAt", type: "datetime", required: false }
+    ],
+    indexes: [
+      { key: "conversation_created", type: "key", columns: ["conversationId", "createdAt"] },
+      { key: "sender_created", type: "key", columns: ["senderId", "createdAt"] },
+      { key: "client_message_unique", type: "unique", columns: ["senderId", "clientMessageId"] }
+    ]
+  }
 ];
 
 const current = await db.listTables({ databaseId, total: true });
