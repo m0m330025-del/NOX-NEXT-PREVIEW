@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#100b1b">
   <title>NOX KISS — غرفة تجريبية</title>
   <link rel="stylesheet" href="./nox-kiss.css">
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="./nox-kiss.js" defer></script>
 </head>
 <body>
@@ -50,8 +52,13 @@
       <div class="panel-actions"><button id="stopDance" class="stop">إيقاف الحركة</button><button id="closePanel" class="done">تم</button></div>
     </aside>
 
-    <aside class="mini-panel" id="otherPanel" hidden>
-      <button class="close" id="closeOther">×</button><h3 id="otherTitle"></h3><p id="otherText"></p>
+    <aside class="mini-panel friends-panel" id="otherPanel" hidden>
+      <button class="close" id="closeOther" aria-label="إغلاق">×</button>
+      <h3 id="otherTitle">إضافة صديق</h3><p>شارك رمزك أو امسح QR الخاص بصديقك لإضافته</p>
+      <div class="my-nox-id"><small>NOX ID الخاص بك</small><strong id="myNoxId" dir="ltr">NOX-000-000</strong><div id="myNoxQr"></div><button id="copyNoxId" type="button">نسخ NOX ID</button></div>
+      <label for="friendNoxId">إضافة باستخدام NOX ID</label><div class="friend-entry"><input id="friendNoxId" placeholder="NOX-123-456" dir="ltr"><button id="addFriend" type="button">إضافة</button></div>
+      <button id="startQrScan" class="scan-button" type="button">▦ مسح QR لإضافة صديق</button><div id="qr-reader" hidden></div>
+      <p id="friendNotice" class="friend-notice" role="status">الإضافة هنا تجريبية ومحفوظة على هذا الجهاز فقط.</p><h4>قائمة الأصدقاء</h4><ul id="friendList" class="friend-list"></ul>
     </aside>
     <footer>نموذج واجهة محلي — الحركات تجريبية ولا يوجد اتصال أو مزامنة بين اللاعبين بعد.</footer>
   </main>
