@@ -1,5 +1,5 @@
 import { Client, ID, Query, TablesDB } from "node-appwrite";
-import { isBlockedEitherWay, canonicalFriendPair, canRespondToFriendRequest, canCancelFriendRequest } from "./policy.js";
+import { isBlockedEitherWay, canonicalFriendPair, canRespondToFriendRequest, canCancelFriendRequest, canReadOrSendMessage, validateMessageBody } from "./policy.js";
 
 const DATABASE_ID = process.env.NOX_DATABASE_ID || "6afc583f00382386b997";
 
@@ -161,6 +161,111 @@ export function createModerationStore() {
     return result.rows.map(row => ({ userId: row.userAId === userId ? row.userBId : row.userAId, createdAt: row.createdAt }));
   }
 
+
+  async function findFriendship(userAId, userBId) {
+    const pair = canonicalFriendPair(userAId, userBId);
+    if (!pair.ok) return null;
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "friendships",
+      queries: [Query.equal("userAId", pair.userAId), Query.equal("userBId", pair.userBId), Query.limit(1)]
+    });
+    return result.rows[0] ?? null;
+  }
+
+  async function findConversation(userAId, userBId) {
+    const pair = canonicalFriendPair(userAId, userBId);
+    if (!pair.ok) return null;
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "conversations",
+      queries: [Query.equal("participantAId", pair.userAId), Query.equal("participantBId", pair.userBId), Query.limit(1)]
+    });
+    return result.rows[0] ?? null;
+  }
+
+  async function createOrGetConversation(callerId, friendUserId) {
+    if (typeof friendUserId !== "string" || !friendUserId || friendUserId === callerId) {
+      return { error: "invalid_friend" };
+    }
+    if (await isBlocked(callerId, friendUserId)) return { error: "interaction_unavailable" };
+    if (!(await findFriendship(callerId, friendUserId))) return { error: "friendship_required" };
+    const pair = canonicalFriendPair(callerId, friendUserId);
+    if (!pair.ok) return { error: "invalid_friend" };
+    let conversation = await findConversation(callerId, friendUserId);
+    if (!conversation) {
+      const now = new Date().toISOString();
+      try {
+        conversation = await db.createRow({
+          databaseId: DATABASE_ID, tableId: "conversations", rowId: ID.unique(),
+          data: { participantAId: pair.userAId, participantBId: pair.userBId, createdAt: now, updatedAt: now },
+          permissions: []
+        });
+      } catch (error) {
+        if (error?.code !== 409 && error?.type !== "document_already_exists") throw error;
+        conversation = await findConversation(callerId, friendUserId);
+        if (!conversation) throw error;
+      }
+    }
+    return { conversationId: conversation.$id, friendUserId, createdAt: conversation.createdAt, lastMessageAt: conversation.lastMessageAt ?? null };
+  }
+
+  async function listConversations(callerId) {
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "conversations",
+      queries: [Query.or([Query.equal("participantAId", callerId), Query.equal("participantBId", callerId)]), Query.orderDesc("lastMessageAt"), Query.limit(100)]
+    });
+    return result.rows.map(row => ({
+      conversationId: row.$id,
+      friendUserId: row.participantAId === callerId ? row.participantBId : row.participantAId,
+      createdAt: row.createdAt,
+      lastMessageAt: row.lastMessageAt ?? null
+    }));
+  }
+
+  async function getAuthorizedConversation(callerId, conversationId) {
+    const conversation = await db.getRow({ databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId });
+    if (!canReadOrSendMessage(conversation, callerId)) return { error: "conversation_unavailable" };
+    const friendUserId = conversation.participantAId === callerId ? conversation.participantBId : conversation.participantAId;
+    if (await isBlocked(callerId, friendUserId)) return { error: "interaction_unavailable" };
+    if (!(await findFriendship(callerId, friendUserId))) return { error: "friendship_required" };
+    return { conversation, friendUserId };
+  }
+
+  async function listMessages(callerId, conversationId) {
+    const access = await getAuthorizedConversation(callerId, conversationId);
+    if (access.error) return access;
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "messages",
+      queries: [Query.equal("conversationId", conversationId), Query.orderDesc("createdAt"), Query.limit(50)]
+    });
+    return { messages: result.rows.reverse().map(row => ({
+      messageId: row.$id, senderId: row.senderId, body: row.body, createdAt: row.createdAt
+    })) };
+  }
+
+  async function sendMessage(callerId, conversationId, rawBody) {
+    const checked = validateMessageBody(rawBody);
+    if (!checked.ok) return { error: checked.error };
+    const access = await getAuthorizedConversation(callerId, conversationId);
+    if (access.error) return access;
+    const windowStart = new Date(Date.now() - 60 * 1000).toISOString();
+    const recent = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "messages",
+      queries: [Query.equal("senderId", callerId), Query.greaterThan("createdAt", windowStart), Query.limit(30)]
+    });
+    if (recent.rows.length >= 30) return { error: "message_rate_limited" };
+    const now = new Date().toISOString();
+    const row = await db.createRow({
+      databaseId: DATABASE_ID, tableId: "messages", rowId: ID.unique(),
+      data: { conversationId, senderId: callerId, body: checked.value, createdAt: now },
+      permissions: []
+    });
+    await db.updateRow({
+      databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId,
+      data: { updatedAt: now, lastMessageAt: now }
+    });
+    return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt } };
+  }
+
   async function createBlock(blockerId, blockedId) {
     if (!(await findUser(blockedId))) {
       return { created: false, error: "target_not_found" };
@@ -290,5 +395,5 @@ export function createModerationStore() {
     }));
   }
 
-  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships, lookupPublicProfile, listNotifications, markNotificationRead };
+  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships, lookupPublicProfile, listNotifications, markNotificationRead, createOrGetConversation, listConversations, listMessages, sendMessage };
 }
