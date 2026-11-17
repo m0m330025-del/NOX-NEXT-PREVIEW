@@ -34,8 +34,8 @@ const definitions = [
       { key: "createdAt", type: "datetime", required: true }
     ],
     indexes: [
-      { key: "authUserId_unique", type: "unique", attributes: ["authUserId"] },
-      { key: "noxId_unique", type: "unique", attributes: ["noxId"] }
+      { key: "authUserId_unique", type: "unique", columns: ["authUserId"] },
+      { key: "noxId_unique", type: "unique", columns: ["noxId"] }
     ]
   },
   {
@@ -48,8 +48,8 @@ const definitions = [
       { key: "updatedAt", type: "datetime", required: true }
     ],
     indexes: [
-      { key: "recipient_status", type: "key", attributes: ["recipientId", "status"] },
-      { key: "sender_status", type: "key", attributes: ["senderId", "status"] }
+      { key: "recipient_status", type: "key", columns: ["recipientId", "status"] },
+      { key: "sender_status", type: "key", columns: ["senderId", "status"] }
     ]
   },
   {
@@ -60,8 +60,8 @@ const definitions = [
       { key: "createdAt", type: "datetime", required: true }
     ],
     indexes: [
-      { key: "userA_userB_unique", type: "unique", attributes: ["userAId", "userBId"] },
-      { key: "userB_lookup", type: "key", attributes: ["userBId"] }
+      { key: "userA_userB_unique", type: "unique", columns: ["userAId", "userBId"] },
+      { key: "userB_lookup", type: "key", columns: ["userBId"] }
     ]
   },
   {
@@ -74,7 +74,7 @@ const definitions = [
       { key: "createdAt", type: "datetime", required: true }
     ],
     indexes: [
-      { key: "recipient_created", type: "key", attributes: ["recipientId", "createdAt"] }
+      { key: "recipient_created", type: "key", columns: ["recipientId", "createdAt"] }
     ]
   }
 ];
@@ -150,7 +150,7 @@ for (const table of definitions) {
       tableId: table.id,
       key: index.key,
       type: index.type,
-      columns: index.attributes
+      columns: index.columns
     });
     console.log("Created index:", table.id + "." + index.key);
   }
