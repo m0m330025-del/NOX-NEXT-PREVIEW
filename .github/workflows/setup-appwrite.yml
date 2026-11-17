@@ -43,6 +43,6 @@ jobs:
       - name: Create NOX_CORE TablesDB tables and indexes
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
-          APPWRITE_PROJECT_ID: 6af9ca51000735dfb692\n          APPWRITE_DATABASE_ID: 6afc583f00382386b997
+          APPWRITE_PROJECT_ID: 6af9ca51000735dfb692          APPWRITE_DATABASE_ID: 6afc583f00382386b997
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: node scripts/setup-appwrite.mjs
