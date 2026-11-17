@@ -94,6 +94,12 @@ The server must prevent self-requests, duplicate pending requests, requests betw
 
 When accepting a request, make the state transition and friendship creation safely idempotent. If the selected Appwrite deployment supports database transactions, use them; otherwise implement and test a recoverable server-side sequence that cannot leave duplicate friendships or falsely accepted requests.
 
+## Friend Function scaffold status
+
+The moderation Function scaffold now includes authenticated server-side routes for creating, listing, accepting/declining, and cancelling friend requests, plus listing friendships. Request creation accepts a NOX ID rather than a client-supplied recipient Auth ID. Accept/cancel operations verify the caller's role as recipient/sender from the stored row. All these operations call the shared bidirectional block guard before creating or accepting a request.
+
+These routes are not deployed and have not been integration-tested against Appwrite. Duplicate pending-request prevention currently uses read-before-write checks and is not safe against concurrent races. Friendship creation and request acceptance are sequential rather than transactional. Treat this as implementation scaffolding only; production enablement requires transaction or idempotency design, concurrency tests, Appwrite integration tests with two synthetic accounts, and verified SDK compatibility.
+
 ## Block enforcement contract
 
 A shared server-side helper is now present in `functions/moderation/src/policy.js` and exposed by the moderation store as `isBlocked(userAId, userBId)`. It checks both directed records in the private `blocks` table. Every future friend-request create/accept operation and every private-conversation send/open operation must call this guard using identities derived from the authenticated Appwrite session. If either direction is blocked, reject the operation without revealing which user created the block.
