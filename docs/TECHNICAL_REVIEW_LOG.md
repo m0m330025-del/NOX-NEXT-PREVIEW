@@ -118,3 +118,18 @@ AI-assisted technical review against Appwrite SDK usage patterns, backend securi
 - Static source update committed in `scripts/setup-appwrite.mjs`.
 - These new assertions have **not yet been executed against Appwrite**. A fresh manual `workflow_dispatch` run is required to verify the SDK response shape and the existing table settings.
 - Until that run succeeds, treat Review 005 as a code change awaiting CI/runtime verification, not as a passed deployment check.
+
+### Review 006 — Correct Appwrite Table model field (2026-11-17)
+
+**Failure analysis**
+- Workflow run #11 failed during the new security assertion for the `users` table.
+- The Appwrite Table model exposes table permissions as `$permissions`, not `permissions`. The script was reading the wrong property, so the assertion rejected the response even though the table was not shown to have public permissions.
+- This field name is confirmed by the official Appwrite Table model reference: https://appwrite.io/docs/references/cloud/models/table
+
+**Correction committed**
+- Updated the bootstrap assertion to inspect `verifiedTable.$permissions` and require an empty array.
+- Kept the fail-closed behavior: unexpected or non-empty permissions still stop the workflow.
+- Commit: `91d5b73d7d3368e4b6ca761f3207ed4d9ac68c38`.
+
+**Verification pending**
+- This correction has not yet been executed against Appwrite. A new manual workflow run is required. Do not report the hardening as verified until that run completes successfully.
