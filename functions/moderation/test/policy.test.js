@@ -57,3 +57,17 @@ test("accepts a distinct valid block target", () => {
     { ok: true, value: "other_user" }
   );
 });
+
+test("moderator allowlist grants only exact configured identities", async () => {
+  const { isModerator } = await import("../src/policy.js");
+  assert.equal(isModerator("mod_123", "mod_123, mod_456"), true);
+  assert.equal(isModerator("user_123", "mod_123, mod_456"), false);
+  assert.equal(isModerator("mod_123", ""), false);
+  assert.equal(isModerator("mod_123", "mod_123-extra"), false);
+});
+
+test("malformed moderator configuration fails closed", async () => {
+  const { isModerator } = await import("../src/policy.js");
+  assert.equal(isModerator("mod_123", null), false);
+  assert.equal(isModerator("mod_123", 123), false);
+});
