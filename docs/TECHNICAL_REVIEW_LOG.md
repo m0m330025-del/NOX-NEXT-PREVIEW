@@ -75,3 +75,16 @@ This section records an earlier investigation only. It is superseded by Review 0
 
 **Decision**
 The four-table Appwrite TablesDB bootstrap is verified at workflow level. The application is not production-ready. Keep account access and protected operations disabled until a trusted server-side eligibility design, authentication boundary, authorization rules, and security tests are implemented. This is AI-assisted technical review, not an independent security audit.
+
+
+### Review 008 — Blocking, reporting, and moderation design (2026-11-17)
+
+- Added `docs/MODERATION_BLOCKING_SPEC.md` as a design-only specification.
+- Distinguished user-to-user blocks, moderator-issued account restrictions, and temporary automated protective limits.
+- Defined proposed TablesDB models for blocks, reports, and append-only moderation actions; no tables or permissions were changed.
+- Required trusted server-side identity and authorization, private row-secured data, two-way block checks on interaction endpoints, and moderator-only actions.
+- Added privacy, evidence-minimization, appeal, retention, and pre-release test requirements.
+- No block/report APIs, moderator dashboard, automated enforcement, or account suspension capability was deployed by this documentation change.
+
+**Decision**
+The moderation design is documented but not operational. Review proposed schemas and permission rules before changing the Appwrite bootstrap workflow. Keep all protected access behind the existing authentication and eligibility release gates.
