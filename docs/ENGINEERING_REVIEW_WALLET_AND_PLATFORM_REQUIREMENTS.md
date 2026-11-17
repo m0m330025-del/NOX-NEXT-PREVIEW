@@ -85,7 +85,7 @@ There is **no user withdrawal, payout, or NXC-to-EGP conversion**. Users cannot 
 
 ## 3A. Account upgrades, membership levels, and profile frames
 
-The original product requirements define account upgrades by **eligible NXC balance, account gender, and account level**. Engineering must preserve this as a distinct progression system, not silently equate it with the spendable or transferable wallet balance.
+The original product requirements define account upgrades by **account gender, tier thresholds, and the applicable progression metric**: male accounts progress by eligible NXC balance, while female accounts progress by the cumulative value of gifts successfully received. Engineering must keep these progression metrics separate from the spendable wallet balance.
 
 ### 3A.1 Male account thresholds
 
@@ -97,20 +97,33 @@ The original product requirements define account upgrades by **eligible NXC bala
 | Premium Gold | 500,000,000 NXC |
 | Premium Black | Top tier; no numeric ceiling specified |
 
-### 3A.2 Female account thresholds
+### 3A.2 Female account thresholds and gift-based progression
 
-The original requirements explicitly specify:
-- Silver: 50,000 NXC
-- Gold: 500,000 NXC
-- Higher female tiers: a previously supplied tier table exists but its exact thresholds are not present in the currently available project record. Engineering must leave these values configurable/unpublished until the product owner supplies the exact table. Do not assume the male thresholds apply.
+Female accounts use **the exact same tier thresholds as male accounts**, but their progression metric is different: a female account advances based on the cumulative NXC value of gifts successfully received, not on NXC purchased or held in the wallet.
+
+| Membership level | Female received-gift value threshold |
+|---|---:|
+| Silver | 50,000 NXC |
+| Gold | 500,000 NXC |
+| Premium | 5,000,000 NXC |
+| Premium Gold | 500,000,000 NXC |
+| Premium Black | Top tier; no numeric ceiling specified |
+
+Implementation rules:
+- Count the NXC value of each gift when the gift is successfully received and recorded.
+- Use the gift's authoritative server-side catalog value at the time of the gift.
+- Count each gift transaction once only; enforce unique transaction/event IDs and idempotency.
+- Do not count failed, cancelled, or reversed gifts toward progression. Define how a later refund/reversal affects the recipient's progression history.
+- Gift-based progression is an entitlement metric only. It does not create a cash balance or allow the recipient to withdraw or redeem NXC.
+- Keep the female gift-progression total separate from the user's spendable wallet balance and from any cash/payment records.
 
 ### 3A.3 Upgrade experience
 
 The user app should show:
 - current membership level;
 - next level and its threshold;
-- eligible balance counted toward progression;
-- remaining eligible NXC needed for the next level;
+- the applicable progression total (eligible NXC balance for male accounts; received-gift value for female accounts);
+- remaining NXC value needed for the next level;
 - progress indicator;
 - frame preview and activation/selection;
 - available static and animated frames;
@@ -146,7 +159,7 @@ The stated visibility rule is that higher Reels levels can view content from low
 
 Add dedicated admin sections for:
 1. Membership tier definitions and thresholds, segmented by the applicable account gender.
-2. Eligible-balance calculation policy and ledger event inclusion/exclusion rules.
+2. Progression calculation policies: eligible wallet-balance rules for male accounts and received-gift-value rules for female accounts, including reversals and duplicate prevention.
 3. Reels tier thresholds and visibility matrix.
 4. Frame catalog, assets, animation metadata, and tier mapping.
 5. User progression lookup, current/next tier, and progression history.
