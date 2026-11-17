@@ -1,4 +1,5 @@
 import { Client, ID, Query, TablesDB } from "node-appwrite";
+import { isBlockedEitherWay } from "./policy.js";
 
 const DATABASE_ID = process.env.NOX_DATABASE_ID || "6afc583f00382386b997";
 
@@ -65,6 +66,23 @@ export function createModerationStore() {
       rowId: row.$id
     });
     return true;
+  }
+
+  async function findBlock(blockerId, blockedId) {
+    const result = await db.listRows({
+      databaseId: DATABASE_ID,
+      tableId: "blocks",
+      queries: [
+        Query.equal("blockerId", blockerId),
+        Query.equal("blockedId", blockedId),
+        Query.limit(1)
+      ]
+    });
+    return result.rows.length > 0;
+  }
+
+  async function isBlocked(userAId, userBId) {
+    return isBlockedEitherWay(userAId, userBId, findBlock);
   }
 
   async function listBlocks(blockerId) {
@@ -138,5 +156,5 @@ export function createModerationStore() {
     }));
   }
 
-  return { createBlock, removeBlock, listBlocks, createReport, listReports };
+  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports };
 }
