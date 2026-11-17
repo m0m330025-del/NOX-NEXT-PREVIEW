@@ -1,5 +1,5 @@
 import { Client, Account } from "node-appwrite";
-import { isModerator, validateBlockTarget, validateReportInput } from "./policy.js";
+import { isModerator, validateBlockTarget, validateReportInput, validateNoxId, validateRequestId } from "./policy.js";
 import { createModerationStore } from "./store.js";
 
 const json = (res, status, body) => res.json(body, status);
@@ -38,6 +38,72 @@ export default async ({ req, res, log }) => {
 
   const route = getRoute(req.path);
   const body = req.bodyJson ?? {};
+
+
+  if (route === "/friends/requests" && req.method === "POST") {
+    const checked = validateNoxId(body.noxId);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    try {
+      const result = await createModerationStore().createFriendRequest(caller.$id, checked.value);
+      if (result.error === "user_not_found") return json(res, 404, { error: result.error });
+      if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
+      if (result.error === "cannot_request_self") return json(res, 400, { error: result.error });
+      if (result.error) return json(res, 409, result);
+      return json(res, 201, result);
+    } catch {
+      log("Friend request creation failed; request details were not logged.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/friends/requests" && req.method === "GET") {
+    const direction = req.query?.direction === "outgoing" ? "outgoing" : "incoming";
+    try {
+      const requests = await createModerationStore().listFriendRequests(caller.$id, direction);
+      return json(res, 200, { requests });
+    } catch {
+      log("Friend request lookup failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/friends/requests/respond" && req.method === "POST") {
+    const checked = validateRequestId(body.requestId);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    if (!["accept", "decline"].includes(body.decision)) return json(res, 400, { error: "invalid_decision" });
+    try {
+      const result = await createModerationStore().respondToFriendRequest(caller.$id, checked.value, body.decision);
+      if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 200, result);
+    } catch {
+      log("Friend request response failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/friends/requests/cancel" && req.method === "POST") {
+    const checked = validateRequestId(body.requestId);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    try {
+      const result = await createModerationStore().cancelFriendRequest(caller.$id, checked.value);
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 200, result);
+    } catch {
+      log("Friend request cancellation failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/friends" && req.method === "GET") {
+    try {
+      const friends = await createModerationStore().listFriendships(caller.$id);
+      return json(res, 200, { friends });
+    } catch {
+      log("Friend list lookup failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
 
   if (route === "/reports" && req.method === "POST") {
     const checked = validateReportInput(body);
