@@ -36,6 +36,10 @@ jobs:
       - name: Install pinned Appwrite SDK
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
 
+      - name: Verify DocumentsDB SDK exports
+        run: |
+          node --input-type=module -e "import { DocumentsDB, DocumentsDBIndexType } from 'node-appwrite'; if (!DocumentsDB || !DocumentsDBIndexType?.Key || !DocumentsDBIndexType?.Unique) process.exit(1)"
+
       - name: Create NOX_CORE DocumentsDB database, collections, and indexes
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
