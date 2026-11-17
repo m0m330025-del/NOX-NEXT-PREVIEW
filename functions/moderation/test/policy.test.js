@@ -109,3 +109,31 @@ test("rejects malformed NOX IDs and request IDs", async () => {
   assert.equal(validateRequestId("../other").ok, false);
   assert.equal(validateRequestId("req_123").ok, true);
 });
+
+
+test("canonical friendship pair is stable regardless of input order", async () => {
+  const { canonicalFriendPair } = await import("../src/policy.js");
+  assert.deepEqual(canonicalFriendPair("user_b", "user_a"), {
+    ok: true, userAId: "user_a", userBId: "user_b"
+  });
+  assert.deepEqual(canonicalFriendPair("same", "same"), {
+    ok: false, error: "invalid_user_pair"
+  });
+});
+
+test("only the recipient can respond to a pending request", async () => {
+  const { canRespondToFriendRequest } = await import("../src/policy.js");
+  const request = { senderId: "sender_1", recipientId: "recipient_1", status: "pending" };
+  assert.equal(canRespondToFriendRequest(request, "recipient_1", "accept"), true);
+  assert.equal(canRespondToFriendRequest(request, "recipient_1", "decline"), true);
+  assert.equal(canRespondToFriendRequest(request, "sender_1", "accept"), false);
+  assert.equal(canRespondToFriendRequest({ ...request, status: "accepted" }, "recipient_1", "accept"), false);
+});
+
+test("only the sender can cancel a pending request", async () => {
+  const { canCancelFriendRequest } = await import("../src/policy.js");
+  const request = { senderId: "sender_1", recipientId: "recipient_1", status: "pending" };
+  assert.equal(canCancelFriendRequest(request, "sender_1"), true);
+  assert.equal(canCancelFriendRequest(request, "recipient_1"), false);
+  assert.equal(canCancelFriendRequest({ ...request, status: "declined" }, "sender_1"), false);
+});
