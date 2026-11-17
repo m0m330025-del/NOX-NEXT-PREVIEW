@@ -36,6 +36,40 @@ export function createModerationStore() {
     return result.rows[0] ?? null;
   }
 
+  async function lookupPublicProfile(noxId) {
+    const user = await findUserByNoxId(noxId);
+    if (!user) return null;
+    return { noxId: user.noxId, displayName: user.displayName };
+  }
+
+  async function createNotification(recipientId, type, referenceId) {
+    await db.createRow({
+      databaseId: DATABASE_ID, tableId: "notifications", rowId: ID.unique(),
+      data: { recipientId, type, referenceId, isRead: false, createdAt: new Date().toISOString() },
+      permissions: []
+    });
+  }
+
+  async function listNotifications(userId) {
+    const result = await db.listRows({
+      databaseId: DATABASE_ID, tableId: "notifications",
+      queries: [Query.equal("recipientId", userId), Query.orderDesc("createdAt"), Query.limit(100)]
+    });
+    return result.rows.map(row => ({
+      notificationId: row.$id, type: row.type, referenceId: row.referenceId ?? null,
+      isRead: row.isRead, createdAt: row.createdAt
+    }));
+  }
+
+  async function markNotificationRead(userId, notificationId) {
+    const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "notifications", rowId: notificationId });
+    if (row.recipientId !== userId) return { error: "notification_unavailable" };
+    if (!row.isRead) {
+      await db.updateRow({ databaseId: DATABASE_ID, tableId: "notifications", rowId: notificationId, data: { isRead: true } });
+    }
+    return { isRead: true };
+  }
+
   async function createFriendRequest(senderId, noxId) {
     const recipient = await findUserByNoxId(noxId);
     if (!recipient) return { error: "user_not_found" };
@@ -67,6 +101,7 @@ export function createModerationStore() {
       data: { senderId, recipientId, status: "pending", createdAt: now, updatedAt: now },
       permissions: []
     });
+    await createNotification(recipientId, "friend_request", row.$id);
     return { requestId: row.$id, status: row.status };
   }
 
@@ -103,6 +138,7 @@ export function createModerationStore() {
     }
     await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
       data: { status: "accepted", updatedAt: now } });
+    await createNotification(row.senderId, "friend_request_accepted", requestId);
     return { status: "accepted" };
   }
 
@@ -251,5 +287,5 @@ export function createModerationStore() {
     }));
   }
 
-  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships };
+  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships, lookupPublicProfile, listNotifications, markNotificationRead };
 }
