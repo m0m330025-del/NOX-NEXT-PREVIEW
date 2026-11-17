@@ -146,3 +146,12 @@ export function canAccessConversation(conversation, callerId, otherUserId) {
 export function canReadOrSendMessage(conversation, callerId) {
   return Boolean(conversation && (conversation.participantAId === callerId || conversation.participantBId === callerId));
 }
+
+
+/** Require a client-generated UUID so retries reuse the same message row. */
+export function validateMessageId(value) {
+  return typeof value === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+    ? { ok: true, value: value.toLowerCase() }
+    : { ok: false, error: "invalid_idempotency_key" };
+}
