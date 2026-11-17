@@ -1,25 +1,18 @@
 import { Client, Account } from "node-appwrite";
 import { isModerator, validateBlockTarget, validateReportInput } from "./policy.js";
+import { createModerationStore } from "./store.js";
 
 const json = (res, status, body) => res.json(body, status);
-
-function getRoute(path = "") {
-  return path.replace(/\/+$/, "") || "/";
-}
+const getRoute = (path = "") => path.replace(/\\/+$/, "") || "/";
 
 export default async ({ req, res, log }) => {
-  if (req.method === "OPTIONS") {
-    return res.text("", 204);
-  }
-
-  if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {
+  if (req.method === "OPTIONS") return res.text("", 204);
+  if (!["GET", "POST", "DELETE"].includes(req.method)) {
     return json(res, 405, { error: "method_not_allowed" });
   }
 
   const jwt = req.headers?.["x-appwrite-user-jwt"];
-  if (!jwt) {
-    return json(res, 401, { error: "authentication_required" });
-  }
+  if (!jwt) return json(res, 401, { error: "authentication_required" });
 
   const endpoint = process.env.APPWRITE_FUNCTION_API_ENDPOINT;
   const projectId = process.env.APPWRITE_FUNCTION_PROJECT_ID;
@@ -28,54 +21,90 @@ export default async ({ req, res, log }) => {
     return json(res, 503, { error: "service_unavailable" });
   }
 
+  const userClient = new Client().setEndpoint(endpoint).setProject(projectId).setJWT(jwt);
+  let caller;
   try {
-    const client = new Client()
-      .setEndpoint(endpoint)
-      .setProject(projectId)
-      .setJWT(jwt);
-
-    // Calling Account.get() validates the invoking session with Appwrite.
-    const account = new Account(client);
-    const caller = await account.get();
-    const route = getRoute(req.path);
-    const body = req.bodyJson ?? {};
-
-    if (route === "/reports" && req.method === "POST") {
-      const checked = validateReportInput(body);
-      if (!checked.ok) return json(res, 400, { error: checked.error });
-
-      // Persistence is deliberately not enabled until the reviewed
-      // TablesDB schema, evidence policy, and function scopes are configured.
-      return json(res, 501, { error: "not_implemented", feature: "report_submission" });
-    }
-
-    if (route === "/blocks" && req.method === "POST") {
-      const checked = validateBlockTarget(body.targetUserId, caller.$id);
-      if (!checked.ok) return json(res, 400, { error: checked.error });
-
-      // Persistence and cross-direction enforcement require all relevant
-      // private interaction endpoints to be routed through trusted Functions.
-      return json(res, 501, { error: "not_implemented", feature: "block_user" });
-    }
-
-    if (route === "/blocks" && req.method === "GET") {
-      return json(res, 501, { error: "not_implemented", feature: "list_my_blocks" });
-    }
-
-    if (route.startsWith("/moderation")) {
-      const moderatorIds = process.env.NOX_MODERATOR_USER_IDS ?? "";
-      if (!isModerator(caller.$id, moderatorIds)) {
-        return json(res, 403, { error: "forbidden" });
-      }
-      // Authorization is in place; moderation queue/actions remain deliberately
-      // disabled until audit, appeal, retention, and TablesDB write paths ship.
-      return json(res, 501, { error: "not_implemented", feature: "moderation_operations" });
-    }
-
-    return json(res, 404, { error: "not_found" });
-  } catch (err) {
-    // Do not log tokens, request bodies, or private report content.
-    log("Moderation request failed authentication or processing.");
+    caller = await new Account(userClient).get();
+  } catch {
     return json(res, 401, { error: "authentication_failed" });
   }
+
+  const route = getRoute(req.path);
+  const body = req.bodyJson ?? {};
+
+  if (route === "/reports" && req.method === "POST") {
+    const checked = validateReportInput(body);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    if (checked.value.contentType !== "account") {
+      return json(res, 400, { error: "content_reports_not_enabled" });
+    }
+    if (checked.value.targetUserId === caller.$id) {
+      return json(res, 400, { error: "cannot_report_self" });
+    }
+    try {
+      const result = await createModerationStore().createReport(caller.$id, checked.value);
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 201, { reportId: result.reportId, status: result.status });
+    } catch {
+      log("Report persistence failed; request details were not logged.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/reports" && req.method === "GET") {
+    try {
+      const reports = await createModerationStore().listReports(caller.$id);
+      return json(res, 200, { reports });
+    } catch {
+      log("Report lookup failed; request details were not logged.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/blocks" && req.method === "POST") {
+    const checked = validateBlockTarget(body.targetUserId, caller.$id);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    try {
+      const result = await createModerationStore().createBlock(caller.$id, checked.value);
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 200, {
+        blocked: true,
+        alreadyBlocked: Boolean(result.alreadyExists)
+      });
+    } catch {
+      log("Block persistence failed; request details were not logged.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/blocks" && req.method === "DELETE") {
+    const checked = validateBlockTarget(body.targetUserId, caller.$id);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    try {
+      const removed = await createModerationStore().removeBlock(caller.$id, checked.value);
+      return json(res, 200, { unblocked: removed });
+    } catch {
+      log("Block removal failed; request details were not logged.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/blocks" && req.method === "GET") {
+    try {
+      const blocks = await createModerationStore().listBlocks(caller.$id);
+      return json(res, 200, { blocks });
+    } catch {
+      log("Block list lookup failed; request details were not logged.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route.startsWith("/moderation")) {
+    if (!isModerator(caller.$id, process.env.NOX_MODERATOR_USER_IDS ?? "")) {
+      return json(res, 403, { error: "forbidden" });
+    }
+    return json(res, 501, { error: "not_implemented", feature: "moderation_operations" });
+  }
+
+  return json(res, 404, { error: "not_found" });
 };
