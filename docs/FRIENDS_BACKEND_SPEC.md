@@ -169,3 +169,8 @@ Collect only profile data needed by the product. Keep date of birth private and 
 ## Important
 
 This specification describes the intended Appwrite implementation. It does not itself deploy a backend or make the current preview's friend features live. Only successful deployment evidence and tests can change the status from planned to operational.
+
+
+## Private message retry safety
+
+The private `POST /messages` contract requires `idempotencyKey` as a client-generated UUID. The server uses that UUID as the Appwrite message row ID. Repeating the same request with the same key and identical authenticated sender, conversation, and normalized body returns the existing message instead of creating a duplicate. Reusing a key with different content or ownership returns HTTP 409. Clients must preserve the key across network retries. If the message row was created but the conversation summary update failed, a retry repairs the summary timestamp without adding another message. This behavior is implemented in the scaffold and still requires Appwrite integration/concurrency testing before production.
