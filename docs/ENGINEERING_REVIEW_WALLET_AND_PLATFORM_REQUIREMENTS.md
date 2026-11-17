@@ -27,7 +27,7 @@ Original product areas to account for in the product/admin design:
 - The wallet covers balance, purchases, transfers, gifts, rewards, and game expenses.
 - No module may maintain a separate spendable balance.
 
-The EGP 50 / 10,000 NXC value is a product pricing requirement, not a promise that NXC is redeemable for cash. Any cash-out, exchange, or payout feature requires separate legal, compliance, payment-provider, and operational approval in the relevant markets.
+The EGP 50 / 10,000 NXC value is the original purchase reference. **There is no user cash-out or NXC-to-EGP withdrawal feature.** Users purchase NXC for use inside NOX. The application owner alone receives the real-money proceeds from approved NXC sales through the payment provider. NXC is an in-app currency, not a user cash balance.
 
 ### 2.2 Top-ups / purchases
 
@@ -60,7 +60,7 @@ A transfer must never leave the system in a state where only one side has been a
 - A successful gift must debit the sender and create the gift event atomically; the event must identify sender, recipient, gift, NXC amount, source module, timestamp, and transaction reference.
 - Failed gift sends must not debit the wallet.
 
-**Still undecided:** gift revenue sharing / recipient earnings percentages, platform commission, reversals/refunds, and whether every gift type is purely expressive or can generate an earning for its recipient. Do not invent percentages in code or admin settings.
+**Still undecided:** gift revenue sharing / recipient earnings percentages, platform commission, and reversals/refunds. Unless the product owner explicitly approves otherwise, gifts are in-app items and do not create a withdrawable user cash balance. Do not invent percentages in code or admin settings.
 
 ### 2.5 Rewards and eligibility classes
 
@@ -77,9 +77,83 @@ Do not silently merge promotional/reward credits with purchased credits.
 
 The original concept included an owner balance displayed as **∞**. Engineering recommendation: treat this strictly as a presentation/administrative concept, not as a literal unlimited financial balance and not as a normal user wallet. Any owner-funded test or promotional issuance must be represented by an explicit, permissioned, auditable ledger event with a defined source and reason.
 
-### 2.7 Cash withdrawal
+### 2.7 No user withdrawals
 
-Withdrawal / conversion from NXC to Egyptian pounds was not approved as a finalized feature. It requires a separately approved policy, legal and regulatory assessment, payment partner support, KYC/AML and fraud controls where applicable, fees, limits, settlement and dispute handling. Until then, do not show a working cash-out control or imply that NXC is cash-equivalent.
+There is **no user withdrawal, payout, or NXC-to-EGP conversion**. Users cannot cash out NXC or transfer NXC to a bank account or mobile wallet. The application owner alone receives the real-money proceeds from NXC purchases through the approved payment provider. The customer UI and admin console must not display a user cash-out feature.
+
+
+
+## 3A. Account upgrades, membership levels, and profile frames
+
+The original product requirements define account upgrades by **eligible NXC balance, account gender, and account level**. Engineering must preserve this as a distinct progression system, not silently equate it with the spendable or transferable wallet balance.
+
+### 3A.1 Male account thresholds
+
+| Membership level | Eligible balance threshold |
+|---|---:|
+| Silver | 50,000 NXC |
+| Gold | 500,000 NXC |
+| Premium | 5,000,000 NXC |
+| Premium Gold | 500,000,000 NXC |
+| Premium Black | Top tier; no numeric ceiling specified |
+
+### 3A.2 Female account thresholds
+
+The original requirements explicitly specify:
+- Silver: 50,000 NXC
+- Gold: 500,000 NXC
+- Higher female tiers: a previously supplied tier table exists but its exact thresholds are not present in the currently available project record. Engineering must leave these values configurable/unpublished until the product owner supplies the exact table. Do not assume the male thresholds apply.
+
+### 3A.3 Upgrade experience
+
+The user app should show:
+- current membership level;
+- next level and its threshold;
+- eligible balance counted toward progression;
+- remaining eligible NXC needed for the next level;
+- progress indicator;
+- frame preview and activation/selection;
+- available static and animated frames;
+- upgrade history with timestamps and prior/current level.
+
+The progression service must define precisely which ledger events count toward eligible balance, whether spending or transfers affect eligibility, how reversals/refunds affect it, and how level downgrades or permanent attainment work. These rules are product decisions and must not be guessed.
+
+### 3A.4 Frames and identity
+
+- Each membership level can have its associated profile frame.
+- Support static and animated frame assets.
+- Let users preview a frame before activating it and select from frames they have unlocked.
+- Display the selected frame around the user's profile photo/avatar.
+- Keep the membership level and selected frame visible on the profile.
+- Apply the selected frame consistently in chat, statuses/stories, Reels, and games/rooms where the user identity is shown.
+- The admin console needs frame catalog management: create/edit, upload asset, assign level/unlock rule, set static/animated type, preview, enable/disable, ordering, and audit history.
+- Frame activation must be validated server-side against the user's unlocked entitlement; client-side flags cannot unlock paid/progression frames.
+
+### 3A.5 Separate Reels levels
+
+The original requirements define a separate Reels visibility tier system:
+
+| Reels level | Eligible balance threshold |
+|---|---:|
+| Normal | 0 |
+| Silver | 50,000 NXC |
+| Gold | 500,000 NXC |
+| Premium | 500,000,000 NXC |
+
+The stated visibility rule is that higher Reels levels can view content from lower levels. The product owner must confirm the complete visibility matrix, including whether lower levels can view higher-level content and whether any privacy settings override tier visibility. Do not infer the reverse rule.
+
+### 3A.6 Admin controls for upgrades and frames
+
+Add dedicated admin sections for:
+1. Membership tier definitions and thresholds, segmented by the applicable account gender.
+2. Eligible-balance calculation policy and ledger event inclusion/exclusion rules.
+3. Reels tier thresholds and visibility matrix.
+4. Frame catalog, assets, animation metadata, and tier mapping.
+5. User progression lookup, current/next tier, and progression history.
+6. Manual entitlement correction only through a reason-required, permissioned, audited action; no direct balance editing.
+7. Preview/staging controls so tier and frame changes can be tested before publication.
+
+All tier/threshold changes must be versioned and audited. Historical user progression must remain explainable after configuration changes.
 
 ## 3. Recommended wallet architecture
 
@@ -170,7 +244,7 @@ These are blockers or explicit decisions, not values to guess:
 | Reward eligibility | Eligible vs transferable balance mentioned | Define earning and release rules |
 | Game expenses | Included in central wallet | Define allowed spend types, limits, refund rules |
 | Owner ∞ display | Concept only | Confirm display-only treatment; never represent as a real unlimited balance |
-| Cash withdrawal | Not approved | Separate legal/compliance/product approval before any implementation |
+| User cash-out | Explicitly excluded | No withdrawal or NXC-to-EGP conversion for users; only the owner receives NXC sale proceeds |
 | Refunds / chargebacks | Not fully specified | Define reversal, negative-balance, and fraud policy |
 | Limits and fees | Not specified | Define per-transaction/daily limits, fees, and escalation rules |
 | Spotify | Shared queue and one song / member / 15 minutes | Validate API, playback rights, regional availability, and enforcement approach |
@@ -189,7 +263,7 @@ These are blockers or explicit decisions, not values to guess:
 
 ## 7. Suggested delivery phases
 
-**Phase 0 — Product and compliance decisions:** settle open questions above; select payment provider; confirm what NXC represents and whether any cash redemption is ever intended.
+**Phase 0 — Product and compliance decisions:** settle open questions above; select payment provider; confirm NXC purchase terms and the owner-only receipt of NXC sale proceeds. User cash-out is excluded.
 
 **Phase 1 — Wallet foundation:** ledger schema, wallet accounts, idempotency, atomic transfers, audit log, and automated tests. Use test credits only.
 
@@ -199,7 +273,7 @@ These are blockers or explicit decisions, not values to guess:
 
 **Phase 4 — Payments:** integrate provider test mode, signed webhook verification, reconciliation, refunds, and operational monitoring. Production activation only after review and approval.
 
-**Phase 5 — Cash-out (optional):** separate project requiring legal/compliance approval and a complete payout design; not part of the current approved scope.
+**No cash-out phase:** user withdrawals and NXC-to-cash conversion are not part of NOX.
 
 ## 8. Required review outcome
 
