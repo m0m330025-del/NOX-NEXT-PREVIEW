@@ -1,128 +1,121 @@
-# NOX NEXT — Friends Backend Implementation Blueprint
+# NOX NEXT — Friends Backend Specification (Appwrite)
 
-This document is the implementation contract for replacing the current browser-only friend demo with a real authenticated backend.
+## Architecture decision
 
-## Current status
+The selected backend for NOX NEXT is **Appwrite**. This document replaces the earlier PostgreSQL-only proposal. Do not run the old SQL migration as part of the Appwrite setup.
 
-The deployed site is a static GitHub Pages frontend. It has no trusted server, database, session service, or realtime channel. Browser localStorage is not an account system and must never be treated as authoritative.
+- Frontend hosting: Cloudflare Pages (the current preview may still be hosted on GitHub Pages).
+- Authentication: Appwrite Auth.
+- Database: Appwrite database `NOX_CORE`, database ID `nox_core`.
+- Media storage: Cloudflare R2, integrated through trusted server-side code when implemented.
+- Realtime: Appwrite Realtime with authenticated access, after collection permissions are configured and tested.
+- Server-side operations: Appwrite Functions. The browser must not receive an Appwrite API key.
 
-## 1. Database migration (PostgreSQL)
+The Appwrite endpoint and project ID in `core/appwrite-config.js` are public client identifiers, not proof that the project exists or that the backend is deployed. Confirm the project ID in the Appwrite Console before running the bootstrap workflow.
 
-The following schema is the baseline for a PostgreSQL backend. Apply it only through a trusted server-side migration process.
+## Current verified status
 
-```sql
-create extension if not exists pgcrypto;
+- The repository contains an Appwrite bootstrap script and a manually triggered GitHub Actions workflow.
+- The bootstrap script defines the initial database and four collections: `users`, `friend_requests`, `friendships`, and `notifications`.
+- The script now waits for each attribute and index to reach Appwrite's `available` state before continuing.
+- The workflow has **not** been confirmed as successfully executed.
+- No live database, authenticated friend API, realtime flow, or cross-device friend feature should be described as operational until it has been deployed and tested.
+- The existing browser-only friend interface uses local storage and is a demonstration only.
 
-create table users (
-  id uuid primary key default gen_random_uuid(),
-  nox_id varchar(24) not null,
-  nox_id_normalized varchar(24) not null unique,
-  display_name varchar(80) not null,
-  username varchar(30) not null unique,
-  email varchar(254) not null unique,
-  password_hash text not null,
-  birth_date date not null,
-  gender varchar(24),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint nox_id_format check (nox_id_normalized ~ '^NOX-[A-Z0-9]{2,6}-[A-Z0-9]{2,6}$')
-);
+## Appwrite data model
 
-create table friend_requests (
-  id uuid primary key default gen_random_uuid(),
-  sender_id uuid not null references users(id) on delete cascade,
-  recipient_id uuid not null references users(id) on delete cascade,
-  status varchar(16) not null default 'pending'
-    check (status in ('pending','accepted','declined','cancelled')),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint friend_request_not_self check (sender_id <> recipient_id)
-);
+Appwrite Auth owns credentials and authentication sessions. Do not store passwords or password hashes in the `users` collection.
 
-create unique index friend_requests_one_pending_direction
-  on friend_requests(sender_id, recipient_id) where status = 'pending';
+### `users`
 
-create table friendships (
-  user_low uuid not null references users(id) on delete cascade,
-  user_high uuid not null references users(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  primary key (user_low, user_high),
-  constraint friendship_sorted check (user_low < user_high)
-);
+| Attribute | Type | Required | Purpose |
+|---|---|---:|---|
+| `authUserId` | string | yes | Appwrite Auth user ID; unique |
+| `noxId` | string | yes | Public NOX ID; unique |
+| `displayName` | string | yes | Public display name |
+| `avatarFileId` | string | no | Storage file reference |
+| `createdAt` | datetime | yes | Server-generated creation time |
 
-create table notifications (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
-  actor_id uuid references users(id) on delete set null,
-  type varchar(40) not null,
-  entity_id uuid,
-  read_at timestamptz,
-  created_at timestamptz not null default now()
-);
+### `friend_requests`
 
-create index notifications_user_unread
-  on notifications(user_id, created_at desc) where read_at is null;
+| Attribute | Type | Required | Purpose |
+|---|---|---:|---|
+| `senderId` | string | yes | Auth user ID of sender |
+| `recipientId` | string | yes | Auth user ID of recipient |
+| `status` | string | yes | Server-validated state: pending, accepted, declined, cancelled |
+| `createdAt` | datetime | yes | Server-generated creation time |
+| `updatedAt` | datetime | yes | Server-generated update time |
 
-create table user_qr_tokens (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
-  token_hash text not null unique,
-  expires_at timestamptz not null,
-  revoked_at timestamptz,
-  created_at timestamptz not null default now()
-);
-```
+### `friendships`
 
-The API must normalize NOX IDs before lookup and rely on the unique database constraint to prevent duplicates. Passwords must be hashed using Argon2id or an equivalent modern password-hashing function; never store plaintext passwords.
+| Attribute | Type | Required | Purpose |
+|---|---|---:|---|
+| `userAId` | string | yes | First user ID in canonical sorted order |
+| `userBId` | string | yes | Second user ID in canonical sorted order |
+| `createdAt` | datetime | yes | Server-generated creation time |
 
-## 2. API contract
+The function must sort the two user IDs consistently before writing a friendship. The unique index then prevents duplicate rows for the same canonical pair.
 
-All endpoints require HTTPS. Authenticated endpoints derive the acting user from a secure server-validated session/token; never accept a client-supplied sender/user ID as authority.
+### `notifications`
 
-- `GET /api/v1/users/by-nox-id/{noxId}` — return only a minimal public profile, or a generic not-found response.
-- `POST /api/v1/friend-requests` — body: `{ "noxId": "NOX-..." }`; server resolves recipient and creates a pending request.
-- `GET /api/v1/friend-requests?box=incoming|outgoing` — list the signed-in user's requests.
-- `POST /api/v1/friend-requests/{requestId}/accept` — recipient-only; transactionally accept and create the friendship.
-- `POST /api/v1/friend-requests/{requestId}/decline` — recipient-only.
-- `DELETE /api/v1/friend-requests/{requestId}` — sender-only cancellation while pending.
-- `GET /api/v1/friends` — list confirmed friends for the signed-in user.
-- `GET /api/v1/notifications` and `POST /api/v1/notifications/{id}/read` — private notification access.
+| Attribute | Type | Required | Purpose |
+|---|---|---:|---|
+| `recipientId` | string | yes | Auth user ID of recipient |
+| `type` | string | yes | Server-validated notification type |
+| `referenceId` | string | no | Related request or entity ID |
+| `isRead` | boolean | yes | Read state |
+| `createdAt` | datetime | yes | Server-generated creation time |
 
-## 3. QR identity
+Additional collections, including temporary QR tokens, blocks, and reports, must be designed and reviewed before those features are enabled. Do not put permanent database IDs, email addresses, birth dates, or other private account data into QR codes.
 
-Do not encode a permanent database ID, email, or private account data in a QR code. The server should issue a random, high-entropy, short-lived QR token, store only its hash, and allow revocation/rotation. A scan resolves the token to a minimal profile, then the user explicitly confirms sending a friend request. Expired or revoked tokens must fail closed.
+## Permissions and trust boundaries
 
-## 4. Transaction and authorization rules
+- Keep the collections private by default. The bootstrap script currently creates collections with empty collection permissions and document-level security enabled.
+- Do not grant broad client write permissions to friend requests, friendships, or notifications.
+- Implement friend operations in authenticated Appwrite Functions. Each function must derive the acting user from a server-validated Appwrite identity/session, never from a client-supplied `senderId` or `userId`.
+- Grant only the minimum required read/write permissions after the function design is implemented. Test access using two separate accounts, including attempts to read or modify another user's records.
+- Never put `APPWRITE_API_KEY` in frontend files, source control, browser storage, or chat messages. Keep it in a protected server environment or GitHub Actions Secret.
+- Validate every input on the server, normalize NOX IDs before lookup, rate-limit lookup and request creation, and avoid responses that reveal whether a private account exists.
+- Record security events without logging passwords, API keys, session tokens, or private profile data.
 
-- Accepting a request must update its status and create one canonical friendship row in a single database transaction.
-- Canonical friendship keys are sorted UUID pairs, preventing duplicate friendships in opposite directions.
-- Only the recipient can accept/decline; only the sender can cancel.
-- Prevent self-requests, duplicate pending requests, and requests between already-friended users.
-- Add block/report controls before public launch; blocked users cannot discover or contact the blocker.
-- Apply per-account and per-IP rate limits to lookup, request creation, login, and QR resolution.
-- Return generic lookup errors where needed to reduce account enumeration.
-- Validate every input server-side and record security-relevant events without logging secrets.
+## Friend operation contract
 
-## 5. Notifications and synchronization
+Implement these operations as authenticated server-side functions:
 
-Create a notification in the same transaction as a new request or accepted request. Deliver updates through authenticated WebSocket/SSE or a managed realtime service. Reconnect must fetch unread notifications from the database so offline devices catch up.
+1. Look up a user by normalized NOX ID and return only a minimal public profile.
+2. Create a friend request using the caller's authenticated identity and the recipient's NOX ID.
+3. List incoming and outgoing requests for the caller only.
+4. Accept or decline a request only when the caller is its recipient.
+5. Cancel a pending request only when the caller is its sender.
+6. List confirmed friendships for the caller only.
+7. Mark a notification as read only when it belongs to the caller.
 
-## 6. Privacy and age handling
+The server must prevent self-requests, duplicate pending requests, requests between existing friends, and invalid state transitions. Because Appwrite does not provide PostgreSQL-style partial unique indexes, duplicate-pending prevention must be enforced in trusted server logic and verified under concurrent requests. Do not rely on a frontend check.
 
-Collect only the profile fields needed by the product. Keep date of birth private and calculate eligibility on the server. Any 18+ game area must have a server-enforced age gate; frontend checks alone are bypassable. Do not expose age or birth date in friend lookup responses.
+When accepting a request, make the state transition and friendship creation safely idempotent. If the selected Appwrite deployment supports database transactions, use them; otherwise implement and test a recoverable server-side sequence that cannot leave duplicate friendships or falsely accepted requests.
 
-## 7. Release checklist
+## QR identity
 
-- [ ] Choose backend host and PostgreSQL provider.
-- [ ] Configure secrets as server-side environment variables, never in GitHub Pages files.
-- [ ] Implement secure sign-up/login/session handling and account recovery.
-- [ ] Apply the SQL migration and unique NOX ID constraint.
-- [ ] Implement and test the endpoints above.
-- [ ] Add abuse controls, block/report, privacy rules, and audit logging.
-- [ ] Connect the frontend to the API and remove localStorage as the source of truth.
-- [ ] Test two separate accounts on two devices, including request, accept, notification, logout, and reconnect.
-- [ ] Verify the 18+ game gate server-side before enabling that area.
+A QR code must not contain a permanent database ID, email, date of birth, or other private data. Before QR friend adding is enabled, implement random, high-entropy, short-lived, revocable tokens. Store only a secure hash of each token. A scan must resolve to a minimal profile and require explicit confirmation before a friend request is created.
+
+## Privacy and age eligibility
+
+Collect only profile data needed by the product. Keep date of birth private and perform any age eligibility decision on the server. Any area restricted to adults must remain inaccessible unless eligibility is verified server-side; a frontend-only age prompt is not an access control. Do not expose birth dates or age in friend lookup responses.
+
+## Test and release checklist
+
+- [ ] Confirm the Appwrite project ID and endpoint in the Appwrite Console.
+- [ ] Store the Appwrite API key as a protected GitHub Actions Secret; never paste it into chat or commit it.
+- [ ] Run the manual bootstrap workflow and confirm a successful run.
+- [ ] Verify the database, four collections, attributes, and indexes in Appwrite Console.
+- [ ] Implement authenticated Appwrite Functions for friend operations.
+- [ ] Configure minimum required permissions and test unauthorized access.
+- [ ] Test two separate accounts on two devices: lookup, request, accept, decline, cancel, notification, logout, and reconnect.
+- [ ] Test duplicate and concurrent requests, self-requests, and attempts to act on another user's request.
+- [ ] Add block/report and abuse controls before public release.
+- [ ] Connect the frontend to the real backend and remove local storage as the source of truth.
+- [ ] Verify any adult-only access restriction on the server before enabling that area.
 
 ## Important
 
-This blueprint and migration are prepared in the repository. They do not create a live backend by themselves. Real cross-device accounts and friend requests remain disabled until a backend provider is selected, configured, and deployed.
+This specification describes the intended Appwrite implementation. It does not itself deploy a backend or make the current preview's friend features live. Only successful deployment evidence and tests can change the status from planned to operational.
