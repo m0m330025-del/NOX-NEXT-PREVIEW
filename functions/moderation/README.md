@@ -46,8 +46,11 @@ The authenticated Function router now contains these private server-side routes:
 - `POST /friends/requests/respond` with `requestId` and `decision=accept|decline`
 - `POST /friends/requests/cancel` with `requestId`
 - `GET /friends`
+- `GET /friends/lookup?noxId=...` returns only `noxId` and `displayName`
+- `GET /notifications` lists notifications belonging to the authenticated caller
+- `POST /notifications/read` marks a caller-owned notification as read
 
-The store derives the sender/actor from the verified Appwrite JWT, checks the bidirectional block guard before creating or accepting a request, and writes rows with empty permissions. This is still scaffold code: it has not been deployed or integration-tested against Appwrite. Duplicate-request checks are read-then-write and are not transactionally race-safe; do not expose these routes in production until concurrency controls/transaction behavior are implemented and tested. Friend profile lookup responses are intentionally not included yet.
+The store derives the sender/actor from the verified Appwrite JWT, checks the bidirectional block guard before creating or accepting a request, writes rows with empty permissions, and creates notifications for new and accepted requests. Notification reads and updates are scoped to the authenticated recipient. Profile lookup returns only a minimal public projection. This is still scaffold code: it has not been deployed or integration-tested against Appwrite. Duplicate-request checks are read-then-write and are not transactionally race-safe; do not expose these routes in production until concurrency controls/transaction behavior are implemented and tested. Profile lookup currently has no persistent rate limiter. Do not expose it publicly until per-caller rate limiting and anti-enumeration controls are implemented and tested.
 
 ## Intentionally not enabled
 
