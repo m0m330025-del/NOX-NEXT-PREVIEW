@@ -283,3 +283,44 @@ button{transition:background-color .18s ease,border-color .18s ease,box-shadow .
   .mobile-nav .nav-count{font-size:8px!important}
   .toast{bottom:calc(76px + env(safe-area-inset-bottom))!important}
 }
+
+
+/* Strong final override: remove remaining purple surfaces */
+:root{--navy:#456b63!important;--purple:#648b80!important;--violet:#86aaa0!important;--pink:#c98794!important;--ink:#304943!important;--muted:#788c85!important;--line:#dfe9e3!important;--canvas:#f1f5f2!important}
+body,.app-frame,.workspace{background:#f1f5f2!important;color:#304943!important}
+.sidebar{
+  background:linear-gradient(160deg,#557b72,#3f625b)!important;
+  color:#f8fbf9!important
+}
+.sidebar .nav-link{color:#e5efea!important}
+.sidebar .nav-link.active,.sidebar .nav-link:hover{
+  background:rgba(255,255,255,.15)!important;color:#fff!important
+}
+.brand-desktop .brand-symbol,.brand-mobile .brand-symbol{
+  background:#e8f0ec!important;color:#4e756b!important
+}
+.topbar{background:#fbfdfb!important;border-bottom:1px solid #dfe9e3!important}
+.search-box{background:#f2f6f3!important;border-color:#dce7e0!important}
+.card,.stories-panel,.composer,.post,.friends-panel,.profile-card,.suggestions-card{
+  background:#fff!important;border-color:#e0e9e3!important;
+  box-shadow:0 4px 18px rgba(47,76,67,.06)!important
+}
+.primary-nav .nav-link.active{box-shadow:none!important}
+button.primary,button.primary-button,.publish-button,.composer-actions .publish-button,
+.add-friend-trigger,.send-request{
+  background:#648b80!important;color:#fff!important;border:1px solid #648b80!important;
+  box-shadow:0 3px 10px rgba(74,116,104,.15)!important
+}
+button.primary:hover,button.primary-button:hover,.publish-button:hover,
+.composer-actions .publish-button:hover,.add-friend-trigger:hover,.send-request:hover{
+  background:#52776d!important
+}
+button.secondary,.composer-actions button,.logout-button{
+  background:#edf4f0!important;color:#55756b!important;border:1px solid #dce8e1!important;
+  box-shadow:none!important
+}
+.mobile-nav{background:#fbfdfb!important}
+@media(max-width:760px){
+  .mobile-header{background:#52776d!important}
+  .mobile-nav{display:flex!important;position:fixed!important;bottom:0!important;top:auto!important;left:0!important;right:0!important;transform:none!important;z-index:999!important}
+}
