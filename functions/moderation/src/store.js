@@ -86,6 +86,20 @@ export function createModerationStore() {
     if (!(await findUser(report.targetUserId))) {
       return { created: false, error: "target_not_found" };
     }
+    const windowStart = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const recent = await db.listRows({
+      databaseId: DATABASE_ID,
+      tableId: "reports",
+      queries: [
+        Query.equal("reporterId", reporterId),
+        Query.greaterThan("createdAt", windowStart),
+        Query.limit(5)
+      ]
+    });
+    if (recent.rows.length >= 5) {
+      return { created: false, error: "report_rate_limited" };
+    }
+    const now = new Date().toISOString();
     const row = await db.createRow({
       databaseId: DATABASE_ID,
       tableId: "reports",
@@ -97,8 +111,8 @@ export function createModerationStore() {
         reason: report.reason,
         description: report.description,
         status: "new",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       },
       permissions: []
     });
