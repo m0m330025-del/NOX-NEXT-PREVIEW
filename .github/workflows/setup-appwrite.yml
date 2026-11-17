@@ -36,7 +36,7 @@ jobs:
       - name: Install pinned Appwrite SDK
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
 
-      - name: Create NOX_CORE database and collections
+      - name: Create NOX_CORE DocumentsDB database, collections, and indexes
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
           APPWRITE_PROJECT_ID: 6af9ca51000735dfb692
