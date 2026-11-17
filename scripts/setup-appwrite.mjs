@@ -35,6 +35,29 @@ async function ensure(label, fn) {
   }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitUntilAvailable(label, getResource, timeoutMs = 120_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const resource = await getResource();
+
+    if (resource.status === "available") {
+      console.log("Ready:", label);
+      return;
+    }
+
+    if (resource.status === "failed") {
+      throw new Error(`${label} entered failed status.`);
+    }
+
+    await sleep(2_000);
+  }
+
+  throw new Error(`Timed out waiting for ${label} to become available.`);
+}
+
 await ensure("database NOX_CORE", () =>
   db.create({ databaseId, name: "NOX_CORE", enabled: true })
 );
@@ -103,15 +126,24 @@ for (const schema of schemas) {
     await ensure(`${schema.id}.${key}`, () =>
       db.createStringAttribute({ databaseId, collectionId: schema.id, key, size, required })
     );
+    await waitUntilAvailable(`${schema.id}.${key}`, () =>
+      db.getAttribute({ databaseId, collectionId: schema.id, key })
+    );
   }
   for (const [key, required] of schema.datetimes || []) {
     await ensure(`${schema.id}.${key}`, () =>
       db.createDatetimeAttribute({ databaseId, collectionId: schema.id, key, required })
     );
+    await waitUntilAvailable(`${schema.id}.${key}`, () =>
+      db.getAttribute({ databaseId, collectionId: schema.id, key })
+    );
   }
   for (const [key, required] of schema.booleans || []) {
     await ensure(`${schema.id}.${key}`, () =>
       db.createBooleanAttribute({ databaseId, collectionId: schema.id, key, required })
+    );
+    await waitUntilAvailable(`${schema.id}.${key}`, () =>
+      db.getAttribute({ databaseId, collectionId: schema.id, key })
     );
   }
   for (const [key, attributes, type] of schema.indexes || []) {
@@ -123,6 +155,9 @@ for (const schema of schemas) {
         type,
         attributes,
       })
+    );
+    await waitUntilAvailable(`${schema.id} index ${key}`, () =>
+      db.getIndex({ databaseId, collectionId: schema.id, key })
     );
   }
 }
