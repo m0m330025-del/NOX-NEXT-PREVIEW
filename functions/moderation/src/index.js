@@ -142,6 +142,66 @@ export default async ({ req, res, log }) => {
     }
   }
 
+
+  if (route === "/conversations" && req.method === "GET") {
+    try {
+      const conversations = await createModerationStore().listConversations(caller.$id);
+      return json(res, 200, { conversations });
+    } catch {
+      log("Conversation list lookup failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/conversations" && req.method === "POST") {
+    const checked = validateRequestId(body.friendUserId);
+    if (!checked.ok) return json(res, 400, { error: "invalid_friend_id" });
+    try {
+      const result = await createModerationStore().createOrGetConversation(caller.$id, checked.value);
+      if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
+      if (result.error === "friendship_required") return json(res, 403, { error: result.error });
+      if (result.error) return json(res, 400, { error: result.error });
+      return json(res, 200, result);
+    } catch {
+      log("Conversation creation failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/messages" && req.method === "GET") {
+    const checked = validateRequestId(req.query?.conversationId);
+    if (!checked.ok) return json(res, 400, { error: "invalid_conversation_id" });
+    try {
+      const result = await createModerationStore().listMessages(caller.$id, checked.value);
+      if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
+      if (result.error === "friendship_required") return json(res, 403, { error: result.error });
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 200, result);
+    } catch {
+      log("Private message lookup failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/messages" && req.method === "POST") {
+    const checked = validateRequestId(body.conversationId);
+    if (!checked.ok) return json(res, 400, { error: "invalid_conversation_id" });
+    if (typeof body.body !== "string" || !body.body.trim() || body.body.length > 4000) {
+      return json(res, 400, { error: "invalid_message" });
+    }
+    try {
+      const result = await createModerationStore().sendMessage(caller.$id, checked.value, body.body);
+      if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
+      if (result.error === "friendship_required") return json(res, 403, { error: result.error });
+      if (result.error === "message_rate_limited") return json(res, 429, { error: result.error });
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 201, result);
+    } catch {
+      log("Private message creation failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
   if (route === "/reports" && req.method === "POST") {
     const checked = validateReportInput(body);
     if (!checked.ok) return json(res, 400, { error: checked.error });
