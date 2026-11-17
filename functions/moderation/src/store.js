@@ -251,28 +251,63 @@ export function createModerationStore() {
     })) };
   }
 
-  async function sendMessage(callerId, conversationId, rawBody) {
+  async function sendMessage(callerId, conversationId, rawBody, idempotencyKey) {
     const checked = validateMessageBody(rawBody);
     if (!checked.ok) return { error: checked.error };
+    if (typeof idempotencyKey !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
+      return { error: "invalid_idempotency_key" };
+    }
     const access = await getAuthorizedConversation(callerId, conversationId);
     if (access.error) return access;
+
+    // The client UUID is the row ID: concurrent retries can create at most one row.
+    // Check before rate limiting so a legitimate retry remains idempotent.
+    let row = null;
+    try {
+      row = await db.getRow({ databaseId: DATABASE_ID, tableId: "messages", rowId: idempotencyKey.toLowerCase() });
+    } catch (error) {
+      if (error?.code !== 404 && error?.type !== "row_not_found") throw error;
+    }
+    if (row) {
+      if (row.senderId !== callerId || row.conversationId !== conversationId || row.body !== checked.value) {
+        return { error: "idempotency_key_conflict" };
+      }
+      await db.updateRow({
+        databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId,
+        data: { updatedAt: row.createdAt, lastMessageAt: row.createdAt }
+      });
+      return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt }, replayed: true };
+    }
+
     const windowStart = new Date(Date.now() - 60 * 1000).toISOString();
     const recent = await db.listRows({
       databaseId: DATABASE_ID, tableId: "messages",
       queries: [Query.equal("senderId", callerId), Query.greaterThan("createdAt", windowStart), Query.limit(30)]
     });
     if (recent.rows.length >= 30) return { error: "message_rate_limited" };
+
     const now = new Date().toISOString();
-    const row = await db.createRow({
-      databaseId: DATABASE_ID, tableId: "messages", rowId: ID.unique(),
-      data: { conversationId, senderId: callerId, body: checked.value, createdAt: now },
-      permissions: []
-    });
+    try {
+      row = await db.createRow({
+        databaseId: DATABASE_ID, tableId: "messages", rowId: idempotencyKey.toLowerCase(),
+        data: { conversationId, senderId: callerId, body: checked.value, createdAt: now },
+        permissions: []
+      });
+    } catch (error) {
+      // A parallel request may have won the same row-ID race. Re-read and
+      // verify every immutable field before treating this as a successful retry.
+      if (error?.code !== 409 && error?.type !== "row_already_exists" && error?.type !== "document_already_exists") throw error;
+      row = await db.getRow({ databaseId: DATABASE_ID, tableId: "messages", rowId: idempotencyKey.toLowerCase() });
+      if (row.senderId !== callerId || row.conversationId !== conversationId || row.body !== checked.value) {
+        return { error: "idempotency_key_conflict" };
+      }
+    }
+
     await db.updateRow({
       databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId,
-      data: { updatedAt: now, lastMessageAt: now }
+      data: { updatedAt: row.createdAt, lastMessageAt: row.createdAt }
     });
-    return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt } };
+    return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt }, replayed: row.createdAt !== now };
   }
 
   async function createBlock(blockerId, blockedId) {
