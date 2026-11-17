@@ -109,3 +109,22 @@ export function validateRequestId(value) {
     ? { ok: true, value }
     : { ok: false, error: "invalid_request_id" };
 }
+
+
+export function canonicalFriendPair(userAId, userBId) {
+  if (!isValidId(userAId) || !isValidId(userBId) || userAId === userBId) {
+    return { ok: false, error: "invalid_user_pair" };
+  }
+  const [first, second] = [userAId, userBId].sort();
+  return { ok: true, userAId: first, userBId: second };
+}
+
+export function canRespondToFriendRequest(request, callerId, decision) {
+  if (!request || typeof request !== "object" || request.status !== "pending") return false;
+  if (request.recipientId !== callerId) return false;
+  return decision === "accept" || decision === "decline";
+}
+
+export function canCancelFriendRequest(request, callerId) {
+  return Boolean(request && request.status === "pending" && request.senderId === callerId);
+}
