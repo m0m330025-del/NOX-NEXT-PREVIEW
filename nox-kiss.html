@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100b1b">
+  <title>NOX KISS — غرفة تجريبية</title>
+  <link rel="stylesheet" href="./nox-kiss.css">
+  <script src="./nox-kiss.js" defer></script>
+</head>
+<body>
+  <main class="room">
+    <header class="room-top">
+      <a class="back" href="./index.html">← الرئيسية</a>
+      <div class="room-brand"><b>NOX</b> KISS <small>غرفة تجريبية</small></div>
+      <div class="room-count">● 12 / 15</div>
+    </header>
+
+    <section class="scene" aria-label="مشهد الغرفة التجريبي">
+      <div class="glow glow-one"></div><div class="glow glow-two"></div>
+      <div class="scene-title">NOX <span>KISS</span></div>
+      <div class="table"></div>
+      <div class="bottle">✦</div>
+      <div class="avatar avatar-one"><span class="rank gold">LV 29 · GOLD</span><div class="person">🧑🏻‍🎤</div><b>Omar</b></div>
+      <div class="avatar avatar-two"><span class="rank silver">LV 18 · SILVER</span><div class="person">👩🏻‍🎤</div><b>Lina</b></div>
+      <div class="avatar avatar-three"><span class="rank diamond">LV 53 · DIAMOND</span><div class="person">🧑🏽‍🎤</div><b>Karim</b></div>
+      <div class="avatar avatar-four"><span class="rank bronze">LV 4 · BRONZE</span><div class="person">👩🏽‍🎤</div><b>Maya</b></div>
+      <div class="dance-status" id="danceStatus" aria-live="polite">الغرفة تعمل — اختر حركة لتجربتها</div>
+    </section>
+
+    <nav class="floating-tools" aria-label="أدوات الغرفة">
+      <button data-panel="chat">💬 <span>الدردشة</span></button>
+      <button data-panel="music">♫ <span>الأغاني</span></button>
+      <button data-panel="friends">⌕ <span>NOX ID</span></button>
+      <button id="openDances" class="dance-button">✦ <span>الرقصات</span></button>
+    </nav>
+
+    <aside class="panel" id="dancePanel" hidden>
+      <div class="panel-head"><div><small>NOX KISS</small><h2>الحركات والرقصات</h2></div><button class="close" id="closeDances" aria-label="إغلاق">×</button></div>
+      <p class="panel-note">اختر حركة؛ ستظهر على مجسمك بينما تظل الغرفة مفتوحة.</p>
+      <div class="tabs"><button class="tab active" data-category="all">الكل</button><button class="tab" data-category="egypt">مصري</button><button class="tab" data-category="folk">شعبي</button></div>
+      <div class="dance-list">
+        <button class="dance-item" data-dance="رقصة شرقية كلاسيكية" data-category="egypt"><span>💃</span><b>رقصة شرقية كلاسيكية</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقصة بلدي مصرية" data-category="egypt"><span>✨</span><b>رقصة بلدي مصرية</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقصة أفراح مصرية" data-category="egypt"><span>🎉</span><b>رقصة أفراح مصرية</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقصة مهرجانات" data-category="folk"><span>🕺</span><b>رقصة مهرجانات</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقصة حظ وأفراح" data-category="folk"><span>🥁</span><b>رقصة حظ وأفراح</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="دبكة شعبية" data-category="folk"><span>👣</span><b>دبكة شعبية</b><i>تشغيل</i></button>
+      </div>
+      <div class="panel-actions"><button id="stopDance" class="stop">إيقاف الحركة</button><button id="closePanel" class="done">تم</button></div>
+    </aside>
+
+    <aside class="mini-panel" id="otherPanel" hidden>
+      <button class="close" id="closeOther">×</button><h3 id="otherTitle"></h3><p id="otherText"></p>
+    </aside>
+    <footer>نموذج واجهة محلي — الحركات تجريبية ولا يوجد اتصال أو مزامنة بين اللاعبين بعد.</footer>
+  </main>
+</body>
+</html>
