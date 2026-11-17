@@ -88,3 +88,15 @@ The four-table Appwrite TablesDB bootstrap is verified at workflow level. The ap
 
 **Decision**
 The moderation design is documented but not operational. Review proposed schemas and permission rules before changing the Appwrite bootstrap workflow. Keep all protected access behind the existing authentication and eligibility release gates.
+
+
+### Review 009 — Moderation schema review (2026-11-17)
+
+- Reviewed the proposed `blocks`, `reports`, and `moderation_actions` TablesDB schemas against the moderation design.
+- Added bounded text fields, server-owned identity/status fields, and lookup indexes for user history and moderator queues.
+- The bootstrap remains idempotent and provisions tables with empty table permissions and row security enabled, matching the existing private-table assertions.
+- This change provisions schema only. It does not create Functions, grant client access, create moderator roles, or enable blocking/reporting/suspension behavior.
+- Before running the workflow, review Appwrite's resulting schema and keep all client permissions closed.
+
+**Decision**
+The three tables are ready for private schema provisioning. Feature activation remains blocked pending trusted backend enforcement, role checks, retention/appeal handling, and security tests.
