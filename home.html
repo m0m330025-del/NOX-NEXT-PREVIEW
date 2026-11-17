@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=original-theme-1">
-  <script type="module" src="./app.js"></script>
+  <link rel="stylesheet" href="./styles.css?v=friends-flow-2">
+  <script type="module" src="./app.js?v=friends-flow-2"></script>
 </head>
 <body>
 <div class="app-frame">
@@ -72,7 +72,7 @@
       <aside class="right-column">
         <section class="friends-panel card" id="friends"><header><h2>👥 الأصدقاء</h2><button class="add-friend-trigger" type="button" data-action="open-friends">＋ إضافة صديق</button></header>
           <div class="friends-tools"><label class="friends-search"><span>⌕</span><input id="friends-search" type="search" placeholder="ابحث عن صديق..." aria-label="البحث عن صديق"></label></div>
-          <div class="friends-empty-note">اعثر على أصدقائك بسهولة عن طريق NOX ID أو رمز QR</div>
+          <div class="friends-empty-note">أصدقاء تجريبيون للمعاينة — أضف أصدقاءك عبر NOX ID أو QR</div>
           <ul class="friend-list">
             <li><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=90&h=90&fit=crop&crop=faces" alt=""><b>أحمد المصري</b><i></i></li>
             <li><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=90&h=90&fit=crop&crop=faces" alt=""><b>مريم جمال</b><i></i></li>
@@ -101,6 +101,7 @@
         <button type="button" class="friend-tab active" data-friend-tab="scan" role="tab" aria-selected="true">▦ مسح QR</button>
         <button type="button" class="friend-tab" data-friend-tab="id" role="tab" aria-selected="false">⌨ إدخال NOX ID</button>
         <button type="button" class="friend-tab" data-friend-tab="myqr" role="tab" aria-selected="false">▣ رمزي الشخصي</button>
+        <button type="button" class="friend-tab" data-friend-tab="requests" role="tab" aria-selected="false">♧ الطلبات</button>
       </div>
       <div class="friend-pane active" data-friend-pane="scan">
         <div class="scanner-frame"><video id="friend-camera" playsinline muted></video><div class="scanner-placeholder" id="scanner-placeholder"><span class="scanner-symbol">▦</span><b>وجّه الكاميرا نحو رمز QR</b><small>ضع الرمز داخل الإطار لقراءة NOX ID</small></div><span class="scan-corner c1"></span><span class="scan-corner c2"></span><span class="scan-corner c3"></span><span class="scan-corner c4"></span></div>
@@ -113,8 +114,13 @@
       <div class="friend-pane" data-friend-pane="myqr" hidden>
         <div class="my-qr-card"><div id="my-qr-code" class="my-qr-code"><span>NOX</span></div><b id="my-nox-id">NOX-123-456</b><small>شارك الرمز ليتمكن أصدقاؤك من العثور عليك</small><button type="button" id="copy-my-id" class="friend-secondary">نسخ NOX ID</button></div>
       </div>
+      <div class="friend-pane" data-friend-pane="requests" hidden>
+        <div class="request-section"><h3>طلبات واردة</h3><div id="incoming-requests" class="request-list"><p class="request-empty">لا توجد طلبات صداقة واردة حاليًا</p></div></div>
+        <div class="request-section"><h3>طلبات مرسلة</h3><div id="sent-requests" class="request-list"><p class="request-empty">لم ترسل طلبات صداقة بعد</p></div></div>
+        <p class="request-demo-note">هذه الطلبات محفوظة على هذا الجهاز للمعاينة فقط. استقبال طلبات من أشخاص آخرين يحتاج إلى خادم NOX.</p>
+      </div>
       <div class="friend-result" id="friend-result" hidden>
-        <div class="result-avatar">N</div><div class="result-info"><b id="result-name">عضو NOX</b><small id="result-id">NOX-000-000</small></div><span class="result-safe">تم العثور على الحساب</span>
+        <div class="result-avatar">N</div><div class="result-info"><b id="result-name">عضو NOX</b><small id="result-id">NOX-000-000</small></div><span class="result-safe">معرّف بصيغة صحيحة</span>
         <button type="button" class="friend-primary send-request" id="send-friend-request">إرسال طلب الصداقة</button>
       </div>
       <p class="friend-privacy">لن تتم إضافة أي شخص تلقائيًا؛ راجع الحساب وأرسل طلبًا ينتظر موافقة الطرف الآخر.</p>
