@@ -16,9 +16,9 @@ The Appwrite endpoint and project ID in `core/appwrite-config.js` are public cli
 ## Current verified status
 
 - The repository contains an Appwrite bootstrap script and a manually triggered GitHub Actions workflow.
-- The bootstrap script targets the existing database and defines four private TablesDB tables: `users`, `friend_requests`, `friendships`, and `notifications`.
-- The TablesDB bootstrap verifies the existing database, creates four private tables with columns and indexes, and verifies the resulting tables.
-- The workflow has **not** been confirmed as successfully executed.
+- The bootstrap script targets the existing database and defines seven private TablesDB tables: `users`, `friend_requests`, `friendships`, `notifications`, `blocks`, `reports`, and `moderation_actions`.
+- The TablesDB bootstrap verifies the existing database, creates seven private tables with columns and indexes, and verifies the resulting tables.
+- Workflow #12 verified the original four tables, and workflow #13 verified all seven tables, including the moderation tables.
 - No live database, authenticated friend API, realtime flow, or cross-device friend feature should be described as operational until it has been deployed and tested.
 - The existing browser-only friend interface uses local storage and is a demonstration only.
 
@@ -66,11 +66,11 @@ The function must sort the two user IDs consistently before writing a friendship
 | `isRead` | boolean | yes | Read state |
 | `createdAt` | datetime | yes | Server-generated creation time |
 
-Additional collections, including temporary QR tokens, blocks, and reports, must be designed and reviewed before those features are enabled. Do not put permanent database IDs, email addresses, birth dates, or other private account data into QR codes.
+Additional collections, including temporary QR tokens, must be designed and reviewed before those features are enabled. The `blocks`, `reports`, and `moderation_actions` tables are now provisioned privately; their APIs and user-facing features are not deployed. Do not put permanent database IDs, email addresses, birth dates, or other private account data into QR codes.
 
 ## Permissions and trust boundaries
 
-- Keep the collections private by default. The bootstrap script currently creates collections with empty table permissions and row-level security enabled.
+- Keep the collections private by default. The bootstrap script creates tables with empty table permissions and row-level security enabled; workflow #13 verified this for all seven tables.
 - Do not grant broad client write permissions to friend requests, friendships, or notifications.
 - Implement friend operations in authenticated Appwrite Functions. Each function must derive the acting user from a server-validated Appwrite identity/session, never from a client-supplied `senderId` or `userId`.
 - Grant only the minimum required read/write permissions after the function design is implemented. Test access using two separate accounts, including attempts to read or modify another user's records.
@@ -106,8 +106,8 @@ Collect only profile data needed by the product. Keep date of birth private and 
 
 - [ ] Confirm the Appwrite project ID and endpoint in the Appwrite Console.
 - [ ] Store the Appwrite API key as a protected GitHub Actions Secret; never paste it into chat or commit it.
-- [ ] Run the manual bootstrap workflow and confirm a successful run.
-- [ ] Verify the database, four tables, columns, and indexes in Appwrite Console.
+- [x] Run the manual bootstrap workflow and confirm successful runs #12 and #13.
+- [x] Verify all seven tables, columns, indexes, empty permissions, and row security through workflow #13 logs.
 - [ ] Implement authenticated Appwrite Functions for friend operations.
 - [ ] Configure minimum required permissions and test unauthorized access.
 - [ ] Test two separate accounts on two devices: lookup, request, accept, decline, cancel, notification, logout, and reconnect.
