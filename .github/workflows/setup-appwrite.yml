@@ -1,4 +1,4 @@
-name: Setup Appwrite NOX_CORE
+name: Setup Appwrite NOX_CORE TablesDB
 
 on:
   workflow_dispatch:
@@ -36,13 +36,13 @@ jobs:
       - name: Install pinned Appwrite SDK
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
 
-      - name: Verify DocumentsDB SDK exports
+      - name: Verify TablesDB SDK exports
         run: |
-          node --input-type=module -e "import { DocumentsDB, DocumentsDBIndexType } from 'node-appwrite'; if (!DocumentsDB || !DocumentsDBIndexType?.Key || !DocumentsDBIndexType?.Unique) process.exit(1)"
+          node --input-type=module -e "import { TablesDB } from 'node-appwrite'; if (!TablesDB) process.exit(1)"
 
-      - name: Create NOX_CORE DocumentsDB database, collections, and indexes
+      - name: Create NOX_CORE TablesDB tables and indexes
         env:
           APPWRITE_ENDPOINT: https://fra.cloud.appwrite.io/v1
-          APPWRITE_PROJECT_ID: 6af9ca51000735dfb692
+          APPWRITE_PROJECT_ID: 6af9ca51000735dfb692\n          APPWRITE_DATABASE_ID: 6afc583f00382386b997
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: node scripts/setup-appwrite.mjs
