@@ -94,6 +94,12 @@ The server must prevent self-requests, duplicate pending requests, requests betw
 
 When accepting a request, make the state transition and friendship creation safely idempotent. If the selected Appwrite deployment supports database transactions, use them; otherwise implement and test a recoverable server-side sequence that cannot leave duplicate friendships or falsely accepted requests.
 
+## Block enforcement contract
+
+A shared server-side helper is now present in `functions/moderation/src/policy.js` and exposed by the moderation store as `isBlocked(userAId, userBId)`. It checks both directed records in the private `blocks` table. Every future friend-request create/accept operation and every private-conversation send/open operation must call this guard using identities derived from the authenticated Appwrite session. If either direction is blocked, reject the operation without revealing which user created the block.
+
+This helper is not yet wired into friend-request or messaging endpoints: those endpoints do not exist in the current backend. Do not treat the helper alone as end-to-end enforcement or enable client-side friend/message writes. Add integration tests for the actual endpoints before calling the feature operational.
+
 ## QR identity
 
 A QR code must not contain a permanent database ID, email, date of birth, or other private data. Before QR friend adding is enabled, implement random, high-entropy, short-lived, revocable tokens. Store only a secure hash of each token. A scan must resolve to a minimal profile and require explicit confirmation before a friend request is created.
