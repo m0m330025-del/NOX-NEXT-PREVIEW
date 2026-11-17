@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#160b49"><title>NOX | جواهري وتحويل العملات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./jewels.css"><script defer src="./jewels.js"></script>
+</head>
+<body>
+<header class="top"><a class="brand" href="./home.html"><span>N</span><b>NOX NEXT</b></a><a href="./membership.html" class="back">العضوية والترقيات ←</a></header>
+<main class="wrap">
+<section class="hero"><div><small>NOX REWARDS</small><h1>جواهرك.. إنجازك.. ورصيدك</h1><p>حوّلي جواهر الهدايا إلى NXC مع الاحتفاظ بكامل تقدمك في الترقية.</p></div><div class="gem-art">✧</div></section>
+<div class="notice"><b>قاعدة التحويل</b><span>كل 2 جوهرة = 1 NXC</span><small>الجواهر التي اكتسبتيها تظل محسوبة في تقدم العضوية حتى بعد التحويل.</small></div>
+<section class="layout">
+<article class="card balance"><div class="eyebrow">رصيد الجواهر</div><div class="balance-num"><span>✧</span><strong id="jewel-balance">—</strong></div><p>سيظهر رصيدك الحقيقي بعد تسجيل الدخول وربط المحفظة.</p><div class="divider"></div><div class="balance-row"><span>جواهر الترقية المكتسبة</span><b>تُحفظ في سجل التقدم</b></div><div class="balance-row"><span>تأثير التحويل على الترقية</span><b class="positive">لا ينقص التقدم</b></div></article>
+<article class="card convert"><div class="card-title"><div><div class="eyebrow">JEWELS → NXC</div><h2>تحويل الجواهر</h2></div><span class="pill">نسبة 50%</span></div>
+<label for="amount">عدد الجواهر المراد تحويلها</label><input id="amount" type="number" min="0" step="2" inputmode="numeric" placeholder="اكتبي عددًا زوجيًا">
+<div class="conversion"><div><small>الجواهر</small><b id="from-value">0</b></div><span>⇢</span><div><small>ستحصلين على</small><b id="to-value">0 NXC</b></div></div>
+<p class="hint" id="hint">أدخلي عدد الجواهر لحساب العملات الناتجة. المعاينة لا تخصم أي رصيد.</p>
+<button id="convert" disabled>معاينة التحويل</button>
+<div class="safe-note">هذه واجهة معاينة فقط. لا يتم خصم الجواهر أو إضافة NXC قبل ربط الخدمة الخلفية وتأكيد العملية من الخادم.</div>
+</article>
+</section>
+<section class="card rules"><h2>كيف يعمل النظام؟</h2><div class="steps">
+<div><i>1</i><b>استقبال الهدايا</b><p>تُسجّل قيمة الهدايا المستلمة بنجاح كجواهر ترقية.</p></div>
+<div><i>2</i><b>التحويل إلى NXC</b><p>كل جوهرتين تمنحانك NXC واحدة في محفظتك.</p></div>
+<div><i>3</i><b>التقدم محفوظ</b><p>سجل الجواهر المكتسبة يظل محفوظًا ويستمر في حساب الترقية.</p></div>
+</div></section>
+<section class="footer-note">الأرصدة والعمليات الفعلية ستُحمّل من الخادم بعد تسجيل الدخول. لا توجد هنا عمليات دفع نقدي أو سوق بيع بين الأعضاء.</section>
+</main><div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body></html>
