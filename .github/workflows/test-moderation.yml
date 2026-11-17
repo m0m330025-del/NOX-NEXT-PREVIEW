@@ -6,10 +6,14 @@ on:
       - main
       - feature/moderation-functions-scaffold
     paths:
+      - "index.js"
+      - "package.json"
       - "functions/moderation/**"
       - ".github/workflows/test-moderation.yml"
   pull_request:
     paths:
+      - "index.js"
+      - "package.json"
       - "functions/moderation/**"
       - ".github/workflows/test-moderation.yml"
   workflow_dispatch:
@@ -20,9 +24,6 @@ permissions:
 jobs:
   moderation-policy-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: functions/moderation
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +31,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install pinned dependencies
+      - name: Install Appwrite Function root dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Run unit and SDK compatibility tests
-        run: npm test && npm run check
+      - name: Check Appwrite Function root entrypoint
+        run: node --check index.js
+      - name: Install moderation test dependencies
+        run: npm --prefix functions/moderation install --ignore-scripts --no-audit --no-fund
+      - name: Run moderation unit and SDK compatibility tests
+        run: npm --prefix functions/moderation test && npm --prefix functions/moderation run check
