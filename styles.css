@@ -54,3 +54,56 @@ body{perspective:1400px;background:radial-gradient(ellipse at 78% 8%,#d8c9ff 0,t
   .story:hover .story-ring{transform:none}
 }
 @media(prefers-reduced-motion:reduce){.card,.stories-panel,.nav-link,.story-ring,.composer-actions button,.kiss-cta{transform:none!important}}
+
+
+/* NOX NEXT calm palette: soft mist, sage and muted teal */
+:root{
+  --navy:#263746;--purple:#668b91;--violet:#7fa6a5;--pink:#d58d91;
+  --ink:#293b46;--muted:#71818a;--line:#e1e9e8;--paper:#ffffff;
+  --canvas:#f4f7f6;--gold:#c9ad72;
+}
+body{background:linear-gradient(135deg,#eef3f1,#f8faf9 48%,#edf3f2);color:var(--ink)}
+.app-frame{background:#f8faf9}
+.sidebar{
+  background:linear-gradient(180deg,#e8f0ef 0%,#e3eceb 100%);
+  color:#30444c;box-shadow:8px 0 26px rgba(48,72,76,.08);
+  border-left:1px solid #d9e5e3
+}
+.brand b{color:#557d7e}
+.brand small{color:#60777b;opacity:1}
+.brand-symbol{border-color:#b9a477;color:#9b8457;box-shadow:0 5px 14px rgba(65,91,91,.12)}
+.nav-link{color:#435b61}
+.nav-link:hover,.nav-link.active{
+  background:#d3e3e0;color:#294d50;box-shadow:0 4px 12px rgba(59,100,99,.10)
+}
+.logout-button{border:1px solid #c8d9d6;background:#dce9e6;color:#38595a}
+.workspace{background:linear-gradient(145deg,#f9fbfa,#f0f5f3)}
+.topbar{border-bottom-color:#e4ece9}
+.search-box{border-color:#e0e9e6;background:#f4f8f6;color:#62817f}
+.card,.stories-panel{border-color:#e3ebe8}
+.stories-panel{background:linear-gradient(120deg,#fff,#f2f7f5)}
+.story{color:#40575c}
+.story-ring{background:linear-gradient(135deg,#d8a4a0,#8eaeaa,#b9c9c3)}
+.add-ring{background:linear-gradient(140deg,#88aaa5,#5e8583)}
+.story-next{color:#557b78}
+.composer-prompt{background:#f2f6f4;color:#71817e}
+.composer-actions button{background:#eef4f1;color:#405b59}
+.composer-actions .publish-button{background:linear-gradient(110deg,#7fa6a0,#5f8986);color:white}
+.photo-icon{color:#628f89}.video-icon{color:#bd7777}.gift-icon{color:#b9858b}
+.icon-button{color:#587c7b}
+.friends-panel header button{color:#638985}
+.kiss-promo{background:radial-gradient(circle at 50% 35%,#789b96,#405f63 70%,#344b53);border-color:#9bb8b1}
+.kiss-promo>b{color:#f0dfb4}
+.crown{color:#e7d4a7}
+.kiss-cta{background:linear-gradient(100deg,#b58e91,#7c9e98)}
+.toast{background:#405d61}
+@media(max-width:760px){
+  body{background:#f3f7f5}
+  .mobile-header{background:#e7efed;color:#365257;box-shadow:0 5px 14px rgba(55,85,83,.09);border-bottom:1px solid #d9e5e1}
+  .brand-mobile b{color:#557d7e}
+  .brand-mobile small{color:#637b7c}
+  .mobile-actions .icon-button{color:#557b78}
+  .mobile-nav{background:#f9fbfa;color:#536c6b;border-top:1px solid #e0e9e6;box-shadow:0 -5px 16px rgba(55,85,83,.10)}
+  .mobile-nav a,.mobile-nav button{color:#617875}
+  .mobile-nav .active{color:#477d78}
+}
