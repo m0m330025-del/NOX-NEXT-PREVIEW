@@ -59,8 +59,10 @@ A transfer must never leave the system in a state where only one side has been a
 - Before sending, the server validates the catalog item, price, sender's available balance, recipient/context, and request idempotency.
 - A successful gift must debit the sender and create the gift event atomically; the event must identify sender, recipient, gift, NXC amount, source module, timestamp, and transaction reference.
 - Failed gift sends must not debit the wallet.
+- Once a gift is successfully recorded, it is final and cannot be cancelled by the sender, recipient, or through a normal admin action. The completed gift event remains in the history.
+- Do not expose a cancel-gift action after success. A genuine accounting/data-integrity incident, if one occurs, must be handled as a separately authorized and audited correction without deleting or rewriting the original event.
 
-**Still undecided:** gift revenue sharing / recipient earnings percentages, platform commission, and reversals/refunds. Unless the product owner explicitly approves otherwise, gifts are in-app items and do not create a withdrawable user cash balance. Do not invent percentages in code or admin settings.
+**Still undecided:** gift revenue sharing / recipient earnings percentages and platform commission. Unless the product owner explicitly approves otherwise, gifts are in-app items and do not create a withdrawable user cash balance. Do not invent percentages in code or admin settings.
 
 ### 2.5 Rewards and eligibility classes
 
@@ -115,7 +117,7 @@ Implementation rules:
 - Count the NXC value of each gift when the gift is successfully received and recorded.
 - Use the gift's authoritative server-side catalog value at the time of the gift.
 - Count each gift transaction once only; enforce unique transaction/event IDs and idempotency.
-- Do not count failed, cancelled, or reversed gifts toward progression. Define how a later refund/reversal affects the recipient's progression history.
+- Count only successfully recorded gifts. Failed gift attempts do not count. Successfully recorded gifts are final and are not cancelled; therefore their progression contribution remains in the historical progression total. Any exceptional data-integrity correction must be separately authorized, audited, and linked to the original event.
 - Gift-based progression is an entitlement metric only. It does not create a cash balance or allow the recipient to withdraw or redeem NXC.
 - Keep the female gift-progression total separate from the user's spendable wallet balance and from any cash/payment records.
 
@@ -128,14 +130,14 @@ The product owner has added a separate **jewels** reward unit for female account
 - Converting jewels to NXC must not reduce, erase, or recalculate downward the cumulative received-gift progression total. Progression is based on the historical qualifying gift events, not the remaining jewels balance.
 - Converted NXC is credited to the same central NXC wallet used by the rest of the application. It is not a second wallet and must not be minted outside the ledger.
 - Each qualifying gift event must be recorded once and linked to its original gift transaction. A conversion consumes only the convertible jewels balance; it does not consume or rewrite the progression event.
-- Store amounts as integers. The product owner must decide how an odd jewel remainder is handled before production implementation; do not silently round up or discard it.
+- Store amounts as integers. An odd jewel remainder stays محفوظة in the available jewels balance until another jewel is earned; it is not rounded up, discarded, or converted alone.
 - Conversion must be a server-side, atomic, idempotent transaction with a unique reference, a debit from the jewels liability/account and a matching NXC credit. Concurrent requests must not convert the same jewels twice.
 - Keep three concepts distinct in data and UI: (1) cumulative received-gift progression, (2) currently available unconverted jewels, and (3) spendable NXC wallet balance.
 - The UI must show the conversion rate, previewed output, confirmation, success/failure state, and transaction history. A client-side calculator is not evidence that a conversion occurred.
 
 **Peer-to-peer cash arrangements are outside the NOX product scope:** the owner has stated that any private agreement between members about money is between those members and is not handled by the owner. Accordingly, NOX must not provide cash listings, buyer/seller matching, cash price negotiation, escrow, cash collection, payouts, cash balances, or dispute settlement for such arrangements. The ordinary NXC transfer feature remains an in-app currency transfer and must not be described as proof, facilitation, or guarantee of any external cash payment. Do not build a gender-specific cash marketplace or imply that NOX verifies or endorses private arrangements. Any future in-app cash feature would require a separate product, legal, age-eligibility, payment-provider, fraud, and compliance review before design or implementation.
 
-**Still undecided:** treatment of odd jewel remainders; whether gift reversals after conversion create a progression correction, a jewels debt, or another remedy; and whether already converted NXC can be reversed or frozen in a dispute. These require explicit product and compliance decisions. Do not invent automatic clawback or negative-balance behavior.
+**Product decisions confirmed:** odd jewel remainders remain محفوظة until enough jewels exist to make another 2-jewel conversion. Successfully recorded gifts cannot be cancelled, so there is no normal gift-cancellation clawback against progression, jewels, or converted NXC. Any exceptional accounting/data-integrity correction must be separately authorized and audited; never silently delete or rewrite the original gift or conversion events.
 
 ### 3A.3 Upgrade experience
 
@@ -149,7 +151,7 @@ The user app should show:
 - available static and animated frames;
 - upgrade history with timestamps and prior/current level.
 
-The progression service must define precisely which ledger events count toward eligible balance, whether spending or transfers affect eligibility, how reversals/refunds affect it, and how level downgrades or permanent attainment work. These rules are product decisions and must not be guessed.
+The progression service must count each successfully recorded qualifying gift exactly once. Completed gifts are final and cannot be cancelled through the product flow. Spending or transferring NXC does not rewrite historical gift progression. Any exceptional data-integrity correction and any level-downgrade/permanent-attainment policy must be explicitly defined and audited; do not guess.
 
 ### 3A.4 Frames and identity
 
@@ -278,7 +280,7 @@ These are blockers or explicit decisions, not values to guess:
 | Game expenses | Included in central wallet | Define allowed spend types, limits, refund rules |
 | Owner ∞ display | Concept only | Confirm display-only treatment; never represent as a real unlimited balance |
 | In-app cash-out / member cash marketplace | Not part of NOX scope | No NOX cash collection, escrow, payout, listings, or dispute handling; ordinary NXC transfers remain in-app currency movements |
-| Refunds / chargebacks | Not fully specified | Define reversal, negative-balance, and fraud policy |
+| Refunds / chargebacks | Payment-provider disputes remain an operational/legal policy item; completed gifts themselves cannot be cancelled | Define handling of external payment disputes without adding a user-facing completed-gift cancellation feature |
 | Limits and fees | Not specified | Define per-transaction/daily limits, fees, and escalation rules |
 | Spotify | Shared queue and one song / member / 15 minutes | Validate API, playback rights, regional availability, and enforcement approach |
 
