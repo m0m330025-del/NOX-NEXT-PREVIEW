@@ -40,6 +40,43 @@ export default async ({ req, res, log }) => {
   const body = req.bodyJson ?? {};
 
 
+
+  if (route === "/friends/lookup" && req.method === "GET") {
+    const checked = validateNoxId(req.query?.noxId);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    try {
+      const profile = await createModerationStore().lookupPublicProfile(checked.value);
+      if (!profile) return json(res, 404, { error: "profile_unavailable" });
+      return json(res, 200, { profile });
+    } catch {
+      log("Public profile lookup failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/notifications" && req.method === "GET") {
+    try {
+      const notifications = await createModerationStore().listNotifications(caller.$id);
+      return json(res, 200, { notifications });
+    } catch {
+      log("Notification lookup failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
+  if (route === "/notifications/read" && req.method === "POST") {
+    const checked = validateRequestId(body.notificationId);
+    if (!checked.ok) return json(res, 400, { error: checked.error });
+    try {
+      const result = await createModerationStore().markNotificationRead(caller.$id, checked.value);
+      if (result.error) return json(res, 404, { error: result.error });
+      return json(res, 200, result);
+    } catch {
+      log("Notification update failed.");
+      return json(res, 503, { error: "service_unavailable" });
+    }
+  }
+
   if (route === "/friends/requests" && req.method === "POST") {
     const checked = validateNoxId(body.noxId);
     if (!checked.ok) return json(res, 400, { error: checked.error });
