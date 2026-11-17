@@ -137,3 +137,23 @@ body{perspective:none!important}
   .toast{bottom:calc(78px + env(safe-area-inset-bottom))!important;z-index:70}
   .friend-modal{z-index:100!important}
 }
+
+/* Original NOX palette — friend request and QR components */
+.friend-modal-card{background:#fbf9ff;border-color:#e5dcff;box-shadow:0 24px 70px #24105f44}
+.friend-modal-header small{color:#b28be8}.friend-modal-header h2{color:#24105f}
+.friend-close{background:#f0eaff;color:#6722ed}
+.friend-tab{border-color:#e5dcff;background:#f7f3ff;color:#6f6391}
+.friend-tab.active{background:linear-gradient(110deg,#6722ed,#9c35f1);border-color:#8e4af0;color:#fff;box-shadow:0 5px 14px #6722ed30}
+.friend-modal-backdrop{background:rgba(22,11,73,.58)}
+.friend-modal-card .friend-primary,.friend-modal-card .id-entry button{background:linear-gradient(110deg,#6722ed,#ec36ad);color:#fff}
+.friend-modal-card .friend-secondary{background:#f2ecff;border:1px solid #e1d4ff;color:#6722ed}
+.friend-modal-header small{color:#ffd45f}
+.request-section{margin:12px 0 18px}.request-section h3{font-size:13px;color:#24105f;margin:0 0 9px}
+.request-list{display:grid;gap:8px}.request-empty{margin:0;padding:13px;border:1px dashed #d9cef7;border-radius:12px;color:#897fa7;text-align:center;font-size:12px}
+.request-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px;border:1px solid #e7defb;border-radius:13px;background:#fff}
+.request-info{display:grid;gap:2px;min-width:0}.request-info b{font-size:12px;color:#33215f}.request-info small{font-size:11px;color:#897fa7;direction:ltr;text-align:right}
+.request-actions{display:flex;gap:6px}.request-actions button{border:0;border-radius:9px;padding:7px 10px;font:inherit;font-size:11px;font-weight:800}
+.request-accept{background:#efe8ff;color:#6722ed}.request-reject{background:#fff0f4;color:#c04476}
+.request-pending{font-size:10px;color:#9367d2;white-space:nowrap}.request-demo-note{font-size:10px;line-height:1.8;color:#897fa7;background:#f5f0ff;padding:10px;border-radius:11px}
+.friend-result .result-safe{color:#8151c7}
+@media(max-width:520px){.friend-modal-card{padding:16px}.friend-tabs{gap:5px}.friend-tab{font-size:10px;padding:9px 2px}.request-row{align-items:flex-start}.request-actions button{padding:7px}}
