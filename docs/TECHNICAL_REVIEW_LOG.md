@@ -51,3 +51,28 @@ AI-assisted technical review against Appwrite SDK usage patterns, backend securi
 - Authenticated functions, permission tests, realtime behavior, and cross-device tests.
 
 **Decision:** The bootstrap code has received two rounds of AI-assisted static review and the identified issues above have been corrected in the repository. This is not an external human review. The backend is **not approved for production** until the remaining deployment and security tests pass.
+
+
+### Review 003 — DocumentsDB API alignment (2026-11-17)
+
+**Official documentation checked**
+- Appwrite DocumentsDB is schemaless: collections do not define SQL-like columns or pre-created attributes.
+- The current Node Server SDK examples instantiate `DocumentsDB`, then call `create`, `createCollection`, and `createIndex`.
+- The current API reference assigns `documentsdb.write` to database creation. The matching DocumentsDB read/write, collection read/write, and index read/write scopes are the least-privilege set needed by this bootstrap's create/get/verify flow.
+
+**Finding**
+- The previous bootstrap imported `Databases` and attempted to create string, datetime, and boolean attributes. That is the TablesDB-style schema workflow, not the current DocumentsDB model.
+
+**Action**
+- Replaced the bootstrap with `DocumentsDB` and schemaless collections.
+- Retained private collection permissions and document-level security.
+- Kept indexes for the documented lookup patterns and wait-for-index readiness checks.
+- A 409 conflict is now accepted only after fetching the existing resource successfully.
+- No live Appwrite calls were made; the script remains unexecuted until the protected GitHub secret is configured.
+
+**Remaining verification**
+- Confirm the installed `node-appwrite@31.3.0` exports `DocumentsDB` and `DocumentsDBIndexType` as used by the script, via CI's pinned install and a safe syntax/import check.
+- Execute the bootstrap once the owner adds the secret, then inspect actual database/collection/index state.
+- Continue with authenticated Functions and permission tests before frontend integration.
+
+**Decision:** Static design now follows the current official DocumentsDB API shape. This is an AI-assisted review, not a human engineering sign-off or external security audit.
