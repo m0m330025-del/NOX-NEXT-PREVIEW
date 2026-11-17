@@ -17,6 +17,10 @@ jobs:
       APPWRITE_PROJECT_ID: 6af9ca51000735dfb692
       APPWRITE_DATABASE_ID: 6afc583f00382386b997
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+      NOX_MODERATION_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+      APPWRITE_FUNCTION_API_ENDPOINT: https://fra.cloud.appwrite.io/v1
+      APPWRITE_FUNCTION_PROJECT_ID: 6af9ca51000735dfb692
+      NOX_DATABASE_ID: 6afc583f00382386b997
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,3 +32,5 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Verify Appwrite transaction commit and rollback
         run: node --test test/appwrite-transactions.integration.test.js
+      - name: Verify private conversation and message authorization
+        run: node --test test/conversations.integration.test.js
