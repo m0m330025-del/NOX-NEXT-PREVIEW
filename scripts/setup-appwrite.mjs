@@ -127,6 +127,34 @@ const definitions = [
     indexes: [
       { key: "recipient_created", type: "key", columns: ["recipientId", "createdAt"] }
     ]
+  },
+  {
+    id: "conversations", name: "Private Conversations",
+    columns: [
+      { key: "participantAId", type: "varchar", size: 36, required: true },
+      { key: "participantBId", type: "varchar", size: 36, required: true },
+      { key: "createdAt", type: "datetime", required: true },
+      { key: "updatedAt", type: "datetime", required: true },
+      { key: "lastMessageAt", type: "datetime", required: false }
+    ],
+    indexes: [
+      { key: "participant_pair_unique", type: "unique", columns: ["participantAId", "participantBId"] },
+      { key: "participant_b_lookup", type: "key", columns: ["participantBId"] },
+      { key: "last_message_lookup", type: "key", columns: ["lastMessageAt"] }
+    ]
+  },
+  {
+    id: "messages", name: "Private Messages",
+    columns: [
+      { key: "conversationId", type: "varchar", size: 36, required: true },
+      { key: "senderId", type: "varchar", size: 36, required: true },
+      { key: "body", type: "varchar", size: 4000, required: true },
+      { key: "createdAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "conversation_created", type: "key", columns: ["conversationId", "createdAt"] },
+      { key: "sender_created", type: "key", columns: ["senderId", "createdAt"] }
+    ]
   }
 ];
 
@@ -247,4 +275,4 @@ for (const table of definitions) {
 }
 console.log("NOX_CORE TablesDB bootstrap complete:", definitions.map((item) => item.id).join(", "));
 console.log("All tables have empty table permissions and rowSecurity enabled.");
-console.log("No public access or friend APIs were enabled.");
+console.log("No public access or friend/message APIs were enabled.");
