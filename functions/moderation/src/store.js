@@ -1,5 +1,5 @@
 import { Client, ID, Query, TablesDB } from "node-appwrite";
-import { isBlockedEitherWay } from "./policy.js";
+import { isBlockedEitherWay, canonicalFriendPair, canRespondToFriendRequest, canCancelFriendRequest } from "./policy.js";
 
 const DATABASE_ID = process.env.NOX_DATABASE_ID || "6afc583f00382386b997";
 
@@ -74,6 +74,7 @@ export function createModerationStore() {
     const recipient = await findUserByNoxId(noxId);
     if (!recipient) return { error: "user_not_found" };
     const recipientId = recipient.authUserId;
+    if (typeof recipientId !== "string" || !recipientId) return { error: "user_not_found" };
     if (recipientId === senderId) return { error: "cannot_request_self" };
     if (await isBlocked(senderId, recipientId)) return { error: "interaction_unavailable" };
 
@@ -121,7 +122,7 @@ export function createModerationStore() {
 
   async function respondToFriendRequest(userId, requestId, decision) {
     const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
-    if (row.recipientId !== userId || row.status !== "pending") return { error: "request_unavailable" };
+    if (!canRespondToFriendRequest(row, userId, decision)) return { error: "request_unavailable" };
     if (await isBlocked(row.senderId, row.recipientId)) return { error: "interaction_unavailable" };
     const now = new Date().toISOString();
     if (decision === "decline") {
@@ -129,7 +130,9 @@ export function createModerationStore() {
         data: { status: "declined", updatedAt: now } });
       return { status: "declined" };
     }
-    const [userAId, userBId] = [row.senderId, row.recipientId].sort();
+    const pair = canonicalFriendPair(row.senderId, row.recipientId);
+    if (!pair.ok) return { error: "request_unavailable" };
+    const { userAId, userBId } = pair;
     try {
       await db.createRow({ databaseId: DATABASE_ID, tableId: "friendships", rowId: ID.unique(),
         data: { userAId, userBId, createdAt: now }, permissions: [] });
@@ -144,7 +147,7 @@ export function createModerationStore() {
 
   async function cancelFriendRequest(userId, requestId) {
     const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
-    if (row.senderId !== userId || row.status !== "pending") return { error: "request_unavailable" };
+    if (!canCancelFriendRequest(row, userId)) return { error: "request_unavailable" };
     await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
       data: { status: "cancelled", updatedAt: new Date().toISOString() } });
     return { status: "cancelled" };
