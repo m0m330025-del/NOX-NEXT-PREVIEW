@@ -93,10 +93,17 @@ for (const table of definitions) {
     });
     console.log("Created private table:", created.$id);
     currentIds.add(table.id);
-  } else {
-    const verified = await db.getTable({ databaseId, tableId: table.id });
-    console.log("Verified existing table:", verified.$id);
   }
+
+  // Always inspect the persisted table configuration, including on retries.
+  const verifiedTable = await db.getTable({ databaseId, tableId: table.id });
+  if (verifiedTable.rowSecurity !== true) {
+    throw new Error("Row-level security is not enabled for table: " + table.id);
+  }
+  if (!Array.isArray(verifiedTable.permissions) || verifiedTable.permissions.length !== 0) {
+    throw new Error("Table permissions must remain empty for private table: " + table.id);
+  }
+  console.log("Verified private table and row security:", verifiedTable.$id);
 
   // Reconcile columns even when a table already exists. This makes retries safe
   // after a partial run (for example, if index creation previously failed).
@@ -147,7 +154,8 @@ for (const table of definitions) {
     }
     // TablesDB may briefly report a newly-created column as unavailable.
     // Retry only that transient condition; fail immediately for other errors.
-    let created = false;
+    let completed = false;
+    let createdNow = false;
     for (let attempt = 0; attempt < 6; attempt += 1) {
       try {
         await db.createIndex({
@@ -157,14 +165,14 @@ for (const table of definitions) {
           type: index.type,
           columns: index.columns
         });
-        created = true;
+        completed = true;
+        createdNow = true;
         break;
       } catch (error) {
-        // listIndexes may not expose the key in a consistent field across
-        // Appwrite versions. A 409 confirms the index is already present.
+        // A conflict means the index already exists; do not report it as newly created.
         if (error?.type === "column_index_already_exists" || error?.code === 409) {
-          console.log("Index already exists:", table.id + "." + index.key);
-          created = true;
+          console.log("Verified existing index after conflict:", table.id + "." + index.key);
+          completed = true;
           break;
         }
         const transient = error?.type === "column_not_available";
@@ -175,8 +183,8 @@ for (const table of definitions) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
-    if (!created) throw new Error("Could not create index: " + table.id + "." + index.key);
-    console.log("Created index:", table.id + "." + index.key);
+    if (!completed) throw new Error("Could not create index: " + table.id + "." + index.key);
+    if (createdNow) console.log("Created index:", table.id + "." + index.key);
   }
 }
 
