@@ -2,6 +2,12 @@ name: Verify NOX Appwrite transactions
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/moderation-functions-scaffold
+    paths:
+      - 'functions/moderation/**'
+      - '.github/workflows/test-appwrite-transactions.yml'
 
 permissions:
   contents: read
