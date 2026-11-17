@@ -1,0 +1,11 @@
+{
+  "name": "nox-next-preview-function-root",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <27"
+  },
+  "dependencies": {
+    "node-appwrite": "31.3.0"
+  }
+}
