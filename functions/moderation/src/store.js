@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Client, ID, Query, TablesDB } from "node-appwrite";
 import { isBlockedEitherWay, canonicalFriendPair, canRespondToFriendRequest, canCancelFriendRequest, canReadOrSendMessage, validateMessageBody } from "./policy.js";
 
@@ -42,12 +43,21 @@ export function createModerationStore() {
     return { noxId: user.noxId, displayName: user.displayName };
   }
 
+  function stableRowId(namespace, value) {
+    return `${namespace}_${createHash("sha256").update(value).digest("hex").slice(0, 34)}`;
+  }
+
   async function createNotification(recipientId, type, referenceId) {
-    await db.createRow({
-      databaseId: DATABASE_ID, tableId: "notifications", rowId: ID.unique(),
-      data: { recipientId, type, referenceId, isRead: false, createdAt: new Date().toISOString() },
-      permissions: []
-    });
+    const rowId = stableRowId("n", `${recipientId}:${type}:${referenceId ?? ""}`);
+    try {
+      await db.createRow({
+        databaseId: DATABASE_ID, tableId: "notifications", rowId,
+        data: { recipientId, type, referenceId, isRead: false, createdAt: new Date().toISOString() },
+        permissions: []
+      });
+    } catch (error) {
+      if (error?.code !== 409 && error?.type !== "row_already_exists" && error?.type !== "document_already_exists") throw error;
+    }
   }
 
   async function listNotifications(userId) {
@@ -122,30 +132,47 @@ export function createModerationStore() {
 
   async function respondToFriendRequest(userId, requestId, decision) {
     const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
+    if (!row || row.recipientId !== userId) return { error: "request_unavailable" };
+    if (row.status === "accepted" && decision === "accept") {
+      const existing = await findFriendship(row.senderId, row.recipientId);
+      if (!existing) return { error: "request_unavailable" };
+      await createNotification(row.senderId, "friend_request_accepted", requestId);
+      return { status: "accepted", replayed: true };
+    }
     if (!canRespondToFriendRequest(row, userId, decision)) return { error: "request_unavailable" };
     if (await isBlocked(row.senderId, row.recipientId)) return { error: "interaction_unavailable" };
+
     const now = new Date().toISOString();
     if (decision === "decline") {
       await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
         data: { status: "declined", updatedAt: now } });
       return { status: "declined" };
     }
+
     const pair = canonicalFriendPair(row.senderId, row.recipientId);
     if (!pair.ok) return { error: "request_unavailable" };
     const { userAId, userBId } = pair;
+    const friendshipId = stableRowId("f", `${userAId}:${userBId}`);
     try {
-      await db.createRow({ databaseId: DATABASE_ID, tableId: "friendships", rowId: ID.unique(),
+      await db.createRow({ databaseId: DATABASE_ID, tableId: "friendships", rowId: friendshipId,
         data: { userAId, userBId, createdAt: now }, permissions: [] });
     } catch (error) {
-      if (error?.code !== 409 && error?.type !== "document_already_exists") throw error;
+      if (error?.code !== 409 && error?.type !== "row_already_exists" && error?.type !== "document_already_exists") throw error;
+      const existing = await findFriendship(userAId, userBId);
+      if (!existing) throw error;
     }
-    await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
-      data: { status: "accepted", updatedAt: now } });
-    await createNotification(row.senderId, "friend_request_accepted", requestId);
-    return { status: "accepted" };
-  }
 
-  async function cancelFriendRequest(userId, requestId) {
+    const current = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
+    if (current.status === "pending") {
+      await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
+        data: { status: "accepted", updatedAt: now } });
+    } else if (current.status !== "accepted") {
+      return { error: "request_unavailable" };
+    }
+    await createNotification(row.senderId, "friend_request_accepted", requestId);
+    return { status: "accepted", replayed: current.status === "accepted" };
+  }
+async function cancelFriendRequest(userId, requestId) {
     const row = await db.getRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId });
     if (!canCancelFriendRequest(row, userId)) return { error: "request_unavailable" };
     await db.updateRow({ databaseId: DATABASE_ID, tableId: "friend_requests", rowId: requestId,
