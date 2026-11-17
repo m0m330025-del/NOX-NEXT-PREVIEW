@@ -69,10 +69,10 @@ export function initApp() {
       return;
     }
     pendingFriendId = cleanId;
-    document.getElementById("result-name").textContent = "حساب NOX";
+    document.getElementById("result-name").textContent = "معرّف NOX";
     document.getElementById("result-id").textContent = cleanId;
     friendResult.hidden = false;
-    friendNotice("تمت قراءة NOX ID — راجع الحساب قبل إرسال الطلب");
+    friendNotice("صيغة المعرّف صحيحة. لا يمكن تأكيد وجود الحساب قبل ربط الخادم.");
   }
 
   function switchFriendTab(tab) {
@@ -89,6 +89,53 @@ export function initApp() {
     friendResult.hidden = true;
     if (tab !== "scan") stopFriendCamera();
     if (tab === "myqr") renderMyQr();
+    if (tab === "requests") renderFriendRequests();
+  }
+
+  function renderFriendRequests() {
+    const incomingBox = document.getElementById("incoming-requests");
+    const sentBox = document.getElementById("sent-requests");
+    if (!incomingBox || !sentBox) return;
+    const incoming = JSON.parse(localStorage.getItem("noxIncomingFriendRequests") || "[]");
+    const sent = JSON.parse(localStorage.getItem("noxFriendRequests") || "[]");
+    const accepted = JSON.parse(localStorage.getItem("noxAcceptedFriends") || "[]");
+    incomingBox.innerHTML = "";
+    sentBox.innerHTML = "";
+    const pendingIncoming = incoming.filter(item => !accepted.includes(item.id));
+    if (!pendingIncoming.length) incomingBox.innerHTML = '<p class="request-empty">لا توجد طلبات صداقة واردة حاليًا</p>';
+    pendingIncoming.forEach(item => {
+      const row = document.createElement("div"); row.className = "request-row";
+      const info = document.createElement("div"); info.className = "request-info";
+      const name = document.createElement("b"); name.textContent = item.name || "عضو NOX";
+      const id = document.createElement("small"); id.textContent = item.id;
+      info.append(name,id);
+      const actions = document.createElement("div"); actions.className = "request-actions";
+      const accept = document.createElement("button"); accept.className = "request-accept"; accept.textContent = "قبول";
+      accept.addEventListener("click", () => {
+        const list = JSON.parse(localStorage.getItem("noxAcceptedFriends") || "[]");
+        if (!list.includes(item.id)) list.push(item.id);
+        localStorage.setItem("noxAcceptedFriends", JSON.stringify(list));
+        localStorage.setItem("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)));
+        friendNotice("تم قبول الطلب في المعاينة المحلية"); renderFriendRequests();
+      });
+      const reject = document.createElement("button"); reject.className = "request-reject"; reject.textContent = "رفض";
+      reject.addEventListener("click", () => {
+        localStorage.setItem("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)));
+        friendNotice("تم رفض الطلب في المعاينة المحلية"); renderFriendRequests();
+      });
+      actions.append(accept,reject); row.append(info,actions); incomingBox.append(row);
+    });
+    const pendingSent = sent.filter(id => !accepted.includes(id));
+    if (!pendingSent.length) sentBox.innerHTML = '<p class="request-empty">لم ترسل طلبات صداقة بعد</p>';
+    pendingSent.forEach(id => {
+      const row = document.createElement("div"); row.className = "request-row";
+      const info = document.createElement("div"); info.className = "request-info";
+      const name = document.createElement("b"); name.textContent = "طلب صداقة";
+      const code = document.createElement("small"); code.textContent = id;
+      info.append(name,code);
+      const status = document.createElement("span"); status.className = "request-pending"; status.textContent = "بانتظار الرد";
+      row.append(info,status); sentBox.append(row);
+    });
   }
 
   function renderMyQr() {
@@ -188,14 +235,21 @@ export function initApp() {
     }
     const requests = JSON.parse(localStorage.getItem("noxFriendRequests") || "[]");
     if (requests.includes(pendingFriendId)) {
-      friendNotice("سبق حفظ طلب لهذا الحساب على هذا الجهاز");
+      friendNotice("سبق إرسال طلب لهذا المعرّف على هذا الجهاز");
       return;
     }
     requests.push(pendingFriendId);
     localStorage.setItem("noxFriendRequests", JSON.stringify(requests));
-    friendNotice("تم حفظ طلب تجريبي على هذا الجهاز — الإرسال الفعلي يحتاج خادم NOX");
+    friendNotice("تم تسجيل الطلب في معاينة هذا الجهاز فقط — لم يُرسل لحساب آخر");
     friendResult.hidden = true;
     document.getElementById("friend-id-input").value = "";
+    renderFriendRequests();
+  });
+  document.getElementById("friends-search")?.addEventListener("input", event => {
+    const query = event.currentTarget.value.trim().toLocaleLowerCase("ar");
+    document.querySelectorAll(".friend-list li").forEach(item => {
+      item.hidden = !item.textContent.toLocaleLowerCase("ar").includes(query);
+    });
   });
   document.getElementById("copy-my-id")?.addEventListener("click", async () => {
     try {
