@@ -42,6 +42,7 @@
 </form>
 <p class="login-line">لديك حساب بالفعل؟ <a href="./login.html">تسجيل الدخول</a></p>
 <p class="demo-note" id="notice" role="status">هذه واجهة تجريبية فقط؛ لن تُرسل بياناتك أو يُنشأ حساب فعلي قبل ربط نظام الحسابات.</p>
+<div id="nox-id-result" class="demo-note" hidden aria-live="polite"></div>
 <div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
 </section>
 </main>
@@ -64,7 +65,10 @@ document.getElementById('signup-form').addEventListener('submit',event=>{
  if(!dob || dob>today){notice.textContent='من فضلك أدخل تاريخ ميلاد صحيحًا.';return;}
  if(age<18){notice.textContent='عذرًا، هذه اللعبة مخصصة لمن أتم 18 عامًا أو أكثر، ولا يمكن إكمال التسجيل.';return;}
  if(password!==confirm){notice.textContent='كلمتا المرور غير متطابقتين؛ راجع البيانات وحاول مرة أخرى.';return;}
- notice.textContent='اجتاز النموذج فحص العمر المبدئي. التحقق الحقيقي من العمر وإنشاء الحساب يحتاجان إلى نظام آمن على الخادم.';
+ const newId='NOX-'+String(Math.floor(100+Math.random()*900))+'-'+String(Math.floor(100+Math.random()*900));
+ notice.textContent='اجتاز النموذج فحص العمر المبدئي فقط. إنشاء الحساب والتحقق الحقيقي يحتاجان إلى خادم آمن.';
+ const idResult=document.getElementById('nox-id-result'); idResult.hidden=false;
+ idResult.innerHTML='<strong>معرّف NOX التجريبي المقترح</strong><br><span dir="ltr" style="font-size:22px;font-weight:900;letter-spacing:2px">'+newId+'</span><br>المعرّف النهائي يجب أن يصدر من الخادم لضمان عدم التكرار.';
 });
 </script>
 </body></html>
