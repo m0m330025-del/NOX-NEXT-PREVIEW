@@ -76,3 +76,34 @@ AI-assisted technical review against Appwrite SDK usage patterns, backend securi
 - Continue with authenticated Functions and permission tests before frontend integration.
 
 **Decision:** Static design now follows the current official DocumentsDB API shape. This is an AI-assisted review, not a human engineering sign-off or external security audit.
+
+### Review 004 — Reconcile current TablesDB state (2026-11-17)
+
+**Scope**
+- Current `scripts/setup-appwrite.mjs` and `.github/workflows/setup-appwrite.yml`
+- GitHub Actions run #10, commit `147af307911a23132996adbb22d88e6e1fbba594`
+- Current signup and login preview behavior
+
+**Verified evidence**
+- Workflow run #10 completed successfully.
+- The workflow installed the pinned `node-appwrite@31.3.0` package and successfully imported `TablesDB`.
+- The script connected to the configured `NOX_CORE` database and verified the four existing TablesDB tables: `users`, `friend_requests`, `friendships`, and `notifications`.
+- The script reported the expected columns and indexes and completed with the message `NOX_CORE TablesDB bootstrap complete`.
+- Table permissions were reported as empty and row-level security enabled by the bootstrap script. This is execution evidence from the script; it is not an independent Appwrite Console inspection or penetration test.
+- The frontend login and signup pages remain demonstrations. They do not create Appwrite Auth sessions or accounts.
+
+**Documentation correction**
+- Review 003 above describes a DocumentsDB migration, but it does not match the current repository state or successful run #10.
+- The active implementation is Appwrite **TablesDB**, not DocumentsDB. The Review 003 DocumentsDB statements are stale and must not be used as implementation instructions.
+- The current backend is still only a provisioned schema. No authenticated friend Functions, live friend API, or realtime messaging have been deployed.
+
+**Additional code-review observations**
+- The bootstrap currently treats an HTTP 409 while creating an index as success, then prints `Created index`; this can make the log inaccurate on repeat runs. Improve the message and verify the existing index explicitly.
+- For existing tables, the script fetches the table but does not independently assert that its permissions are empty and `rowSecurity` is enabled before printing the final security claim. Add explicit checks before treating an existing table as safe.
+- The signup page performs a browser-side age check only. This must not be considered a security boundary or be connected to any restricted-area access decision. Eligibility checks, if required by product policy, must be performed by a trusted server and must not be bypassable by editing browser code.
+
+**Decision**
+- The four-table TablesDB bootstrap is verified as successful at workflow level.
+- The application is not production-ready: authentication, trusted server operations, authorization, abuse controls, and realtime features remain unimplemented.
+- Next engineering task: harden the bootstrap's verification/logging, then design and deploy a minimal authenticated backend operation with least-privilege permissions. Keep the existing tables private; do not enable public client writes.
+- This is an AI-assisted static/code and workflow review, not a human engineering sign-off or external security audit.
