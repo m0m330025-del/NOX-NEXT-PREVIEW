@@ -40,7 +40,9 @@ export function initApp() {
 }
 
 
+
   // NOX NEXT friend add flow (front-end preview; server verification comes later).
+  const friendNotice = message => window.dispatchEvent(new CustomEvent("nox:notice", { detail: message }));
   const friendModal = document.getElementById("friend-modal");
   const camera = document.getElementById("friend-camera");
   const cameraStatus = document.getElementById("camera-status");
@@ -51,17 +53,11 @@ export function initApp() {
   let scanLoop = false;
   let detector = null;
   let pendingFriendId = "";
-
-  const ownNoxId = (
-    localStorage.getItem("noxUserId") ||
-    localStorage.getItem("nox_id") ||
-    localStorage.getItem("NOX_ID") ||
-    "NOX-123-456"
-  ).toUpperCase();
+  const ownNoxId = (localStorage.getItem("noxUserId") || localStorage.getItem("nox_id") || localStorage.getItem("NOX_ID") || "NOX-123-456").toUpperCase();
 
   function stopFriendCamera() {
     scanLoop = false;
-    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop(}));
+    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
     if (camera) camera.srcObject = null;
     scanFrame?.classList.remove("scanning");
@@ -72,21 +68,21 @@ export function initApp() {
   function showFriendResult(rawId) {
     const cleanId = String(rawId || "").trim().toUpperCase();
     if (!/^NOX-[A-Z0-9]{2,6}-[A-Z0-9]{2,6}$/.test(cleanId)) {
-      window.dispatchEvent(new CustomEvent("nox:notice", { detail: "رمز NOX ID غير صحيح");
+      friendNotice("رمز NOX ID غير صحيح");
       return;
     }
     pendingFriendId = cleanId;
     document.getElementById("result-name").textContent = "حساب NOX";
     document.getElementById("result-id").textContent = cleanId;
     friendResult.hidden = false;
-    window.dispatchEvent(new CustomEvent("nox:notice", { detail: "تمت قراءة NOX ID — راجع الحساب قبل إرسال الطلب");
+    friendNotice("تمت قراءة NOX ID — راجع الحساب قبل إرسال الطلب");
   }
 
   function switchFriendTab(tab) {
     document.querySelectorAll("[data-friend-tab]").forEach(button => {
       const active = button.dataset.friendTab === tab;
       button.classList.toggle("active", active);
-      button.setAttribute("aria-selected", String(active}));
+      button.setAttribute("aria-selected", String(active));
     });
     document.querySelectorAll("[data-friend-pane]").forEach(pane => {
       const active = pane.dataset.friendPane === tab;
@@ -107,9 +103,7 @@ export function initApp() {
     const draw = () => {
       if (window.QRCode) {
         new window.QRCode(holder, { text: ownNoxId, width: 160, height: 160, colorDark: "#263746", colorLight: "#ffffff", correctLevel: window.QRCode.CorrectLevel.M });
-      } else {
-        holder.textContent = ownNoxId;
-      }
+      } else holder.textContent = ownNoxId;
     };
     if (window.QRCode) draw();
     else {
@@ -145,8 +139,7 @@ export function initApp() {
         try {
           const codes = await detector.detect(camera);
           if (codes.length && codes[0].rawValue) {
-            const value = codes[0].rawValue.trim();
-            const match = value.match(/NOX-[A-Z0-9]{2,6}-[A-Z0-9]{2,6}/i);
+            const match = codes[0].rawValue.trim().match(/NOX-[A-Z0-9]{2,6}-[A-Z0-9]{2,6}/i);
             if (match) {
               stopFriendCamera();
               scannerPlaceholder.style.display = "flex";
@@ -159,9 +152,7 @@ export function initApp() {
       };
       scanFrameLoop();
     } catch (error) {
-      cameraStatus.textContent = error?.name === "NotAllowedError"
-        ? "لم يتم السماح باستخدام الكاميرا. يمكنك إدخال NOX ID يدويًا."
-        : "تعذر تشغيل الكاميرا. تحقق من إذن الكاميرا أو استخدم NOX ID.";
+      cameraStatus.textContent = error?.name === "NotAllowedError" ? "لم يتم السماح باستخدام الكاميرا. يمكنك إدخال NOX ID يدويًا." : "تعذر تشغيل الكاميرا. تحقق من إذن الكاميرا أو استخدم NOX ID.";
       stopFriendCamera();
     }
   }
@@ -181,7 +172,7 @@ export function initApp() {
     });
   });
   document.querySelectorAll("[data-friend-tab]").forEach(button => {
-    button.addEventListener("click", () => switchFriendTab(button.dataset.friendTab}));
+    button.addEventListener("click", () => switchFriendTab(button.dataset.friendTab));
   });
   document.getElementById("start-scan")?.addEventListener("click", startFriendCamera);
   document.getElementById("stop-scan")?.addEventListener("click", () => {
@@ -189,34 +180,32 @@ export function initApp() {
     scannerPlaceholder.style.display = "flex";
     cameraStatus.textContent = "تم إيقاف المسح";
   });
-  document.getElementById("find-friend")?.addEventListener("click", () => {
-    showFriendResult(document.getElementById("friend-id-input").value);
-  });
+  document.getElementById("find-friend")?.addEventListener("click", () => showFriendResult(document.getElementById("friend-id-input").value));
   document.getElementById("friend-id-input")?.addEventListener("keydown", event => {
     if (event.key === "Enter") showFriendResult(event.currentTarget.value);
   });
   document.getElementById("send-friend-request")?.addEventListener("click", () => {
     if (!pendingFriendId || pendingFriendId === ownNoxId) {
-      window.dispatchEvent(new CustomEvent("nox:notice", { detail: pendingFriendId === ownNoxId ? "لا يمكنك إضافة حسابك كصديق" : "ابحث عن NOX ID أولًا");
+      friendNotice(pendingFriendId === ownNoxId ? "لا يمكنك إضافة حسابك كصديق" : "ابحث عن NOX ID أولًا");
       return;
     }
     const requests = JSON.parse(localStorage.getItem("noxFriendRequests") || "[]");
     if (requests.includes(pendingFriendId)) {
-      window.dispatchEvent(new CustomEvent("nox:notice", { detail: "سبق إرسال طلب لهذا الحساب على هذا الجهاز");
+      friendNotice("سبق حفظ طلب لهذا الحساب على هذا الجهاز");
       return;
     }
     requests.push(pendingFriendId);
-    localStorage.setItem("noxFriendRequests", JSON.stringify(requests}));
-    window.dispatchEvent(new CustomEvent("nox:notice", { detail: "تم حفظ طلب تجريبي على هذا الجهاز — الإرسال الفعلي يحتاج خادم NOX");
+    localStorage.setItem("noxFriendRequests", JSON.stringify(requests));
+    friendNotice("تم حفظ طلب تجريبي على هذا الجهاز — الإرسال الفعلي يحتاج خادم NOX");
     friendResult.hidden = true;
     document.getElementById("friend-id-input").value = "";
   });
   document.getElementById("copy-my-id")?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(ownNoxId);
-      window.dispatchEvent(new CustomEvent("nox:notice", { detail: "تم نسخ NOX ID");
+      friendNotice("تم نسخ NOX ID");
     } catch (_) {
-      window.dispatchEvent(new CustomEvent("nox:notice", { detail: "NOX ID الخاص بك: " + ownNoxId);
+      friendNotice("NOX ID الخاص بك: " + ownNoxId);
     }
   });
   friendModal?.addEventListener("keydown", event => {
