@@ -71,3 +71,27 @@ test("malformed moderator configuration fails closed", async () => {
   assert.equal(isModerator("mod_123", null), false);
   assert.equal(isModerator("mod_123", 123), false);
 });
+
+
+test("block guard checks both directions", async () => {
+  const { isBlockedEitherWay } = await import("../src/policy.js");
+  const calls = [];
+  const blocked = await isBlockedEitherWay("alice", "bob", async (a, b) => {
+    calls.push([a, b]);
+    return a === "bob" && b === "alice";
+  });
+  assert.equal(blocked, true);
+  assert.deepEqual(calls, [["alice", "bob"], ["bob", "alice"]]);
+});
+
+test("block guard returns false when neither direction is blocked", async () => {
+  const { isBlockedEitherWay } = await import("../src/policy.js");
+  const blocked = await isBlockedEitherWay("alice", "bob", async () => false);
+  assert.equal(blocked, false);
+});
+
+test("block guard rejects invalid or identical user pairs", async () => {
+  const { isBlockedEitherWay } = await import("../src/policy.js");
+  await assert.rejects(() => isBlockedEitherWay("same", "same", async () => false), /invalid_user_pair/);
+  await assert.rejects(() => isBlockedEitherWay("", "bob", async () => false), /invalid_user_pair/);
+});
