@@ -155,3 +155,12 @@ test("conversation access requires the exact canonical participant pair", async 
   assert.equal(canReadOrSendMessage(conversation, "alice_1"), true);
   assert.equal(canReadOrSendMessage(conversation, "mallory_1"), false);
 });
+
+
+test("message idempotency keys must be UUIDs", async () => {
+  const { validateMessageId } = await import("../src/policy.js");
+  const uuid = "550e8400-e29b-41d4-a716-446655440000";
+  assert.deepEqual(validateMessageId(uuid), { ok: true, value: uuid });
+  assert.equal(validateMessageId("not-a-uuid").ok, false);
+  assert.equal(validateMessageId("../messages").ok, false);
+});
