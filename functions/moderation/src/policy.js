@@ -66,3 +66,15 @@ export function validateBlockTarget(targetUserId, callerUserId) {
   if (targetUserId === callerUserId) return { ok: false, error: "cannot_block_self" };
   return { ok: true, value: targetUserId };
 }
+
+/**
+ * Moderator identities are provisioned out-of-band by the project owner as a
+ * protected Function environment variable. Never accept role claims from clients.
+ */
+export function isModerator(userId, configuredIds = "") {
+  if (!isValidId(userId) || typeof configuredIds !== "string") return false;
+  const allowed = new Set(
+    configuredIds.split(",").map((id) => id.trim()).filter(isValidId)
+  );
+  return allowed.has(userId);
+}
