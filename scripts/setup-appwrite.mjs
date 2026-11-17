@@ -160,6 +160,21 @@ const definitions = [
       { key: "sender_created", type: "key", columns: ["senderId", "createdAt"] },
       { key: "client_message_unique", type: "unique", columns: ["senderId", "clientMessageId"] }
     ]
+  },
+  {
+    id: "conversation_members", name: "Conversation Members",
+    columns: [
+      { key: "conversationId", type: "varchar", size: 36, required: true },
+      { key: "userId", type: "varchar", size: 36, required: true },
+      { key: "role", type: "varchar", size: 16, required: true },
+      { key: "joinedAt", type: "datetime", required: true },
+      { key: "lastReadAt", type: "datetime", required: false }
+    ],
+    indexes: [
+      { key: "conversation_user_unique", type: "unique", columns: ["conversationId", "userId"] },
+      { key: "member_conversations", type: "key", columns: ["userId", "joinedAt"] },
+      { key: "conversation_members_lookup", type: "key", columns: ["conversationId", "joinedAt"] }
+    ]
   }
 ];
 
