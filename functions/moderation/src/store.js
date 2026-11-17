@@ -272,9 +272,10 @@ export function createModerationStore() {
       if (row.senderId !== callerId || row.conversationId !== conversationId || row.body !== checked.value) {
         return { error: "idempotency_key_conflict" };
       }
+      const latestMessageAt = [access.conversation.lastMessageAt, row.createdAt].filter(Boolean).sort().at(-1);
       await db.updateRow({
         databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId,
-        data: { updatedAt: row.createdAt, lastMessageAt: row.createdAt }
+        data: { updatedAt: latestMessageAt, lastMessageAt: latestMessageAt }
       });
       return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt }, replayed: true };
     }
@@ -303,9 +304,10 @@ export function createModerationStore() {
       }
     }
 
+    const latestMessageAt = [access.conversation.lastMessageAt, row.createdAt].filter(Boolean).sort().at(-1);
     await db.updateRow({
       databaseId: DATABASE_ID, tableId: "conversations", rowId: conversationId,
-      data: { updatedAt: row.createdAt, lastMessageAt: row.createdAt }
+      data: { updatedAt: latestMessageAt, lastMessageAt: latestMessageAt }
     });
     return { message: { messageId: row.$id, senderId: callerId, body: row.body, createdAt: row.createdAt }, replayed: row.createdAt !== now };
   }
