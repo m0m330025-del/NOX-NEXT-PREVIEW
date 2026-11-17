@@ -1,0 +1,14 @@
+{
+  "name": "nox-moderation-functions",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "node-appwrite": "31.3.0"
+  }
+}
