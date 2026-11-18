@@ -8,17 +8,18 @@ This document records the approved product model. It does not implement or grant
 | Reviewer | Yes | Yes | No |
 | Admin | Yes | Yes | Yes |
 
-## Platform account eligibility
+## Platform account eligibility and age-aware access
 
-- Minimum account age for the current NOX NEXT access proposal: 18 years.
-- Applicants below 18 are not eligible to create or use an account under this proposal.
-- Age eligibility must be checked before account creation by a trusted server-side process using a lawful, proportionate age-assurance method appropriate to the launch jurisdictions.
-- A self-declared date of birth or a client-side checkbox alone is not sufficient proof of eligibility.
-- Do not collect or retain identity documents or sensitive age-assurance data in the browser or application database unless a documented legal and privacy assessment establishes a strict need; prefer a provider that returns only an eligibility result or age band.
-- If eligibility cannot be established, account creation must remain unavailable. Do not provide a manual bypass or allow client-side overrides.
-- Publish clear privacy information, retention limits, an appeal/contact route, and applicable terms before enabling registration.
-- The 18+ threshold here is an account-access eligibility rule, not a claim that NOX KISS contains sexual content or has an adult-content rating.
-- These criteria are a project policy proposal and must be checked against applicable local laws before launch.
+- NOX NEXT is intended to be a general social product, not an adults-only product; this product intent does not waive age-related requirements that may apply by jurisdiction or feature.
+- Do not impose a universal 18+ product classification solely because NOX KISS has a non-explicit romantic theme.
+- Before public launch, document the applicable age categories and requirements for each launch jurisdiction with qualified local legal/privacy review.
+- Apply any required age or feature eligibility decisions server-side. A client-side checkbox, self-declared date of birth, email address, Google sign-in, or email confirmation must not be described as independent age verification.
+- Keep registration simple and avoid manual review for every ordinary user, but do not enable unrestricted public registration until required eligibility and child-safety controls are implemented and verified.
+- Use proportionate, privacy-preserving age assurance only where required; do not collect or retain identity documents or face images without a documented necessity and approved compliant process.
+- If a required eligibility or safety decision is unavailable, do not silently bypass the restriction.
+- Publish clear privacy information, retention limits, contact/appeal routes, and applicable terms before enabling public registration.
+- NOX KISS has no adult-only role or entitlement in this authorization model. Its intended non-explicit product description is not an independent content audit and does not disable platform-wide safety requirements.
+
 
 ## Security requirements
 
