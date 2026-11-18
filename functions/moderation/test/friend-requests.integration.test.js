@@ -32,7 +32,7 @@ test("friend request can be created, listed, accepted by recipient, and not acce
   }
 
   try {
-    for (const [authUserId, noxId] of [[senderId, `SEND${randomUUID().replaceAll("-", "").slice(0, 12)}], [recipientId, recipientNoxId]]) {
+    for (const [authUserId, noxId] of [[senderId, `SEND${randomUUID().replaceAll("-", "").slice(0, 12)}`], [recipientId, recipientNoxId]]) {
       await db.createRow({ databaseId, tableId: "users", rowId: authUserId,
         data: { authUserId, noxId, displayName: "NOX Integration", createdAt: now }, permissions: [] });
     }
