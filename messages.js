@@ -17,6 +17,8 @@ function loadPreviewConversations() {
       item && typeof item.id === "string" && typeof item.name === "string" &&
       typeof item.initial === "string" && typeof item.preview === "string" &&
       typeof item.time === "string" && typeof item.unread === "boolean" &&
+      (item.pinned === undefined || typeof item.pinned === "boolean") &&
+      (item.archived === undefined || typeof item.archived === "boolean") &&
       Array.isArray(item.messages) && item.messages.length <= 500 &&
       item.messages.every(message => message &&
         (message.from === "me" || message.from === "them") &&
@@ -24,7 +26,9 @@ function loadPreviewConversations() {
         typeof message.time === "string" &&
         (message.edited === undefined || typeof message.edited === "boolean") &&
         (message.translatedText === undefined || (typeof message.translatedText === "string" && message.translatedText.length <= 1000)) &&
-        (message.translationLanguage === undefined || typeof message.translationLanguage === "string"))
+        (message.translationLanguage === undefined || typeof message.translationLanguage === "string") &&
+        (message.replyTo === undefined || (typeof message.replyTo === "string" && message.replyTo.length <= 300)) &&
+        (message.reaction === undefined || ["👍","❤️","😂","😮","🙏"].includes(message.reaction)))
     );
     return valid ? saved : conversations;
   } catch {
@@ -57,6 +61,8 @@ let toastTimer;
 let typingTimer;
 const typingIndicator = document.getElementById("typing-indicator");
 const translationLanguage = document.getElementById("translation-language");
+const messageSearch = document.getElementById("message-search");
+let replyDraft = "";
 
 function notify(message) {
   toast.textContent = message;
@@ -77,13 +83,14 @@ function renderList() {
   const query = searchInput.value.trim().toLocaleLowerCase("ar");
   const visible = conversations.filter(item => {
     const matchesQuery = (item.name + " " + item.preview).toLocaleLowerCase("ar").includes(query);
-    return matchesQuery && (activeFilter === "all" || item.unread);
+    return matchesQuery && (activeFilter === "all" ? !item.archived : activeFilter === "unread" ? item.unread && !item.archived : Boolean(item.archived));
   });
   list.replaceChildren();
   if (!visible.length) {
     list.append(safeText("p","conversation-empty","لا توجد محادثات مطابقة"));
     return;
   }
+  visible.sort((a,b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)));
   visible.forEach(item => {
     const button = document.createElement("button");
     button.type = "button";
@@ -91,7 +98,7 @@ function renderList() {
     button.setAttribute("aria-pressed", String(item.id === activeId));
     const avatar = safeText("span","person-avatar",item.initial);
     const copy = document.createElement("span"); copy.className = "conversation-copy";
-    copy.append(safeText("strong","",item.name),safeText("span","",item.preview));
+    copy.append(safeText("strong","",item.name + (item.pinned ? " 📌" : "")),safeText("span","",item.preview));
     const meta = document.createElement("span"); meta.className = "conversation-meta";
     meta.append(safeText("time","",item.time));
     if(item.unread) meta.append(safeText("i","unread-dot",""));
@@ -112,11 +119,14 @@ function renderChat() {
   activeAvatar.textContent = item.initial;
   messagesBox.replaceChildren();
   messagesBox.append(safeText("div","message-day","اليوم"));
+  const messageQuery = messageSearch.value.trim().toLocaleLowerCase("ar");
   item.messages.forEach(message => {
+    if (messageQuery && !message.text.toLocaleLowerCase("ar").includes(messageQuery) && !(message.translatedText || "").toLocaleLowerCase("ar").includes(messageQuery)) return;
     const bubble = document.createElement("div");
     bubble.className = "message-bubble " + (message.from === "me" ? "sent" : "received");
     bubble.append(safeText("span","message-original",message.text));
     if (message.edited) bubble.append(safeText("small","message-edited","معدّلة"));
+    if (message.replyTo) bubble.append(safeText("blockquote","message-reply-quote",message.replyTo));
     if (message.translatedText) {
       bubble.append(safeText("span","message-translation",message.translatedText));
       bubble.append(safeText("small","translation-caption","ترجمة مضافة يدويًا • " + (message.translationLanguage || "لغة مختارة")));
@@ -158,6 +168,41 @@ function renderChat() {
       notify("حُفظت الترجمة اليدوية محليًا");
     });
     actions.append(translate);
+    const reply = safeText("button","","رد");
+    reply.type = "button";
+    reply.addEventListener("click",() => {
+      replyDraft = message.text.slice(0,300);
+      input.placeholder = "اكتب ردك على الرسالة المحددة...";
+      input.focus();
+      notify("اكتب ردك ثم أرسله");
+    });
+    actions.append(reply);
+    const react = safeText("button","","تفاعل");
+    react.type = "button";
+    react.addEventListener("click",() => {
+      const choice = window.prompt("اختر تفاعلًا: 👍 أو ❤️ أو 😂 أو 😮 أو 🙏",message.reaction || "👍");
+      if (choice === null) return;
+      if (!["👍","❤️","😂","😮","🙏"].includes(choice.trim())) return notify("اختر أحد الرموز المتاحة");
+      message.reaction = choice.trim();
+      savePreviewConversations();
+      renderChat();
+    });
+    actions.append(react);
+    if (message.from === "me") {
+      const remove = safeText("button","","حذف");
+      remove.type = "button";
+      remove.addEventListener("click",() => {
+        if (!window.confirm("حذف هذه الرسالة من المعاينة المحلية؟")) return;
+        item.messages = item.messages.filter(entry => entry !== message);
+        item.preview = item.messages.length ? item.messages[item.messages.length - 1].text : "لا توجد رسائل";
+        savePreviewConversations();
+        renderList();
+        renderChat();
+        notify("حُذفت الرسالة من المعاينة المحلية");
+      });
+      actions.append(remove);
+    }
+    if (message.reaction) bubble.append(safeText("span","message-reaction",message.reaction));
     bubble.append(actions);
     messagesBox.append(bubble);
   });
@@ -175,6 +220,25 @@ document.querySelectorAll("[data-filter]").forEach(button => {
   });
 });
 searchInput.addEventListener("input",renderList);
+messageSearch.addEventListener("input",renderChat);
+document.getElementById("clear-message-search").addEventListener("click",() => {
+  messageSearch.value = "";
+  renderChat();
+});
+document.getElementById("chat-pin").addEventListener("click",() => {
+  const item = conversations.find(entry => entry.id === activeId);
+  item.pinned = !item.pinned;
+  savePreviewConversations();
+  renderList();
+  notify(item.pinned ? "تم تثبيت المحادثة محليًا" : "تم إلغاء تثبيت المحادثة");
+});
+document.getElementById("chat-archive").addEventListener("click",() => {
+  const item = conversations.find(entry => entry.id === activeId);
+  item.archived = !item.archived;
+  savePreviewConversations();
+  renderList();
+  notify(item.archived ? "أُرشفت المحادثة محليًا" : "أُعيدت المحادثة من الأرشيف");
+});
 input.addEventListener("input",() => {
   typingIndicator.hidden = !input.value.trim();
   clearTimeout(typingTimer);
@@ -186,7 +250,9 @@ form.addEventListener("submit",event => {
   if(!value) return;
   const item = conversations.find(entry => entry.id === activeId);
   const now = new Intl.DateTimeFormat("ar-EG",{hour:"2-digit",minute:"2-digit"}).format(new Date());
-  item.messages.push({from:"me",text:value,time:now,edited:false});
+  item.messages.push({from:"me",text:value,time:now,edited:false,...(replyDraft ? {replyTo:replyDraft} : {})});
+  replyDraft = "";
+  input.placeholder = "اكتب رسالتك في المعاينة...";
   item.preview = value;
   item.time = now;
   item.unread = false;
