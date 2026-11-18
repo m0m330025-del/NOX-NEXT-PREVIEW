@@ -270,7 +270,7 @@ export function initApp() {
     stopFriendCamera();
     friendModal?.classList.remove("open");
     friendModal?.setAttribute("aria-hidden", "true");
-    if (friendModalReturnFocus instanceof HTMLElement && friendModalReturnFocus.isConnected) {
+    if (friendModalReturnFocus && typeof friendModalReturnFocus.focus === "function" && friendModalReturnFocus.isConnected) {
       friendModalReturnFocus.focus();
     }
     friendModalReturnFocus = null;
