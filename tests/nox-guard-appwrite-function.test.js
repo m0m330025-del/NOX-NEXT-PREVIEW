@@ -62,3 +62,18 @@ test("rejects self-reporting and self-blocking", async () => {
   assert.equal((await h.invoke({ action: "block", method: "POST", bodyJson: { targetUserId: "profile-1" } })).status, 400);
   assert.equal((await h.invoke({ action: "report", method: "POST", bodyJson: { targetUserId: "profile-1", reason: "spam" } })).status, 400);
 });
+
+test("block-check detects a block in either direction", async () => {
+  const h = harness({ profile: {}, target: {} });
+  h.rows.blocks.push({ $id: "b1", blockerId: "profile-2", blockedId: "profile-1" });
+  const result = await h.invoke({ action: "block-check", method: "GET", query: { targetUserId: "profile-2" } });
+  assert.equal(result.payload.blocked, true);
+});
+
+test("profile creation is idempotent for an existing authenticated user", async () => {
+  const h = harness({ profile: {} });
+  const result = await h.invoke({ action: "profile", method: "POST", bodyJson: { displayName: "Changed" } });
+  assert.equal(result.status, 200);
+  assert.equal(result.payload.existing, true);
+  assert.equal(h.rows.users.length, 1);
+});
