@@ -34,11 +34,56 @@
     <div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
   </section>
 </main>
-<script>
-const password=document.getElementById('password');
-document.getElementById('toggle-password').addEventListener('click',()=>{const show=password.type==='password';password.type=show?'text':'password';document.getElementById('toggle-password').textContent=show?'إخفاء':'إظهار';});
-document.getElementById('login-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('notice').textContent='تسجيل الدخول غير متاح بعد. لن يتم إرسال بياناتك أو فتح التطبيق حتى تكتمل المصادقة والتحقق الآمن من أهلية الحساب.';});
-document.getElementById('forgot-link').addEventListener('click',e=>{e.preventDefault();document.getElementById('notice').textContent='استعادة كلمة المرور ستُفعّل بعد ربط نظام الحسابات.';});
+<script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
+<script type="module">
+import { account, createLoginSession, closeCurrentSession, requestPasswordRecovery } from "./core/auth-client.js";
 
+const password=document.getElementById("password");
+const notice=document.getElementById("notice");
+const submit=document.querySelector("#login-form .submit-button");
+
+document.getElementById("toggle-password").addEventListener("click",()=>{
+  const show=password.type==="password";
+  password.type=show?"text":"password";
+  document.getElementById("toggle-password").textContent=show?"إخفاء":"إظهار";
+});
+
+document.getElementById("login-form").addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!event.currentTarget.reportValidity()) return;
+  submit.disabled=true;
+  notice.textContent="جارٍ التحقق من بيانات الدخول…";
+  try {
+    const user=await createLoginSession(
+      document.getElementById("email").value.trim(),
+      password.value
+    );
+    await closeCurrentSession();
+    notice.textContent="تم الاتصال بنظام Appwrite والتحقق من بيانات الدخول بنجاح. أُغلقت جلسة الاختبار تلقائيًا؛ دخول NOX NEXT لن يُفتح قبل اكتمال فحص موافقة الإدارة من الخادم.";
+    notice.dataset.state="success";
+  } catch(error) {
+    notice.textContent="تعذر تسجيل الدخول. راجع البيانات وحاول مرة أخرى.";
+    notice.dataset.state="error";
+  } finally {
+    submit.disabled=false;
+  }
+});
+
+document.getElementById("forgot-link").addEventListener("click",async event=>{
+  event.preventDefault();
+  const email=document.getElementById("email").value.trim();
+  if(!email) {
+    notice.textContent="اكتب بريدك الإلكتروني أولًا، ثم اضغط «نسيت كلمة المرور؟».";
+    return;
+  }
+  try {
+    await requestPasswordRecovery(email, new URL("./recovery.html", window.location.href).href);
+    notice.textContent="إذا كان البريد مرتبطًا بحساب، فستصلك تعليمات استعادة كلمة المرور.";
+    notice.dataset.state="success";
+  } catch(error) {
+    notice.textContent="تعذر بدء الاستعادة حاليًا. حاول لاحقًا.";
+    notice.dataset.state="error";
+  }
+});
 </script>
 </body></html>
