@@ -38,6 +38,7 @@ export function initCameraFilters() {
   const start = document.getElementById("camera-studio-start");
   const stop = document.getElementById("camera-studio-stop");
   let stream = null;
+  let cameraRequest = 0;
   let returnFocus = null;
   let currentMode = "story";
   const shapeStrength = document.getElementById("camera-shape-strength");
@@ -62,6 +63,7 @@ export function initCameraFilters() {
   }
 
   function stopCamera() {
+    cameraRequest += 1;
     if (stream) stream.getTracks().forEach(track => track.stop());
     stream = null;
     video.srcObject = null;
@@ -127,10 +129,11 @@ export function initCameraFilters() {
       return;
     }
     start.disabled = true;
+    const requestId = ++cameraRequest;
     status.textContent = "بانتظار إذن الكاميرا…";
     try {
       const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-      if (!modal.classList.contains("open")) {
+      if (requestId !== cameraRequest || !modal.classList.contains("open") || document.hidden) {
         nextStream.getTracks().forEach(track => track.stop());
         start.disabled = false;
         return;
@@ -142,6 +145,7 @@ export function initCameraFilters() {
       stop.disabled = false;
       status.textContent = "المعاينة تعمل — الميكروفون غير مستخدم";
     } catch (error) {
+      if (requestId !== cameraRequest) return;
       start.disabled = false;
       status.textContent = error?.name === "NotAllowedError" ? "لم تسمح للمتصفح باستخدام الكاميرا." : "تعذر تشغيل الكاميرا؛ تحقق من الإذن أو اتصال HTTPS.";
       if (stream) stream.getTracks().forEach(track => track.stop());
@@ -152,6 +156,8 @@ export function initCameraFilters() {
     }
   });
   stop.addEventListener("click", stopCamera);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopCamera(); });
+  window.addEventListener("pagehide", stopCamera);
   zoom?.addEventListener("input", () => {
     const value = Number(zoom.value) || 1;
     video.style.setProperty("--camera-zoom", String(value));
