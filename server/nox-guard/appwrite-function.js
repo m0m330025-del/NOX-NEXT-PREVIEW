@@ -8,7 +8,7 @@ const json = (res, body, status = 200) => res.json(body, status);
 
 export function createNoxGuardHandler({ authenticate, db, now = () => new Date(), id = () => ID.unique() }) {
   async function profileFor(authUserId) {
-    const rows = await db.listRows(USERS, [Query.equal("authUserId", authUserId)]);
+    const rows = await db.listRows(USERS, { authUserId });
     return rows[0] || null;
   }
   async function targetProfile(targetId) {
@@ -80,7 +80,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
         if (!await targetProfile(targetId))
           return json(res, { ok: false, error: "target_not_found" }, 404);
         const existing = await db.listRows(BLOCKS, [
-          Query.equal("blockerId", profile.$id), Query.equal("blockedId", targetId)
+          { blockerId: profile.$id, blockedId: targetId }
         ]);
         if (existing.length) return json(res, { ok: true, blocked: true, existing: true });
         const created = await db.createRow(BLOCKS, {
@@ -106,7 +106,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
           return json(res, { ok: false, error: "invalid_target" }, 400);
         const [outgoing, incoming] = await Promise.all([
           db.listRows(BLOCKS, [Query.equal("blockerId", profile.$id), Query.equal("blockedId", targetId)]),
-          db.listRows(BLOCKS, [Query.equal("blockerId", targetId), Query.equal("blockedId", profile.$id)])
+          db.listRows(BLOCKS, [{ blockerId: targetId, blockedId: profile.$id }])
         ]);
         return json(res, { ok: true, blocked: outgoing.length > 0 || incoming.length > 0 });
       }
@@ -143,7 +143,8 @@ export default async function ({ req, res, log, error }) {
   const tables = new TablesDB(adminClient);
 
   const db = {
-    async listRows(tableId, queries) {
+    async listRows(tableId, filters) {
+      const queries = Object.entries(filters).map(([key, value]) => Query.equal(key, value));
       const result = await tables.listRows({ databaseId: DATABASE_ID, tableId, queries, total: false });
       return result.rows;
     },
