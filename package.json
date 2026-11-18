@@ -5,6 +5,9 @@
   "engines": {
     "node": ">=22 <27"
   },
+  "scripts": {
+    "start": "node server/static-preview.mjs"
+  },
   "dependencies": {
     "node-appwrite": "31.3.0"
   }
