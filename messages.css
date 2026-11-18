@@ -76,3 +76,17 @@
  .send-message-button{width:34px;height:34px}.composer-note{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){.conversation-item{transition:none}}
+
+.translation-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 18px 0;padding:7px 10px;border:1px solid #e6eeea;border-radius:10px;background:#fff;color:#718680;font-size:9px}
+.translation-toolbar label{font-weight:800;color:#58766f}
+.translation-toolbar select{border:1px solid #dce8e2;border-radius:8px;padding:5px 8px;background:#f8fbf9;color:#45665f;font:inherit}
+.translation-toolbar span{color:#9a8a68}
+.typing-indicator{align-self:flex-start;margin:0 22px 5px;color:#6c9288;font-size:10px}
+.message-meta{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:2px}
+.message-time{margin-top:0}
+.message-ticks{font-size:11px;letter-spacing:-3px;color:#6b9990;font-weight:900;direction:ltr}
+.message-edited,.translation-caption{display:block;color:#91a19b;font-size:8px;margin-top:2px}
+.message-translation{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed #cbdcd4;color:#486f66;white-space:pre-wrap}
+.message-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:5px}
+.message-actions button{border:0;background:transparent;color:#71958c;font:inherit;font-size:9px;text-decoration:underline;cursor:pointer;padding:2px 4px}
+@media(max-width:760px){.translation-toolbar{margin:5px 9px 0;gap:6px}.translation-toolbar span{width:100%}.typing-indicator{margin:0 12px 3px}.message-actions button{font-size:8px}}
