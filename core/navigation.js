@@ -10,6 +10,19 @@ const labels = {
 
 export function initNavigation() {
   const links = document.querySelectorAll("[data-nav]");
+
+  function setActiveNavigation(key) {
+    links.forEach(item => {
+      const active = item.dataset.nav === key;
+      item.classList.toggle("active", active);
+      if (active) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
+  }
+
+  const initiallyActive = document.querySelector("[data-nav].active");
+  if (initiallyActive) setActiveNavigation(initiallyActive.dataset.nav);
+
   links.forEach(link => {
     link.addEventListener("click", event => {
       const key = link.dataset.nav;
@@ -19,7 +32,7 @@ export function initNavigation() {
           detail: labels[key] || "هذا القسم قيد التجهيز"
         }));
       }
-      links.forEach(item => item.classList.toggle("active", item.dataset.nav === key));
+      setActiveNavigation(key);
     });
   });
 
