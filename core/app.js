@@ -67,10 +67,27 @@ export function initApp() {
   // NOX NEXT friend add flow (front-end preview; server verification comes later).
   const friendNotice = message => window.dispatchEvent(new CustomEvent("nox:notice", { detail: message }));
 
-  // Treat browser storage as untrusted and recover safely from malformed values.
+  // Treat browser storage as optional and untrusted; storage can be blocked by the browser.
+  function readStoredValue(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeStoredValue(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function readStoredArray(key) {
     try {
-      const value = JSON.parse(localStorage.getItem(key) || "[]");
+      const value = JSON.parse(readStoredValue(key) || "[]");
       return Array.isArray(value) ? value : [];
     } catch (_) {
       return [];
@@ -87,7 +104,7 @@ export function initApp() {
   let scanLoop = false;
   let detector = null;
   let pendingFriendId = "";
-  const ownNoxId = (localStorage.getItem("noxDemoId") || localStorage.getItem("noxUserId") || localStorage.getItem("nox_id") || localStorage.getItem("NOX_ID") || "NOX-123-456").toUpperCase();
+  const ownNoxId = (readStoredValue("noxDemoId") || readStoredValue("noxUserId") || readStoredValue("nox_id") || readStoredValue("NOX_ID") || "NOX-123-456").toUpperCase();
 
   function stopFriendCamera() {
     scanLoop = false;
@@ -151,13 +168,21 @@ export function initApp() {
       accept.addEventListener("click", () => {
         const list = readStoredArray("noxAcceptedFriends").filter(id => typeof id === "string");
         if (!list.includes(item.id)) list.push(item.id);
-        localStorage.setItem("noxAcceptedFriends", JSON.stringify(list));
-        localStorage.setItem("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)));
+        const previousIncoming = readStoredValue("noxIncomingFriendRequests");
+        if (!writeStoredValue("noxAcceptedFriends", JSON.stringify(list)) ||
+            !writeStoredValue("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)))) {
+          if (previousIncoming !== null) writeStoredValue("noxIncomingFriendRequests", previousIncoming);
+          friendNotice("تعذر حفظ التغيير في هذا المتصفح؛ لم يكتمل تحديث الطلب.");
+          return;
+        }
         friendNotice("تم قبول الطلب في المعاينة المحلية"); renderFriendRequests();
       });
       const reject = document.createElement("button"); reject.className = "request-reject"; reject.textContent = "رفض";
       reject.addEventListener("click", () => {
-        localStorage.setItem("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)));
+        if (!writeStoredValue("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)))) {
+          friendNotice("تعذر حفظ التغيير في هذا المتصفح.");
+          return;
+        }
         friendNotice("تم رفض الطلب في المعاينة المحلية"); renderFriendRequests();
       });
       actions.append(accept,reject); row.append(info,actions); incomingBox.append(row);
@@ -276,7 +301,10 @@ export function initApp() {
       return;
     }
     requests.push(pendingFriendId);
-    localStorage.setItem("noxFriendRequests", JSON.stringify(requests));
+    if (!writeStoredValue("noxFriendRequests", JSON.stringify(requests))) {
+      friendNotice("تعذر حفظ الطلب في هذا المتصفح.");
+      return;
+    }
     friendNotice("تم تسجيل الطلب في معاينة هذا الجهاز فقط — لم يُرسل لحساب آخر");
     friendResult.hidden = true;
     document.getElementById("friend-id-input").value = "";
