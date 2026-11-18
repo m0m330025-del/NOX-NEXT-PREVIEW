@@ -21,7 +21,7 @@ export function initCallSettings() {
   const inputSelect = document.getElementById("call-audio-input");
   const outputSelect = document.getElementById("call-audio-output");
   const micTest = document.getElementById("call-test-mic");
-  let micStream = null, audioContext = null, analyserFrame = 0, testOscillators = [];
+  let micStream = null, audioContext = null, analyserFrame = 0, testOscillators = [], toneTimeout = 0;
   let returnFocus = null;
 
   function readSettings() {
@@ -65,8 +65,12 @@ export function initCallSettings() {
     status.textContent = "اختبار الميكروفون متوقف";
   }
   function stopSoundTest() {
+    if (toneTimeout) window.clearTimeout(toneTimeout);
+    toneTimeout = 0;
     testOscillators.forEach(node => { try { node.stop(); } catch {} });
     testOscillators = [];
+    if (audioContext && !micStream && audioContext.state !== "closed") audioContext.close().catch(() => {});
+    if (!micStream) audioContext = null;
   }
   function stopAllTests() { stopMicTest(); stopSoundTest(); }
 
@@ -161,10 +165,8 @@ export function initCallSettings() {
         offset += duration + .08;
       }
       status.textContent = pattern === "ring" ? "معاينة نغمة الرنين" : "اختبار السماعة";
-      window.setTimeout(() => {
+      toneTimeout = window.setTimeout(() => {
         stopSoundTest();
-        if (audioContext && audioContext.state !== "closed") audioContext.close().catch(() => {});
-        audioContext = null;
         if (!micStream) status.textContent = "انتهى اختبار الصوت";
       }, pattern === "ring" ? 900 : 500);
     } catch {
