@@ -11,6 +11,8 @@ on:
       - "tests/auth-client.test.js"
       - "tests/nox-guard-policy.test.js"
       - "tests/nox-guard-appwrite-function.test.js"
+      - "tests/registration-age-policy.test.js"
+      - "signup.html"
       - ".github/workflows/test-browser-auth.yml"
   pull_request:
     paths:
@@ -39,4 +41,4 @@ jobs:
       - name: Install pinned Appwrite SDK for function tests
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
       - name: Run authentication and NOX GUARD tests
-        run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js
+        run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js tests/registration-age-policy.test.js
