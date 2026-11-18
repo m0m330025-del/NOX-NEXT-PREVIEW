@@ -1,4 +1,4 @@
-name: Test NOX browser authentication client
+name: Test NOX authentication and guard policy
 
 on:
   push:
@@ -7,13 +7,17 @@ on:
     paths:
       - "core/auth-client.js"
       - "core/appwrite-config.js"
+      - "server/nox-guard/**"
       - "tests/auth-client.test.js"
+      - "tests/nox-guard-policy.test.js"
       - ".github/workflows/test-browser-auth.yml"
   pull_request:
     paths:
       - "core/auth-client.js"
       - "core/appwrite-config.js"
+      - "server/nox-guard/**"
       - "tests/auth-client.test.js"
+      - "tests/nox-guard-policy.test.js"
       - ".github/workflows/test-browser-auth.yml"
   workflow_dispatch:
 
@@ -21,7 +25,7 @@ permissions:
   contents: read
 
 jobs:
-  browser-auth-unit-tests:
+  auth-and-guard-unit-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,5 +34,5 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run browser authentication client unit tests
-        run: node --test tests/auth-client.test.js
+      - name: Run authentication and NOX GUARD policy tests
+        run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js
