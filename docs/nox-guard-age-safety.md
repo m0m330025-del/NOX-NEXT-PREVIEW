@@ -1,5 +1,11 @@
 # NOX NEXT — NOX GUARD and Age-Aware Safety Baseline
 
+## Current registration product decision (approved 2026-11-18)
+
+NOX is a general social platform for all ages. Account creation has no minimum-age threshold. Date of birth is optional, may be left blank, and must not be used to reject registration or disable an account. Registration must not request identity documents or face images solely to prove age.
+
+This registration decision does not remove privacy, reporting, blocking, anti-abuse, moderation, or age-aware safety protections. Feature-specific protective defaults may remain where justified by the approved safety policy and applicable launch-jurisdiction requirements; they must not be converted into a hidden general age gate for account creation.
+
 ## Purpose
 
 NOX GUARD is the platform-wide safety layer for account security, communication controls, reporting, and moderation. It is not an age-verification provider and must never claim to infer a person's age from an email address, Google sign-in, or email confirmation.
@@ -9,12 +15,13 @@ NOX NEXT is intended to be a general social product, not an adults-only product.
 ## Registration experience
 
 - Keep the user-facing registration flow short: email/password or an approved OAuth provider, followed by the authentication and verification steps configured for the platform.
-- Do not require manual review for every ordinary registration.
-- Do not request identity documents or face images from every user.
+- Do not impose a product-wide minimum-age gate on account creation.
+- Date of birth is optional; a missing date of birth must not block account creation.
+- Do not request identity documents or face images from users solely to prove age during ordinary registration.
 - Email verification confirms control of an email address; it is not proof of age.
 - A self-declared date of birth or age checkbox is an assertion, not independently verified age.
-- Do not enable unrestricted public registration until the product's launch jurisdictions, applicable age rules, privacy obligations, and feature-specific safeguards have been reviewed and implemented.
-- Do not create a hidden bypass, client-side override, or default-to-allow path when a required safety/eligibility check is unavailable.
+- Before public launch, review applicable jurisdiction-specific requirements and implement proportionate safeguards without silently reinstating a general minimum-age registration rule.
+- Do not create a hidden bypass, client-side override, or default-to-allow path when a required safety/eligibility check for a specific feature is unavailable.
 
 ## NOX GUARD baseline controls
 
