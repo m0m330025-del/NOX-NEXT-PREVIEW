@@ -10,6 +10,7 @@
 .conversation-heading{display:flex;align-items:center;justify-content:space-between;padding:20px 18px 12px}
 .eyebrow{font-size:9px;letter-spacing:1.5px;color:#8ba6a1;font-weight:900;direction:ltr;display:block}
 .conversation-heading h1{font-size:22px;margin:2px 0 0;color:#30474b}
+.unread-summary{font-size:10px;color:#78938c;margin:3px 0 0;min-height:15px}
 .new-chat-button{width:39px;height:39px;border:0;border-radius:13px;background:#6f9992;color:#fff;font-size:26px;line-height:1}
 .conversation-search{margin:0 16px 12px;height:43px;display:flex;align-items:center;gap:9px;padding:0 13px;border:1px solid #e2ebe7;border-radius:13px;background:#f5f8f6;color:#73918c}
 .conversation-search span{font-size:22px}
@@ -59,7 +60,7 @@
  .messages-back-home{font-size:25px;color:#fff}.messages-page{padding:0}
  .messages-shell{height:calc(100vh - 64px);min-height:0;max-height:none;border:0;border-radius:0;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(190px,38%) minmax(0,1fr)}
  .conversation-sidebar{border-left:0;border-bottom:1px solid #e7eeeb;min-height:0}
- .conversation-heading{padding:10px 14px 7px}.conversation-heading h1{font-size:18px}
+ .conversation-heading{padding:10px 14px 7px}.conversation-heading h1{font-size:18px}.unread-summary{font-size:9px;min-height:13px}
  .new-chat-button{width:33px;height:33px}.conversation-search{height:36px;margin:0 12px 7px}
  .conversation-filters{padding:0 12px 7px}.filter-chip{padding:4px 11px}
  .conversation-list{display:flex;overflow-x:auto;overflow-y:hidden;padding:0 8px 5px;gap:5px}
