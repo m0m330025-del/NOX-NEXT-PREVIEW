@@ -47,7 +47,7 @@
       <section class="feed-column">
         <section class="stories-panel" id="stories" aria-label="الحالات">
           <div class="stories-track">
-            <button class="story add-story" data-action="demo-notice"><span class="story-ring add-ring">＋</span><b>إضافة حالة</b></button>
+            <button class="story add-story" data-action="open-camera-studio" data-camera-mode="story" aria-label="فتح الكاميرا وإضافة حالة"><span class="story-ring add-ring">＋</span><b>إضافة حالة</b></button>
             <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=120&h=120&fit=crop" alt=""></span><b>سارة</b></button>
             <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=faces" alt=""></span><b>مريم</b></button>
             <button class="story"><span class="story-ring"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?w=120&h=120&fit=crop" alt=""></span><b>أحمد</b></button>
@@ -59,7 +59,7 @@
 
         <section class="composer card">
           <div class="composer-top"><img class="avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces" alt=""><button class="composer-prompt" data-action="demo-notice">ماذا يدور في ذهنك؟ ...</button><span class="smile">☺</span></div>
-          <div class="composer-actions"><button data-action="demo-notice"><span class="photo-icon">▣</span>إضافة صور</button><button data-action="demo-notice"><span class="video-icon">▶</span>إضافة فيديوهات</button><button data-action="demo-notice"><span class="gift-icon">♔</span>إرسال هدية</button><button class="publish-button" data-action="demo-notice">نشر <span>➤</span></button></div>
+          <div class="composer-actions"><button data-action="open-camera-studio" data-camera-mode="story"><span class="photo-icon">▣</span>فتح الكاميرا</button><button data-action="open-camera-studio" data-camera-mode="story"><span class="video-icon">▶</span>تصوير حالة</button><button data-action="open-camera-studio" data-camera-mode="call"><span class="video-icon">◉</span>فلاتر مكالمات الفيديو</button><button data-action="demo-notice"><span class="gift-icon">♔</span>إرسال هدية</button><button class="publish-button" data-action="demo-notice">نشر <span>➤</span></button></div>
         </section>
 
         <article class="post card" id="post-sara">
@@ -126,6 +126,28 @@
         <button type="button" class="friend-primary send-request" id="send-friend-request">إرسال طلب الصداقة</button>
       </div>
       <p class="friend-privacy">لن تتم إضافة أي شخص تلقائيًا؛ راجع الحساب وأرسل طلبًا ينتظر موافقة الطرف الآخر.</p>
+    </div>
+  </section>
+  <section class="camera-studio" id="camera-studio" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="camera-studio-title">
+    <div class="camera-studio-backdrop" data-camera-close></div>
+    <div class="camera-studio-card">
+      <header class="camera-studio-header"><div><small>NOX NEXT CAMERA</small><h2 id="camera-studio-title">كاميرا NOX</h2><p id="camera-studio-description">اختَر التأثير وشاهد المعاينة المباشرة</p></div><button type="button" class="camera-studio-close" data-camera-close aria-label="إغلاق الكاميرا">×</button></header>
+      <div class="camera-preview-wrap" id="camera-preview-wrap"><video id="camera-studio-video" autoplay playsinline muted></video><div class="camera-effect-overlay" id="camera-effect-overlay" aria-hidden="true"></div><div class="camera-preview-placeholder" id="camera-preview-placeholder"><span>◉</span><b>معاينة الكاميرا</b><small>لن تعمل الكاميرا إلا بعد ضغطك على تشغيل والسماح للمتصفح</small></div></div>
+      <p class="camera-studio-status" id="camera-studio-status" role="status" aria-live="polite">الكاميرا متوقفة</p>
+      <div class="camera-filter-section"><b>الفلاتر</b><div class="camera-filter-list" role="group" aria-label="اختيار فلتر الكاميرا">
+        <button type="button" class="camera-filter active" data-camera-filter="none" aria-pressed="true"><span class="filter-swatch filter-original">◉</span>طبيعي</button>
+        <button type="button" class="camera-filter" data-camera-filter="paris" aria-pressed="false"><span class="filter-swatch filter-paris">✦</span>باريس</button>
+        <button type="button" class="camera-filter" data-camera-filter="golden" aria-pressed="false"><span class="filter-swatch filter-golden">☀</span>ذهبي</button>
+        <button type="button" class="camera-filter" data-camera-filter="cool" aria-pressed="false"><span class="filter-swatch filter-cool">❄</span>بارد</button>
+        <button type="button" class="camera-filter" data-camera-filter="vintage" aria-pressed="false"><span class="filter-swatch filter-vintage">◌</span>ريترو</button>
+        <button type="button" class="camera-filter" data-camera-filter="dream" aria-pressed="false"><span class="filter-swatch filter-dream">✧</span>حالم</button>
+        <button type="button" class="camera-filter" data-camera-filter="mono" aria-pressed="false"><span class="filter-swatch filter-mono">◐</span>أبيض وأسود</button>
+      </div></div>
+      <div class="camera-filter-section"><b>تأثيرات إضافية</b><div class="camera-effect-list" role="group" aria-label="تأثيرات الكاميرا">
+        <button type="button" class="camera-effect active" data-camera-effect="none" aria-pressed="true">بدون</button><button type="button" class="camera-effect" data-camera-effect="sparkles" aria-pressed="false">✨ لمعات</button><button type="button" class="camera-effect" data-camera-effect="hearts" aria-pressed="false">💜 قلوب</button><button type="button" class="camera-effect" data-camera-effect="crown" aria-pressed="false">👑 تاج</button>
+      </div></div>
+      <footer class="camera-studio-actions"><button type="button" class="camera-start" id="camera-studio-start">تشغيل الكاميرا</button><button type="button" class="camera-stop" id="camera-studio-stop" disabled>إيقاف</button><button type="button" class="camera-studio-close secondary" data-camera-close>إغلاق</button></footer>
+      <small class="camera-studio-note" id="camera-studio-note">الفلاتر تعمل محليًا على المعاينة فقط. لا يتم تسجيل أو رفع الصور أو تشغيل الميكروفون.</small>
     </div>
   </section>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
