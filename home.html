@@ -25,7 +25,7 @@
       <a class="nav-link active" href="#home" data-nav="home"><span>⌂</span>الرئيسية</a>
       <a class="nav-link" href="#friends" data-nav="friends"><span>♧</span>الأصدقاء</a>
       <a class="nav-link" href="#messages" data-nav="messages"><span>☏</span>المحادثات <i class="nav-count">معاينة</i></a>
-      <a class="nav-link" href="#calls" data-nav="calls"><span>◖</span>المكالمات</a>
+      <a class="nav-link" href="#call-settings" data-action="open-call-settings"><span>◖</span>إعدادات المكالمات</a>
       <a class="nav-link" href="#stories" data-nav="stories"><span>◉</span>الحالات</a>
       <a class="nav-link" href="#reels" data-nav="reels"><span>▷</span>المقاطع</a>
       <a class="nav-link" href="./nox-kiss.html"><span>♡</span>NOX KISS</a>
@@ -126,6 +126,43 @@
         <button type="button" class="friend-primary send-request" id="send-friend-request">إرسال طلب الصداقة</button>
       </div>
       <p class="friend-privacy">لن تتم إضافة أي شخص تلقائيًا؛ راجع الحساب وأرسل طلبًا ينتظر موافقة الطرف الآخر.</p>
+    </div>
+  </section>
+  <section class="call-settings-modal" id="call-settings-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="call-settings-title">
+    <div class="call-settings-backdrop" data-call-settings-close></div>
+    <div class="call-settings-card">
+      <header class="call-settings-header"><div><small>NOX NEXT • CALL CENTER</small><h2 id="call-settings-title">إعدادات المكالمات</h2><p>اضبط الصوت والكاميرا والخصوصية قبل بدء المكالمة</p></div><button type="button" class="call-settings-close" data-call-settings-close aria-label="إغلاق">×</button></header>
+      <div class="call-settings-grid">
+        <section class="call-setting-group"><h3>🎙️ الصوت والميكروفون</h3>
+          <label class="call-setting-row"><span>الميكروفون عند بدء المكالمة</span><input type="checkbox" id="call-mic-enabled" checked></label>
+          <label class="call-setting-row"><span>إلغاء الصدى</span><input type="checkbox" id="call-echo-cancel" checked></label>
+          <label class="call-setting-row"><span>تقليل ضوضاء الخلفية</span><input type="checkbox" id="call-noise-suppression" checked></label>
+          <label class="call-setting-row"><span>ضبط مستوى الميكروفون تلقائيًا</span><input type="checkbox" id="call-auto-gain" checked></label>
+          <label class="call-setting-field">جهاز الميكروفون<select id="call-audio-input"><option value="">الجهاز الافتراضي</option></select></label>
+          <label class="call-setting-field">مخرج الصوت<select id="call-audio-output"><option value="">الجهاز الافتراضي</option></select></label>
+          <div class="call-setting-actions"><button type="button" id="call-refresh-devices">تحديث الأجهزة</button><button type="button" id="call-test-mic">اختبار الميكروفون</button><button type="button" id="call-test-speaker">اختبار السماعة</button></div>
+          <p class="call-setting-status" id="call-audio-status" role="status" aria-live="polite">لن يُطلب إذن الميكروفون إلا عند الضغط على اختباره.</p>
+        </section>
+        <section class="call-setting-group"><h3>📷 الكاميرا والفيديو</h3>
+          <label class="call-setting-row"><span>تشغيل الكاميرا تلقائيًا عند الرد</span><input type="checkbox" id="call-camera-auto"></label>
+          <label class="call-setting-row"><span>عكس صورتي في المعاينة</span><input type="checkbox" id="call-camera-mirror" checked></label>
+          <label class="call-setting-field">جودة الفيديو<select id="call-video-quality"><option value="auto">تلقائي</option><option value="720">HD 720p</option><option value="480">متوسط 480p</option><option value="360">اقتصادي 360p</option></select></label>
+          <button type="button" class="call-setting-wide" id="call-open-camera-test">فتح اختبار الكاميرا والفلاتر</button>
+          <p class="call-setting-hint">اختبار الكاميرا يستخدم معاينة NOX الحالية، ولا يبدأ مكالمة فعلية.</p>
+        </section>
+        <section class="call-setting-group"><h3>🔔 الرنين والتنبيهات</h3>
+          <label class="call-setting-field">نغمة المكالمة<select id="call-ringtone"><option value="classic">كلاسيكية</option><option value="soft">هادئة</option><option value="digital">رقمية</option><option value="silent">صامتة</option></select></label>
+          <label class="call-setting-row"><span>اهتزاز عند ورود مكالمة (على الأجهزة المدعومة)</span><input type="checkbox" id="call-vibration" checked></label>
+          <button type="button" id="call-preview-ringtone">معاينة نغمة الرنين</button>
+        </section>
+        <section class="call-setting-group"><h3>🔒 الخصوصية ومن يمكنه الاتصال</h3>
+          <label class="call-setting-field">السماح بالمكالمات من<select id="call-privacy"><option value="friends">الأصدقاء فقط</option><option value="approved">الأعضاء المعتمدون فقط</option><option value="nobody">عدم استقبال مكالمات</option></select></label>
+          <label class="call-setting-row"><span>إظهار حالة «متاح للمكالمة»</span><input type="checkbox" id="call-availability" checked></label>
+          <p class="call-setting-hint">هذه اختيارات محلية للواجهة حاليًا؛ تطبيق قواعد الاتصال الفعلية يحتاج ربط الخادم لاحقًا.</p>
+        </section>
+      </div>
+      <footer class="call-settings-footer"><span id="call-settings-save-status" role="status" aria-live="polite">التغييرات تحفظ على هذا الجهاز</span><button type="button" id="call-settings-reset">استعادة الافتراضي</button><button type="button" class="call-settings-save" id="call-settings-save">حفظ الإعدادات</button></footer>
+      <small class="call-settings-note">لا يتم حفظ تسجيلات صوت أو فيديو. اختبارات الأجهزة تبدأ فقط عند طلبك، وتتوقف عند إغلاق النافذة.</small>
     </div>
   </section>
   <section class="camera-studio" id="camera-studio" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="camera-studio-title">
