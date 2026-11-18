@@ -28,7 +28,7 @@ const definitions = [
     id: "users", name: "Users",
     columns: [
       { key: "authUserId", type: "varchar", size: 36, required: true },
-      { key: "noxId", type: "varchar", size: 32, required: true },
+      { key: "oxId", type: "varchar", size: 32, required: true },
       { key: "displayName", type: "varchar", size: 80, required: true },
       // Optional during migration; new profiles are populated only by the server function.
       { key: "ageBand", type: "varchar", size: 16, required: false },
@@ -39,7 +39,7 @@ const definitions = [
     ],
     indexes: [
       { key: "authUserId_unique", type: "unique", columns: ["authUserId"] },
-      { key: "noxId_unique", type: "unique", columns: ["noxId"] }
+      { key: "oxId_unique", type: "unique", columns: ["oxId"] }
     ]
   },
   {
