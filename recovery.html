@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e8f0ed">
+<title>استعادة كلمة المرور | NOX NEXT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./login.css">
+<style>
+.recovery-card{width:min(92%,520px);margin:8vh auto;background:#fff;border-radius:24px;padding:clamp(24px,5vw,42px);box-shadow:0 18px 55px #203a3518}
+.recovery-card h1{font-size:1.7rem;margin:.5rem 0}
+.recovery-card p{color:#64736e;line-height:1.8}
+.recovery-card label{display:block;margin:18px 0 8px;font-weight:700}
+.recovery-card input{width:100%;padding:14px;border:1px solid #dce5e1;border-radius:12px;font:inherit}
+.recovery-card button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:12px;background:#244f48;color:#fff;font:inherit;font-weight:800;cursor:pointer}
+#notice{min-height:3em;padding:12px;border-radius:10px;background:#f2f6f4}
+</style>
+</head>
+<body>
+<main class="recovery-card">
+<a href="./login.html">→ العودة لتسجيل الدخول</a>
+<h1>تعيين كلمة مرور جديدة</h1>
+<p>اكتب كلمة مرور جديدة لا تقل عن 8 أحرف. لا تشارك رابط الاستعادة أو رمزه مع أي شخص.</p>
+<form id="recovery-form">
+<label for="new-password">كلمة المرور الجديدة</label>
+<input id="new-password" type="password" minlength="8" autocomplete="new-password" required>
+<label for="confirm-password">تأكيد كلمة المرور</label>
+<input id="confirm-password" type="password" minlength="8" autocomplete="new-password" required>
+<button type="submit">حفظ كلمة المرور</button>
+</form>
+<p id="notice" role="status" aria-live="polite">افتح هذه الصفحة من رابط الاستعادة الذي وصلك على بريدك الإلكتروني.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
+<script type="module">
+import { completePasswordRecovery } from "./core/auth-client.js";
+const params=new URLSearchParams(window.location.search);
+const userId=params.get("userId");
+const secret=params.get("secret");
+const form=document.getElementById("recovery-form");
+const notice=document.getElementById("notice");
+if(!userId||!secret){
+  form.hidden=true;
+  notice.textContent="رابط الاستعادة غير مكتمل أو غير صالح. اطلب رابطًا جديدًا من صفحة تسجيل الدخول.";
+}
+form.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const password=document.getElementById("new-password").value;
+  const confirm=document.getElementById("confirm-password").value;
+  if(password!==confirm){notice.textContent="كلمتا المرور غير متطابقتين.";return;}
+  const button=form.querySelector("button");button.disabled=true;
+  try{
+    await completePasswordRecovery(userId,secret,password);
+    form.hidden=true;
+    notice.textContent="تم تحديث كلمة المرور. يمكنك الآن العودة إلى صفحة تسجيل الدخول.";
+    history.replaceState(null,"",window.location.pathname);
+  }catch(error){
+    notice.textContent="تعذر تحديث كلمة المرور. قد يكون الرابط منتهي الصلاحية؛ اطلب رابط استعادة جديدًا.";
+  }finally{button.disabled=false;}
+});
+</script>
+</body>
+</html>
