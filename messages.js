@@ -65,6 +65,9 @@ function safeText(tag, className, value) {
   return node;
 }
 function renderList() {
+  const unreadCount = conversations.filter(item => item.unread).length;
+  const unreadSummary = document.getElementById("unread-summary");
+  if (unreadSummary) unreadSummary.textContent = unreadCount ? `${unreadCount} محادثات غير مقروءة` : "لا توجد رسائل غير مقروءة";
   const query = searchInput.value.trim().toLocaleLowerCase("ar");
   const visible = conversations.filter(item => {
     const matchesQuery = (item.name + " " + item.preview).toLocaleLowerCase("ar").includes(query);
