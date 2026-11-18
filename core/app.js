@@ -101,6 +101,7 @@ export function initApp() {
   const scanFrame = document.querySelector(".scanner-frame");
   const friendResult = document.getElementById("friend-result");
   let cameraStream = null;
+  let friendCameraRequest = 0;
   let scanLoop = false;
   let detector = null;
   let pendingFriendId = "";
@@ -108,6 +109,7 @@ export function initApp() {
   const ownNoxId = (readStoredValue("noxDemoId") || readStoredValue("noxUserId") || readStoredValue("nox_id") || readStoredValue("NOX_ID") || "NOX-123-456").toUpperCase();
 
   function stopFriendCamera() {
+    friendCameraRequest += 1;
     scanLoop = false;
     if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
@@ -235,7 +237,13 @@ export function initApp() {
     }
     try {
       detector = new BarcodeDetector({ formats: ["qr_code"] });
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      const requestId = ++friendCameraRequest;
+      const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      if (requestId !== friendCameraRequest || !friendModal?.classList.contains("open") || document.hidden) {
+        nextStream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      cameraStream = nextStream;
       camera.srcObject = cameraStream;
       await camera.play();
       scanFrame.classList.add("scanning");
@@ -261,6 +269,7 @@ export function initApp() {
       };
       scanFrameLoop();
     } catch (error) {
+      if (document.hidden || !friendModal?.classList.contains("open")) return;
       cameraStatus.textContent = error?.name === "NotAllowedError" ? "لم يتم السماح باستخدام الكاميرا. يمكنك إدخال NOX ID يدويًا." : "تعذر تشغيل الكاميرا. تحقق من إذن الكاميرا أو استخدم NOX ID.";
       stopFriendCamera();
     }
@@ -292,6 +301,8 @@ export function initApp() {
     button.addEventListener("click", () => switchFriendTab(button.dataset.friendTab));
   });
   document.getElementById("start-scan")?.addEventListener("click", startFriendCamera);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopFriendCamera(); });
+  window.addEventListener("pagehide", stopFriendCamera);
   document.getElementById("stop-scan")?.addEventListener("click", () => {
     stopFriendCamera();
     scannerPlaceholder.style.display = "flex";
