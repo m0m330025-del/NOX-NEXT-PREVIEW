@@ -13,6 +13,7 @@ const runtimeMessages = new Map();
 let serial = 0;
 let viewer = null;
 let viewerPreviousFocus = null;
+let activeViewerItem = null;
 const MAX_FILES = 10;
 const MAX_BYTES = 50 * 1024 * 1024;
 const allowedDocument = /\.(pdf|docx?|xlsx?|pptx?|txt)$/i;
@@ -85,7 +86,7 @@ function viewLimit() {
 function makeMediaNode(item, messageId, index) {
   const wrapper = document.createElement("div");
   wrapper.className = "inline-media-item";
-  const state = item.viewed >= item.limit;
+  const state = Boolean(item.consumed) || item.viewed >= item.limit;
   if (state && item.limit !== Infinity) {
     wrapper.append(makeText("span", "media-consumed", "انتهت المشاهدات في المعاينة"));
     return wrapper;
@@ -179,6 +180,7 @@ function openMedia(messageId,index) {
     return;
   }
   item.viewed += 1;
+  activeViewerItem = item;
   if (!viewer) {
     viewer = document.createElement("div");
     viewer.className = "media-viewer-backdrop";
@@ -206,18 +208,17 @@ function openMedia(messageId,index) {
   }
   viewer._info.textContent = item.limit === 1 ? "① تمت المشاهدة مرة واحدة — قيد محاكاة محلي" : item.limit === Infinity ? item.name : `المشاهدة ${item.viewed} من ${item.limit} — محاكاة محلية`;
   viewer.hidden = false; viewer._close.focus();
-  if (item.limit !== Infinity && item.viewed >= item.limit) {
-    const closeButton = viewer._close;
-    const originalClose = closeButton.onclick;
-    closeButton.onclick = () => { if (originalClose) originalClose(); };
-    item.consumeOnClose = true;
-  }
+  viewer.classList.toggle("limited-view-active", item.limit !== Infinity);
   renderRuntimeMessages();
 }
 function closeViewer() {
   if (!viewer) return;
-  const active = [...runtimeMessages.values()].flatMap(record => record.items).find(item => item.consumeOnClose);
-  if (active) { active.consumeOnClose = false; release(active); }
+  const active = activeViewerItem;
+  if (active && active.limit !== Infinity && active.viewed >= active.limit) {
+    active.consumed = true;
+    release(active);
+  }
+  activeViewerItem = null;
   viewer.remove(); viewer = null;
   renderRuntimeMessages();
   if (viewerPreviousFocus?.isConnected) viewerPreviousFocus.focus();
@@ -233,7 +234,7 @@ form.addEventListener("submit",event => {
   const now = new Intl.DateTimeFormat("ar-EG",{hour:"2-digit",minute:"2-digit"}).format(new Date());
   const id = "media-" + Date.now() + "-" + (++serial);
   const limit = viewLimit();
-  const items = pending.splice(0).map(entry => ({...entry,limit,viewed:0}));
+  const items = pending.splice(0).map(entry => ({...entry,limit: entry.kind === "document" ? Infinity : limit,viewed:0,consumed:false}));
   const conversationName = document.getElementById("active-name").textContent;
   runtimeMessages.set(id,{caption,items,time:now,conversationName});
   const bubble = document.createElement("div");
@@ -249,8 +250,16 @@ form.addEventListener("submit",event => {
   messageInput.value = ""; renderStaging(); viewMode.value = "normal";
   notice("أُضيفت الوسائط إلى المحادثة محليًا فقط؛ لم تُرسل إلى مستلم");
 },true);
-const observer = new MutationObserver(() => renderRuntimeMessages());
-observer.observe(chat,{childList:true});
+window.addEventListener("nox:chat-rendered", renderRuntimeMessages);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && viewer && activeViewerItem?.limit !== Infinity) closeViewer();
+});
+for (const eventName of ["contextmenu","copy","cut","dragstart"]) {
+  document.addEventListener(eventName, event => {
+    if (viewer?.classList.contains("limited-view-active") && viewer.contains(event.target)) event.preventDefault();
+  }, true);
+}
+renderRuntimeMessages();
 window.addEventListener("pagehide",() => {
   pending.forEach(release);
   for (const record of runtimeMessages.values()) record.items.forEach(release);
