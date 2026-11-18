@@ -4,9 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#160b49">
-<title>NOX NEXT | تسجيل الدخول</title>
-<meta http-equiv="refresh" content="0; url=./login.html">
-<script>location.replace('./login.html');</script>
+<title>NOX NEXT | المعاينة الداخلية</title>
+<script>
+  try { sessionStorage.setItem("nox:preview-mode", "1"); } catch (_) {}
+  location.replace("./home.html?noxPreview=1");
+</script>
 </head>
-<body><p>جاري فتح تسجيل الدخول في NOX NEXT… <a href="./login.html">اضغط هنا إذا لم تنتقل تلقائيًا</a></p></body>
+<body>
+<p>جاري فتح المعاينة الداخلية لـ NOX NEXT…
+<a href="./home.html?noxPreview=1">اضغط هنا للمتابعة</a></p>
+</body>
 </html>
