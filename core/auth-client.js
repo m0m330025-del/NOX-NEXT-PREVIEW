@@ -36,7 +36,9 @@ export async function closeCurrentSession() {
     await account.deleteSession({ sessionId: "current" });
   } catch (error) {
     // A missing or expired session is already closed; network/server failures must surface.
-    if (![401, 404].includes(Number(error?.code))) throw error;
+    const message = String(error?.message || "").toLowerCase();
+    const alreadyClosed = /already closed|session.*not found|unauthorized/.test(message);
+    if (![401, 404].includes(Number(error?.code)) && !alreadyClosed) throw error;
   }
 }
 
