@@ -4,8 +4,8 @@ import { createNoxGuardHandler } from "../server/nox-guard/appwrite-function.js"
 
 function harness({ profile = null, target = null } = {}) {
   const rows = { users: [], reports: [], blocks: [] };
-  if (profile) rows.users.push({ $id: "profile-1", authUserId: "auth-1", noxId: "NX1", displayName: "User", ageBand: "unknown", accountStatus: "active", role: "user", ...profile });
-  if (target) rows.users.push({ $id: "profile-2", authUserId: "auth-2", noxId: "NX2", displayName: "Target", ageBand: "unknown", accountStatus: "active", role: "user", ...target });
+  if (profile) rows.users.push({ $id: "profile-1", authUserId: "auth-1", oxId: "NX1", displayName: "User", ageBand: "unknown", accountStatus: "active", role: "user", ...profile });
+  if (target) rows.users.push({ $id: "profile-2", authUserId: "auth-2", oxId: "NX2", displayName: "Target", ageBand: "unknown", accountStatus: "active", role: "user", ...target });
   const db = {
     async listRows(table, filters) {
       return rows[table].filter(row => Object.entries(filters).every(([key, value]) => String(row[key]) === String(value)));
@@ -34,6 +34,8 @@ test("creates a pending profile with unknown age and server-assigned user role",
   assert.equal(result.rows.users[0].ageBand, "unknown");
   assert.equal(result.rows.users[0].accountStatus, "pending_review");
   assert.equal(result.rows.users[0].role, "user");
+  assert.equal(result.rows.users[0].oxId, "NXUNIQUE-NOX-ID");
+  assert.equal(result.payload.profile.noxId, result.rows.users[0].oxId);
   assert.equal("ageBand" in result.payload.profile, false);
 });
 
