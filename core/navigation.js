@@ -8,6 +8,8 @@ const labels = {
   settings: "الإعدادات"
 };
 
+const availableSections = new Set(["home", "stories", "friends"]);
+
 export function initNavigation() {
   const links = document.querySelectorAll("[data-nav]");
 
@@ -26,11 +28,12 @@ export function initNavigation() {
   links.forEach(link => {
     link.addEventListener("click", event => {
       const key = link.dataset.nav;
-      if (key !== "home" && key !== "stories" && key !== "friends") {
+      if (!availableSections.has(key)) {
         event.preventDefault();
         window.dispatchEvent(new CustomEvent("nox:notice", {
           detail: labels[key] || "هذا القسم قيد التجهيز"
         }));
+        return;
       }
       setActiveNavigation(key);
     });
