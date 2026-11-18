@@ -10,6 +10,7 @@ on:
       - "server/nox-guard/**"
       - "tests/auth-client.test.js"
       - "tests/nox-guard-policy.test.js"
+      - "tests/nox-guard-appwrite-function.test.js"
       - ".github/workflows/test-browser-auth.yml"
   pull_request:
     paths:
@@ -34,5 +35,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run authentication and NOX GUARD policy tests
-        run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js
+      - name: Install pinned Appwrite SDK for function tests
+        run: npm install --no-save --package-lock=false node-appwrite@31.3.0
+      - name: Run authentication and NOX GUARD tests
+        run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js
