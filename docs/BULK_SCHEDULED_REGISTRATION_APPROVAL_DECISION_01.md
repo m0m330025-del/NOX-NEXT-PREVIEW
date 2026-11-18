@@ -16,7 +16,7 @@ Provide an administrative bulk-approval action so an authorized administrator ca
 - Until the scheduled time, requests remain pending and accounts are not activated.
 - At execution time, recheck each request's current status and eligibility. Process only requests still eligible; do not overwrite a request that has since been rejected, withdrawn, or otherwise changed.
 - Record an auditable result for each request (approved, skipped, or failed), with timestamp and batch ID.
-- Allow authorized administrators to view scheduled batches and cancel a batch before it starts. Cancellation must not reverse approvals already completed.
+- Scheduled batches cannot be cancelled through the administration interface. The schedule is fixed after final confirmation; therefore, require a clear final review of the selected applicants, date, time, and Cairo timezone before saving.
 - Do not provide an unrestricted "approve every pending request" action without first showing exactly which requests are included.
 
 ## Manual review requirement
