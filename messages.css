@@ -125,3 +125,9 @@
 .media-viewer-content a{color:#d5f0e4;padding:20px}
 .media-viewer-info{margin:0;text-align:center;color:#c1d8ce;font-size:11px}
 @media(max-width:760px){.media-composer-tools{padding:8px 10px 0;gap:6px}.media-composer-tools #attach-media{width:32px;height:32px}.media-composer-tools select{max-width:120px}.attachment-staging{padding:8px 10px}.inline-media-grid{gap:5px}.inline-media-image,.inline-media-video{max-height:170px}.media-viewer-panel{padding:9px}}
+
+
+/* Best-effort browser deterrents for limited-view media; OS screenshots/recording remain outside web-page control. */
+.media-viewer.limited-view-active .media-viewer-content,.media-viewer.limited-view-active .media-viewer-content *{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+.media-viewer.limited-view-active .media-viewer-content img,.media-viewer.limited-view-active .media-viewer-content video{-webkit-user-drag:none;user-select:none}
+@media print{.media-viewer-backdrop{display:none!important}}
