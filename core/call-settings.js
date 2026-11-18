@@ -133,6 +133,7 @@ export function initCallSettings() {
   }
 
   async function playTone(pattern = "speaker") {
+    if (micStream) stopMicTest();
     stopSoundTest();
     try {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
