@@ -12,6 +12,32 @@ export function initApp() {
 
   window.addEventListener("nox:notice", event => showNotice(event.detail));
 
+  // Real browser-session logout. Load the same pinned Appwrite Web SDK used by login.html.
+  const logoutButton = document.querySelector('[data-action="logout"]');
+  logoutButton?.addEventListener("click", async () => {
+    if (logoutButton.disabled) return;
+    logoutButton.disabled = true;
+    showNotice("جارٍ تسجيل الخروج…");
+    try {
+      if (!window.Appwrite?.Client || !window.Appwrite?.Account) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://cdn.jsdelivr.net/npm/appwrite@29.0.0";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("تعذر تحميل خدمة تسجيل الخروج"));
+          document.head.appendChild(script);
+        });
+      }
+      const { closeCurrentSession } = await import("./auth-client.js");
+      await closeCurrentSession();
+      window.location.replace("./login.html");
+    } catch (error) {
+      logoutButton.disabled = false;
+      showNotice("تعذر إكمال تسجيل الخروج الآن. تحقق من الاتصال ثم أعد المحاولة.");
+    }
+  });
+
+
   document.querySelectorAll('[data-action="demo-notice"]').forEach(button => {
     button.addEventListener("click", () => {
       showNotice("هذه الخاصية واجهة تجريبية وستُفعّل في مرحلة لاحقة");
