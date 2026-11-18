@@ -131,7 +131,7 @@ function makeMediaNode(item, messageId, index) {
     file.addEventListener("click", () => openMedia(messageId,index));
     wrapper.append(file);
   }
-  const caption = item.limit === 1 ? "① عرض مرة واحدة" : item.limit === Infinity ? "عرض عادي" : `متبقي ${Math.max(0,item.limit-item.viewed)} من ${item.limit} مشاهدات`;
+  const caption = item.kind === "document" ? "مستند • عرض عادي (لا يدعم العرض المحدود)" : item.limit === 1 ? "① عرض مرة واحدة" : item.limit === Infinity ? "عرض عادي" : `متبقي ${Math.max(0,item.limit-item.viewed)} من ${item.limit} مشاهدات`;
   wrapper.append(makeText("small","media-view-caption",caption + " • معاينة محلية"));
   return wrapper;
 }
@@ -179,7 +179,7 @@ function openMedia(messageId,index) {
     notice("انتهت مرات المشاهدة المحددة في هذه المعاينة");
     return;
   }
-  item.viewed += 1;
+  if (item.limit !== Infinity) item.viewed += 1;
   activeViewerItem = item;
   if (!viewer) {
     viewer = document.createElement("div");
@@ -206,7 +206,7 @@ function openMedia(messageId,index) {
   } else {
     const link = document.createElement("a"); link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "فتح " + item.name; viewer._body.append(link);
   }
-  viewer._info.textContent = item.limit === 1 ? "① تمت المشاهدة مرة واحدة — قيد محاكاة محلي" : item.limit === Infinity ? item.name : `المشاهدة ${item.viewed} من ${item.limit} — محاكاة محلية`;
+  viewer._info.textContent = item.kind === "document" ? item.name + " • المستندات لا تدعم المشاهدة المحدودة في هذه المعاينة" : item.limit === 1 ? "① تمت المشاهدة مرة واحدة — قيد محاكاة محلي" : item.limit === Infinity ? item.name : `المشاهدة ${item.viewed} من ${item.limit} — محاكاة محلية`;
   viewer.hidden = false; viewer._close.focus();
   viewer.classList.toggle("limited-view-active", item.limit !== Infinity);
   renderRuntimeMessages();
