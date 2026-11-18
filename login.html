@@ -58,8 +58,7 @@ document.getElementById("login-form").addEventListener("submit",async event=>{
       document.getElementById("email").value.trim(),
       password.value
     );
-    await closeCurrentSession();
-    notice.textContent="تم الاتصال بنظام Appwrite والتحقق من بيانات الدخول بنجاح. أُغلقت جلسة الاختبار تلقائيًا؛ دخول NOX NEXT لن يُفتح قبل اكتمال فحص موافقة الإدارة من الخادم.";
+    notice.textContent="تم تسجيل الدخول عبر المتصفح بنجاح. سيتم التحقق من حالة موافقة الإدارة قبل السماح بدخول صفحات الأعضاء. إذا كان طلبك قيد المراجعة فستظل هذه الصفحات مغلقة حتى اعتماد الحساب.";
     notice.dataset.state="success";
   } catch(error) {
     notice.textContent="تعذر تسجيل الدخول. راجع البيانات وحاول مرة أخرى.";
