@@ -12,7 +12,7 @@ Create a separate Appwrite Function named `NOX-GUARD` in the existing Frankfurt 
 - Build command: `npm install`.
 - Environment variable: `APPWRITE_DATABASE_ID=6afc583f00382386b997`.
 - Execute permission: authenticated users only; the handler independently verifies the invoking JWT and user ID.
-- Function API key scopes: read and write rows in the NOX_CORE database only. Do not grant project-wide account administration or user-management scopes.
+- Function API key scopes: grant only the read scopes required for databases/tables/rows and the write scope for rows. Appwrite scopes are project-level rather than database-specific, so the code hard-codes the NOX_CORE database ID and the function must not expose arbitrary table/database parameters. Do not grant account administration or user-management scopes.
 
 Appwrite injects `x-appwrite-user-jwt`, `x-appwrite-user-id`, and an ephemeral `x-appwrite-key` into authenticated function executions. The function validates the JWT with the Account SDK and uses the ephemeral key only for TablesDB operations. Never copy these headers or keys into browser code or logs.
 
