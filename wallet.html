@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#160b49"><title>NOX | المحفظة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./wallet.css"><script defer src="./wallet.js"></script>
+</head>
+<body>
+<header class="top"><a class="brand" href="./home.html"><span>N</span><b>NOX NEXT</b></a><a class="back" href="./home.html">الرئيسية ←</a></header>
+<main class="wrap">
+<div class="page-head"><div><small>NOX FINANCE</small><h1>محفظتي</h1><p>كل رصيد NXC في مكان واحد</p></div><span class="preview">معاينة تصميم · غير متصل</span></div>
+<section class="balance">
+<div><span class="eyebrow">الرصيد المتاح</span><div class="amount">— <small>NXC</small></div><p>سيظهر رصيدك الفعلي بعد ربط المحفظة بالخادم</p></div>
+<div class="coin" aria-hidden="true">N</div>
+</section>
+<nav class="actions" aria-label="إجراءات المحفظة">
+<a href="#transfer"><b>↗</b><span>تحويل NXC</span></a><a href="#activity"><b>◷</b><span>سجل العمليات</span></a><a href="./jewels.html"><b>✧</b><span>الجواهر</span></a><a href="#usage"><b>◇</b><span>استخدام الرصيد</span></a>
+</nav>
+<section class="panel" id="transfer">
+<div class="section-title"><div><h2>تحويل إلى عضو</h2><p>التحويل يتم بعد تأكيد اسم المستلم والمبلغ</p></div><span class="tag">NXC فقط</span></div>
+<div class="form-grid"><label>NOX ID للمستلم<input id="recipient" placeholder="أدخل NOX ID" autocomplete="off"></label><label>المبلغ<input id="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="المبلغ بوحدة NXC"></label></div>
+<div class="recipient" id="recipient-state">سيتم عرض اسم المستلم بعد التحقق من NOX ID بواسطة الخادم.</div>
+<button id="review" type="button">معاينة بيانات التحويل</button><p class="notice" id="notice" role="status">هذه معاينة واجهة فقط؛ لا يتم تنفيذ تحويل أو تغيير أي رصيد.</p>
+</section>
+<section class="panel" id="activity">
+<div class="section-title"><div><h2>آخر العمليات</h2><p>سجل موثق من عمليات المحفظة</p></div><span class="tag">سجل آمن</span></div>
+<div class="empty"><span>◷</span><b>لا توجد عمليات معروضة</b><p>سيظهر سجل معاملاتك بعد ربط المحفظة بالخادم.</p></div>
+</section>
+<section class="usage" id="usage"><h2>استخدم NXC داخل NOX</h2><p>الهدايا · الألعاب · المزايا المدفوعة · التحويلات الداخلية المعتمدة</p><small>رصيد NXC وحدة استخدام داخل التطبيق، ولا يتضمن سحبًا نقديًا أو تحويلًا إلى أموال.</small></section>
+</main>
+<footer>NOX NEXT · Wallet Preview</footer>
+</body></html>
