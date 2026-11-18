@@ -48,6 +48,65 @@
         <div class="review-empty">سجل المراجعة غير متصل حاليًا.</div>
       </section>
 
+
+      <style>
+        .review-ops{margin-top:22px;display:grid;gap:18px}
+        .review-ops-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+        .review-ops-card{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px}
+        .review-ops-card small{display:block;color:#b9b1d5;margin-bottom:8px}
+        .review-ops-card strong{font-size:22px}
+        .review-table-wrap{overflow-x:auto;border:1px solid rgba(255,255,255,.12);border-radius:16px}
+        .review-table{width:100%;border-collapse:collapse;min-width:650px;text-align:right}
+        .review-table th,.review-table td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.09);font-size:14px}
+        .review-table th{color:#c9c0e5;background:rgba(255,255,255,.045)}
+        .review-table td{color:#f2effb}
+        .review-tag{display:inline-block;border-radius:30px;padding:5px 10px;background:rgba(185,160,255,.13);color:#d8caff;font-size:12px}
+        .review-assignment-note{color:#c7bfdc;font-size:13px;line-height:1.8}
+        .review-demo-button{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#aaa2bb;border-radius:9px;padding:8px 12px;cursor:not-allowed}
+        @media(max-width:700px){.review-ops-grid{grid-template-columns:1fr}.review-table th,.review-table td{padding:11px 10px}}
+      </style>
+      <section class="review-ops" aria-label="توزيع مهام المراجعة — معاينة">
+        <section class="review-section">
+          <h3>توزيع مهام المراجعة</h3>
+          <p>تصور مبدئي لتوزيع الطلبات على فريق المراجعة. الأسماء والمعرّفات والأرقام أدناه تجريبية بالكامل ولا تمثل أشخاصًا أو طلبات حقيقية.</p>
+          <div class="review-ops-grid">
+            <article class="review-ops-card"><small>مراجعون في النموذج</small><strong>3</strong></article>
+            <article class="review-ops-card"><small>مهام تجريبية</small><strong>6</strong></article>
+            <article class="review-ops-card"><small>مهام غير مسندة</small><strong>2</strong></article>
+          </div>
+        </section>
+        <section class="review-section">
+          <h3>حِمل فريق المراجعة</h3>
+          <div class="review-table-wrap">
+            <table class="review-table">
+              <thead><tr><th scope="col">المراجع التجريبي</th><th scope="col">نوع الدور</th><th scope="col">المهام المسندة</th><th scope="col">الحالة</th></tr></thead>
+              <tbody>
+                <tr><td>مراجع تجريبي A</td><td>مراجعة طلبات</td><td>2</td><td><span class="review-tag">متاح</span></td></tr>
+                <tr><td>مراجع تجريبي B</td><td>مراجعة بلاغات</td><td>2</td><td><span class="review-tag">متاح</span></td></tr>
+                <tr><td>حساب الإدارة التجريبي</td><td>إدارة + مراجعة</td><td>2</td><td><span class="review-tag">متاح</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="review-section">
+          <h3>قائمة الإسناد</h3>
+          <div class="review-table-wrap">
+            <table class="review-table">
+              <thead><tr><th scope="col">مرجع الطلب</th><th scope="col">الفئة</th><th scope="col">الأولوية</th><th scope="col">المسند إليه</th><th scope="col">الإجراء</th></tr></thead>
+              <tbody>
+                <tr><td>DEMO-104</td><td>طلب حساب</td><td>عادية</td><td>مراجع تجريبي A</td><td><button class="review-demo-button" type="button" disabled>تعديل الإسناد</button></td></tr>
+                <tr><td>DEMO-105</td><td>بلاغ محتوى</td><td>مرتفعة</td><td>مراجع تجريبي B</td><td><button class="review-demo-button" type="button" disabled>تعديل الإسناد</button></td></tr>
+                <tr><td>DEMO-106</td><td>طلب حساب</td><td>عادية</td><td>غير مسند</td><td><button class="review-demo-button" type="button" disabled>إسناد لمراجع</button></td></tr>
+                <tr><td>DEMO-107</td><td>اعتراض</td><td>مرتفعة</td><td>حساب الإدارة التجريبي</td><td><button class="review-demo-button" type="button" disabled>تعديل الإسناد</button></td></tr>
+                <tr><td>DEMO-108</td><td>بلاغ محتوى</td><td>عادية</td><td>غير مسند</td><td><button class="review-demo-button" type="button" disabled>إسناد لمراجع</button></td></tr>
+                <tr><td>DEMO-109</td><td>طلب حساب</td><td>عادية</td><td>مراجع تجريبي A</td><td><button class="review-demo-button" type="button" disabled>تعديل الإسناد</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="review-assignment-note">أزرار الإسناد معطّلة عمدًا في المعاينة. التوزيع الحقيقي يحتاج صلاحيات خادمية، والتحقق من تعارض المصالح، وسجلًا تدقيقيًا لا يمكن للمراجع تعديله.</p>
+        </section>
+      </section>
+
       <aside class="review-note">
         تنبيه: تسجيل الدخول إلى الموقع لا يمنح صلاحية المراجعة. إظهار لوحة المراجع أو الإدارة وتنفيذ أي قرار يتطلبان تحققًا من صلاحيات موثوقًا من الخادم. حساب الإدارة سيحتاج إلى الصلاحيتين معًا، بينما حساب المراجع يحتاج إلى صلاحية المراجعة فقط.
       </aside>
