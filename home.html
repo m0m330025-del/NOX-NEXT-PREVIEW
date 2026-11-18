@@ -16,7 +16,7 @@
 <div class="app-frame">
   <header class="mobile-header">
     <a class="brand brand-mobile" href="#home"><span class="brand-symbol">N</span><span><b>NOX NEXT</b><small>NOX Social Universe</small></span></a>
-    <div class="mobile-actions"><button class="mobile-add-friend" type="button" data-action="open-friends" aria-label="إضافة صديق">＋ صديق</button><button class="icon-button" aria-label="بحث" data-action="focus-search">⌕</button><button class="icon-button notification-button" aria-label="الإشعارات">♧<i>12</i></button></div>
+    <div class="mobile-actions"><button class="mobile-add-friend" type="button" data-action="open-friends" aria-label="إضافة صديق">＋ صديق</button><button class="icon-button" aria-label="بحث" data-action="focus-search">⌕</button><button class="icon-button notification-button" type="button" data-action="demo-notice" aria-label="الإشعارات — معاينة غير متصلة">♧</button></div>
   </header>
 
   <aside class="sidebar">
@@ -24,7 +24,7 @@
     <nav class="primary-nav" aria-label="القائمة الرئيسية">
       <a class="nav-link active" href="#home" data-nav="home"><span>⌂</span>الرئيسية</a>
       <a class="nav-link" href="#friends" data-nav="friends"><span>♧</span>الأصدقاء</a>
-      <a class="nav-link" href="#messages" data-nav="messages"><span>☏</span>المحادثات <i class="nav-count">3</i></a>
+      <a class="nav-link" href="#messages" data-nav="messages"><span>☏</span>المحادثات <i class="nav-count">معاينة</i></a>
       <a class="nav-link" href="#calls" data-nav="calls"><span>◖</span>المكالمات</a>
       <a class="nav-link" href="#stories" data-nav="stories"><span>◉</span>الحالات</a>
       <a class="nav-link" href="#reels" data-nav="reels"><span>▷</span>المقاطع</a>
@@ -40,7 +40,7 @@
   <div class="workspace">
     <header class="topbar">
       <label class="search-box"><span>⌕</span><input id="global-search" type="search" placeholder="ابحث عن الأصدقاء أو المحتوى..." aria-label="بحث عام"></label>
-      <div class="topbar-user"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces" alt=""><b>ريم</b><span>⌄</span><button class="icon-button notification-button" aria-label="الإشعارات">♧<i>12</i></button></div>
+      <div class="topbar-user"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces" alt=""><b>ريم</b><span>⌄</span><button class="icon-button notification-button" type="button" data-action="demo-notice" aria-label="الإشعارات — معاينة غير متصلة">♧</button></div>
     </header>
 
     <main class="feed-layout" id="home">
@@ -91,7 +91,7 @@
   <nav class="mobile-nav" aria-label="تنقل الهاتف">
     <a class="active" href="#home" data-nav="home"><span>⌂</span>الرئيسية</a>
     <a href="#friends" data-nav="friends"><span>♧</span>الأصدقاء</a>
-    <a href="#messages" data-nav="messages"><span>☏</span>المحادثات<i class="nav-count">3</i></a>
+    <a href="#messages" data-nav="messages"><span>☏</span>المحادثات<i class="nav-count">معاينة</i></a>
     <a href="#reels" data-nav="reels"><span>▷</span>المقاطع</a>
     <button type="button" data-action="more-menu"><span>•••</span>المزيد</button>
   </nav>
