@@ -99,15 +99,30 @@ function makeMediaNode(item, messageId, index) {
     image.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openMedia(messageId,index); } });
     wrapper.append(image);
   } else if (item.kind === "video") {
-    const video = document.createElement("video");
-    video.src = item.url; video.controls = true; video.playsInline = true; video.preload = "metadata";
-    video.className = "inline-media-video";
-    video.addEventListener("click", event => { if (item.limit !== Infinity) { event.preventDefault(); openMedia(messageId,index); } });
-    wrapper.append(video);
+    if (item.limit !== Infinity) {
+      const open = document.createElement("button");
+      open.type = "button"; open.className = "limited-media-open";
+      open.textContent = "▶ فتح الفيديو • " + item.name;
+      open.addEventListener("click", () => openMedia(messageId,index));
+      wrapper.append(open);
+    } else {
+      const video = document.createElement("video");
+      video.src = item.url; video.controls = true; video.playsInline = true; video.preload = "metadata";
+      video.className = "inline-media-video";
+      wrapper.append(video);
+    }
   } else if (item.kind === "audio") {
-    const audio = document.createElement("audio");
-    audio.src = item.url; audio.controls = true; audio.preload = "metadata";
-    wrapper.append(audio);
+    if (item.limit !== Infinity) {
+      const open = document.createElement("button");
+      open.type = "button"; open.className = "limited-media-open";
+      open.textContent = "♫ فتح المقطع الصوتي • " + item.name;
+      open.addEventListener("click", () => openMedia(messageId,index));
+      wrapper.append(open);
+    } else {
+      const audio = document.createElement("audio");
+      audio.src = item.url; audio.controls = true; audio.preload = "metadata";
+      wrapper.append(audio);
+    }
   } else {
     const file = document.createElement("button");
     file.type = "button"; file.className = "inline-document";
