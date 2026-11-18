@@ -1,11 +1,26 @@
 const FILTERS = {
-  none: "none",
-  paris: "saturate(1.16) contrast(1.03) sepia(.08) brightness(1.04) hue-rotate(-7deg)",
-  golden: "sepia(.28) saturate(1.35) contrast(1.04) brightness(1.05)",
-  cool: "saturate(.92) contrast(1.08) brightness(1.04) hue-rotate(12deg)",
-  vintage: "sepia(.42) saturate(.78) contrast(1.12) brightness(.96)",
-  dream: "saturate(1.2) contrast(.9) brightness(1.12) blur(.25px)",
-  mono: "grayscale(1) contrast(1.08)"
+  none:"none",
+  paris:"saturate(1.16) contrast(1.03) sepia(.08) brightness(1.04) hue-rotate(-7deg)",
+  golden:"sepia(.28) saturate(1.35) contrast(1.04) brightness(1.05)",
+  cool:"saturate(.92) contrast(1.08) brightness(1.04) hue-rotate(12deg)",
+  vintage:"sepia(.42) saturate(.78) contrast(1.12) brightness(.96)",
+  dream:"saturate(1.2) contrast(.9) brightness(1.12) blur(.25px)",
+  mono:"grayscale(1) contrast(1.08)",
+  korean:"brightness(1.08) saturate(1.08) contrast(.94) hue-rotate(-8deg)",
+  chinese:"saturate(1.2) contrast(1.05) sepia(.12) hue-rotate(-12deg)",
+  american:"contrast(1.18) saturate(1.28) brightness(1.02)",
+  russian:"saturate(.78) contrast(1.12) brightness(1.06) hue-rotate(8deg)",
+  retro70:"sepia(.36) saturate(1.2) contrast(.92)",
+  film:"contrast(1.16) saturate(.86) brightness(.98)",
+  noir:"grayscale(1) contrast(1.55) brightness(.82)",
+  roseMakeup:"saturate(1.22) hue-rotate(-12deg) brightness(1.04)",
+  glamMakeup:"saturate(1.18) contrast(1.06) brightness(1.06)",
+  festival:"saturate(1.5) hue-rotate(24deg) contrast(1.08)",
+  neonMakeup:"saturate(1.45) hue-rotate(48deg) contrast(1.1)",
+  bigEyes:"saturate(1.12) contrast(1.08)",
+  alien:"hue-rotate(75deg) saturate(1.5) contrast(1.12)",
+  pixel:"contrast(1.35) saturate(1.3)",
+  mirror:"contrast(1.08) saturate(1.1)"
 };
 
 export function initCameraFilters() {
@@ -18,6 +33,8 @@ export function initCameraFilters() {
   const description = document.getElementById("camera-studio-description");
   const note = document.getElementById("camera-studio-note");
   const overlay = document.getElementById("camera-effect-overlay");
+  const zoom = document.getElementById("camera-zoom");
+  const zoomValue = document.getElementById("camera-zoom-value");
   const start = document.getElementById("camera-studio-start");
   const stop = document.getElementById("camera-studio-stop");
   let stream = null;
@@ -44,6 +61,7 @@ export function initCameraFilters() {
 
   function setFilter(name) {
     video.style.setProperty("--camera-filter", FILTERS[name] || "none");
+    video.dataset.filter = name;
     document.querySelectorAll("[data-camera-filter]").forEach(button => {
       const active = button.dataset.cameraFilter === name;
       button.classList.toggle("active", active);
@@ -111,6 +129,11 @@ export function initCameraFilters() {
     }
   });
   stop.addEventListener("click", stopCamera);
+  zoom?.addEventListener("input", () => {
+    const value = Number(zoom.value) || 1;
+    video.style.setProperty("--camera-zoom", String(value));
+    zoomValue.textContent = `${value.toFixed(1)}×`;
+  });
   modal.addEventListener("keydown", event => {
     if (event.key === "Escape") { event.preventDefault(); close(); return; }
     if (event.key !== "Tab") return;
@@ -121,4 +144,5 @@ export function initCameraFilters() {
   });
   setFilter("none");
   setEffect("none");
+  if (zoom) { zoom.value = "1"; video.style.setProperty("--camera-zoom", "1"); }
 }
