@@ -168,10 +168,12 @@ export function initApp() {
       accept.addEventListener("click", () => {
         const list = readStoredArray("noxAcceptedFriends").filter(id => typeof id === "string");
         if (!list.includes(item.id)) list.push(item.id);
+        const previousAccepted = readStoredValue("noxAcceptedFriends");
         const previousIncoming = readStoredValue("noxIncomingFriendRequests");
         if (!writeStoredValue("noxAcceptedFriends", JSON.stringify(list)) ||
             !writeStoredValue("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)))) {
-          if (previousIncoming !== null) writeStoredValue("noxIncomingFriendRequests", previousIncoming);
+          writeStoredValue("noxAcceptedFriends", previousAccepted ?? "[]");
+          writeStoredValue("noxIncomingFriendRequests", previousIncoming ?? "[]");
           friendNotice("تعذر حفظ التغيير في هذا المتصفح؛ لم يكتمل تحديث الطلب.");
           return;
         }
