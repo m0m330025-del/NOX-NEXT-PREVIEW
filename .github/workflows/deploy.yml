@@ -2,7 +2,7 @@ name: Deploy NOX NEXT preview to GitHub Pages
 
 on:
   push:
-    branches: [main, feature/auth-login-staging]
+    branches: [main, feature/auth-login-staging, preview/ui-bypass-only]
   workflow_dispatch:
 
 permissions:
