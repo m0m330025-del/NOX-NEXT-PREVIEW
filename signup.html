@@ -20,19 +20,44 @@
 <section class="form-panel">
 <a class="back-link" href="./login.html">→ العودة لتسجيل الدخول</a>
 <div class="form-heading"><span class="mini-mark">N</span><span>انضم إلى عالمنا</span></div>
-<h2>إنشاء حساب جديد</h2><p class="subheading">التسجيل قيد التجهيز</p>
+<h2>إنشاء حساب جديد</h2><p class="subheading">معاينة آمنة لمسار التسجيل</p>
 <section class="demo-note" role="status" aria-live="polite">
-<strong>إنشاء الحسابات غير متاح مؤقتًا</strong>
-<p>نعمل على استكمال إعدادات أمان الحسابات والتحقق من أهلية التسجيل وحماية بيانات المستخدمين. لن نطلب منك إدخال بيانات أو إنشاء كلمة مرور قبل إتاحة التسجيل رسميًا.</p>
+<strong>التسجيل الفعلي غير متاح في هذه المعاينة</strong>
+<p>يمكنك استعراض خطوات التجربة فقط. هذه الصفحة لا تجمع بريدًا إلكترونيًا أو كلمة مرور، ولا ترسل بيانات إلى الخادم، ولا تنشئ حسابًا.</p>
 <ul>
-<li>لا يمكن تجاوز متطلبات العمر أو الموافقة.</li>
-<li>لا يتم تفعيل الحساب قبل استيفاء شروط الأهلية المعتمدة.</li>
-<li>لا نطلب مستندات هوية أو بيانات حساسة في هذه الصفحة.</li>
-<li>لا تُمنح صلاحيات إدارية من واجهة التسجيل.</li>
+<li>التحقق من أهلية المستخدم ومتطلبات العمر يسبق أي تسجيل فعلي.</li>
+<li>يجب استيفاء شروط الأهلية وسياسات المنصة قبل إنشاء الحساب.</li>
+<li>لا نطلب مستندات هوية أو بيانات حساسة عبر هذه المعاينة.</li>
+<li>لا يمكن منح صلاحيات إدارية من واجهة التسجيل.</li>
 </ul>
 </section>
+<button class="submit-button" id="preview-steps" type="button" aria-expanded="false">استعراض خطوات التسجيل التجريبية <span>←</span></button>
+<section id="preview-result" class="demo-note" hidden aria-live="polite" style="margin-top:12px;text-align:right">
+<strong>تسلسل التسجيل المقترح</strong>
+<ol>
+<li>قراءة شروط الاستخدام وسياسة الخصوصية.</li>
+<li>التحقق من أهلية التسجيل وفق ضوابط المنصة.</li>
+<li>إدخال بيانات الحساب في صفحة التسجيل الرسمية عند إتاحتها.</li>
+<li>إتمام التحقق المطلوب ثم تسجيل الدخول.</li>
+</ol>
+<p>الحالة الحالية: معاينة فقط — لم يتم إنشاء حساب أو إرسال أي بيانات.</p>
+</section>
 <p class="login-line">لديك حساب بالفعل؟ <a href="./login.html">تسجيل الدخول</a></p>
-<div class="secure-note">✧　NOX NEXT — صفحة تسجيل قيد التجهيز</div>
+<div class="secure-note">✧　NOX NEXT — معاينة تسجيل آمنة</div>
 </section>
 </main>
+<script>
+(() => {
+  const button = document.getElementById('preview-steps');
+  const result = document.getElementById('preview-result');
+  if (!button || !result) return;
+  button.addEventListener('click', () => {
+    result.hidden = !result.hidden;
+    button.setAttribute('aria-expanded', String(!result.hidden));
+    button.innerHTML = result.hidden
+      ? 'استعراض خطوات التسجيل التجريبية <span>←</span>'
+      : 'إخفاء خطوات التسجيل <span>↑</span>';
+  });
+})();
+</script>
 </body></html>
