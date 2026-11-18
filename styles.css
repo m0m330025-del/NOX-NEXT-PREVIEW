@@ -178,3 +178,35 @@ body{perspective:none!important}
 .admin-entry:hover{background:#efe3ff;border-color:#b99af0}
 .admin-entry:focus-visible{outline:3px solid #a879ef;outline-offset:2px}
 .admin-entry[hidden]{display:none!important}
+
+
+/* NOX NEXT review entry — hidden until a trusted server permission is available */
+.review-entry{width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid #d8e5df;border-radius:11px;background:linear-gradient(135deg,#eef8f3,#fff);color:#3e7668;font-size:18px;text-decoration:none;box-shadow:0 4px 12px #3e766818}
+.review-entry:hover{background:#e6f3ed;border-color:#9fc7b8}
+.review-entry:focus-visible{outline:3px solid #82b8a5;outline-offset:2px}
+.review-entry[hidden]{display:none!important}
+
+/* Review console preview: informational only; no approval actions or member records */
+.review-shell{min-height:100vh;background:#f6f5fb;color:#241b3c;padding:28px;direction:rtl}
+.review-wrap{max-width:1180px;margin:0 auto}
+.review-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.review-brand{display:flex;align-items:center;gap:12px}
+.review-brand-mark{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,#6722ed,#a33bed);color:#fff;font-size:23px;font-weight:900}
+.review-brand h1{font-size:20px;margin:0;color:#24105f}
+.review-brand p{font-size:11px;color:#82799b;margin:3px 0 0}
+.review-back{border:1px solid #e1d9f3;border-radius:12px;padding:10px 14px;color:#6722ed;text-decoration:none;background:#fff;font-size:12px;font-weight:800}
+.review-hero{border-radius:22px;padding:24px;background:linear-gradient(115deg,#25115c,#51229a 62%,#7942b5);color:#fff;box-shadow:0 15px 35px #32126c20}
+.review-hero small{color:#e5d6ff;letter-spacing:.7px}
+.review-hero h2{font-size:24px;margin:7px 0}
+.review-hero p{max-width:720px;color:#e5dcf6;font-size:13px;line-height:1.9;margin:0}
+.review-status{display:inline-flex;align-items:center;gap:7px;margin-top:15px;padding:7px 11px;border:1px solid #ffffff38;border-radius:20px;background:#ffffff14;font-size:11px}
+.review-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.review-card{background:#fff;border:1px solid #e9e4f3;border-radius:17px;padding:18px;box-shadow:0 6px 18px #25105c08}
+.review-card small{display:block;color:#8b82a2;font-size:11px}
+.review-card b{display:block;margin-top:7px;color:#37235f;font-size:16px}
+.review-section{background:#fff;border:1px solid #e9e4f3;border-radius:18px;padding:20px;margin-top:14px}
+.review-section h3{margin:0 0 8px;color:#38215f;font-size:16px}
+.review-section>p{margin:0;color:#817894;font-size:12px;line-height:1.9}
+.review-empty{margin-top:14px;border:1px dashed #dcd3ed;border-radius:14px;padding:22px;text-align:center;background:#fbfaff;color:#83799c;font-size:12px;line-height:1.9}
+.review-note{margin-top:18px;padding:13px 15px;border-right:3px solid #a58ad8;background:#f0ebf9;border-radius:10px;color:#665681;font-size:11px;line-height:1.9}
+@media(max-width:700px){.review-shell{padding:14px}.review-top{align-items:flex-start}.review-brand h1{font-size:16px}.review-hero{padding:19px}.review-hero h2{font-size:20px}.review-grid{grid-template-columns:1fr}.review-back{white-space:nowrap}}
