@@ -7,13 +7,8 @@ function harness({ profile = null, target = null } = {}) {
   if (profile) rows.users.push({ $id: "profile-1", authUserId: "auth-1", noxId: "NX1", displayName: "User", ageBand: "unknown", accountStatus: "active", role: "user", ...profile });
   if (target) rows.users.push({ $id: "profile-2", authUserId: "auth-2", noxId: "NX2", displayName: "Target", ageBand: "unknown", accountStatus: "active", role: "user", ...target });
   const db = {
-    async listRows(table, queries) {
-      return rows[table].filter(row => queries.every(q => {
-        const match = String(q).match(/equal\((.*)\)/);
-        if (!match) return true;
-        const [key, value] = match[1].split(",").map(v => v.trim().replace(/^['"]|['"]$/g, ""));
-        return String(row[key]) === value;
-      }));
+    async listRows(table, filters) {
+      return rows[table].filter(row => Object.entries(filters).every(([key, value]) => String(row[key]) === String(value)));
     },
     async getRow(table, id) { const row = rows[table].find(item => item.$id === id); if (!row) throw new Error("not found"); return row; },
     async createRow(table, data) { const row = { $id: "created-" + (rows[table].length + 1), ...data }; rows[table].push(row); return row; },
