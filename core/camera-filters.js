@@ -13,7 +13,6 @@ export function initCameraFilters() {
   const video = document.getElementById("camera-studio-video");
   if (!modal || !video) return;
   const preview = document.getElementById("camera-preview-wrap");
-  const placeholder = document.getElementById("camera-preview-placeholder");
   const status = document.getElementById("camera-studio-status");
   const title = document.getElementById("camera-studio-title");
   const description = document.getElementById("camera-studio-description");
@@ -71,7 +70,7 @@ export function initCameraFilters() {
       : "الفلاتر تعمل محليًا على المعاينة فقط. لا يتم تسجيل أو رفع الصور أو تشغيل الميكروفون.";
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
-    modal.querySelector("[data-camera-close]")?.focus();
+    modal.querySelector("button.camera-studio-close")?.focus();
   }
 
   document.querySelectorAll('[data-action="open-camera-studio"]').forEach(button => {
@@ -89,7 +88,13 @@ export function initCameraFilters() {
     start.disabled = true;
     status.textContent = "بانتظار إذن الكاميرا…";
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      if (!modal.classList.contains("open")) {
+        nextStream.getTracks().forEach(track => track.stop());
+        start.disabled = false;
+        return;
+      }
+      stream = nextStream;
       video.srcObject = stream;
       await video.play();
       preview.classList.add("is-live");
@@ -98,7 +103,11 @@ export function initCameraFilters() {
     } catch (error) {
       start.disabled = false;
       status.textContent = error?.name === "NotAllowedError" ? "لم تسمح للمتصفح باستخدام الكاميرا." : "تعذر تشغيل الكاميرا؛ تحقق من الإذن أو اتصال HTTPS.";
-      stopCamera();
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      stream = null;
+      video.srcObject = null;
+      preview.classList.remove("is-live");
+      stop.disabled = true;
     }
   });
   stop.addEventListener("click", stopCamera);
