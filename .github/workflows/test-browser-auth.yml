@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/auth-login-staging
+      - feature/nox-guard-admin-toggle
     paths:
       - "core/auth-client.js"
       - "core/appwrite-config.js"
@@ -11,6 +12,7 @@ on:
       - "tests/auth-client.test.js"
       - "tests/nox-guard-policy.test.js"
       - "tests/nox-guard-appwrite-function.test.js"
+      - "scripts/setup-appwrite.mjs"
       - ".github/workflows/test-browser-auth.yml"
   pull_request:
     paths:
@@ -38,5 +40,7 @@ jobs:
           node-version: 22
       - name: Install pinned Appwrite SDK for function tests
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
+      - name: Check NOX GUARD and database bootstrap syntax
+        run: node --check server/nox-guard/appwrite-function.js && node --check scripts/setup-appwrite.mjs
       - name: Run authentication and NOX GUARD tests
         run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js
