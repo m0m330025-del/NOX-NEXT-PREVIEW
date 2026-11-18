@@ -40,6 +40,26 @@ export function initCameraFilters() {
   let stream = null;
   let returnFocus = null;
   let currentMode = "story";
+  const shapeStrength = document.getElementById("camera-shape-strength");
+  const shapeStrengthValue = document.getElementById("camera-shape-strength-value");
+  const SHAPES = { none:[1,1], balloon:[1.24,0.88], wide:[1.3,0.94], tall:[0.92,1.25], fisheye:[1.17,1.12] };
+  let currentShape = "none";
+  function applyShape() {
+    const [targetX,targetY] = SHAPES[currentShape] || SHAPES.none;
+    const strength = (Number(shapeStrength?.value ?? 65) || 0) / 100;
+    video.style.setProperty("--camera-shape-x",(1+(targetX-1)*strength).toFixed(3));
+    video.style.setProperty("--camera-shape-y",(1+(targetY-1)*strength).toFixed(3));
+    if (shapeStrengthValue) shapeStrengthValue.textContent = `${Math.round(strength*100)}%`;
+  }
+  function setShape(name) {
+    currentShape = SHAPES[name] ? name : "none";
+    document.querySelectorAll("[data-camera-shape]").forEach(button => {
+      const active = button.dataset.cameraShape === currentShape;
+      button.classList.toggle("active",active);
+      button.setAttribute("aria-pressed",String(active));
+    });
+    applyShape();
+  }
 
   function stopCamera() {
     if (stream) stream.getTracks().forEach(track => track.stop());
@@ -98,6 +118,8 @@ export function initCameraFilters() {
   modal.querySelectorAll("[data-camera-close]").forEach(button => button.addEventListener("click", close));
   document.querySelectorAll("[data-camera-filter]").forEach(button => button.addEventListener("click", () => setFilter(button.dataset.cameraFilter)));
   document.querySelectorAll("[data-camera-effect]").forEach(button => button.addEventListener("click", () => setEffect(button.dataset.cameraEffect)));
+  document.querySelectorAll("[data-camera-shape]").forEach(button => button.addEventListener("click", () => setShape(button.dataset.cameraShape)));
+  shapeStrength?.addEventListener("input", applyShape);
 
   start.addEventListener("click", async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -145,5 +167,8 @@ export function initCameraFilters() {
   });
   setFilter("none");
   setEffect("none");
+  setShape("none");
+  if (shapeStrength) shapeStrength.value = "65";
+  applyShape();
   if (zoom) { zoom.value = "1"; video.style.setProperty("--camera-zoom", "1"); }
 }
