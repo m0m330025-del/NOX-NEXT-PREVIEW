@@ -22,6 +22,7 @@ export function initCallSettings() {
   const outputSelect = document.getElementById("call-audio-output");
   const micTest = document.getElementById("call-test-mic");
   let micStream = null, audioContext = null, analyserFrame = 0, testOscillators = [], toneTimeout = 0;
+  let micRequest = 0;
   let returnFocus = null;
 
   function readSettings() {
@@ -55,6 +56,7 @@ export function initCallSettings() {
     }
   }
   function stopMicTest() {
+    micRequest += 1;
     if (analyserFrame) cancelAnimationFrame(analyserFrame);
     analyserFrame = 0;
     if (micStream) micStream.getTracks().forEach(track => track.stop());
@@ -111,7 +113,13 @@ export function initCallSettings() {
         autoGainControl: settings.autoGainControl
       };
       if (settings.audioInput) audio.deviceId = { exact: settings.audioInput };
-      micStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
+      const requestId = ++micRequest;
+      const nextStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
+      if (requestId !== micRequest || !modal.classList.contains("open") || document.hidden) {
+        nextStream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      micStream = nextStream;
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioContext.createMediaStreamSource(micStream);
       const analyser = audioContext.createAnalyser();
@@ -131,6 +139,7 @@ export function initCallSettings() {
       };
       draw();
     } catch (error) {
+      if (document.hidden || !modal.classList.contains("open")) return;
       status.textContent = error?.name === "NotAllowedError" ? "لم تسمح باستخدام الميكروفون" : "تعذر تشغيل الميكروفون؛ تحقق من الجهاز والإذن";
       stopMicTest();
     } finally { micTest.disabled = false; }
@@ -222,5 +231,6 @@ export function initCallSettings() {
     else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0].focus(); }
   });
   window.addEventListener("pagehide",stopAllTests);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopAllTests(); });
   refreshDevices();
 }
