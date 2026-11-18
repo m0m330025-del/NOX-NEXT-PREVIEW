@@ -90,6 +90,7 @@ function renderList() {
     button.addEventListener("click",() => {
       activeId = item.id;
       item.unread = false;
+      savePreviewConversations();
       renderList();
       renderChat();
     });
@@ -131,6 +132,8 @@ form.addEventListener("submit",event => {
   item.messages.push({from:"me",text:value,time:now});
   item.preview = value;
   item.time = now;
+  item.unread = false;
+  savePreviewConversations();
   input.value = "";
   renderList();
   renderChat();
