@@ -1,7 +1,7 @@
 # NOX NEXT — Accounting Decision Log 01
 
 **Date:** 2026-11-18  
-**Status:** Provisional product-design decision only; not implemented or activated.
+**Status:** Provisional product-design decisions only; not implemented or activated.
 
 ## Decision 01 — Destination of NXC spent on virtual gifts
 
@@ -17,11 +17,25 @@ When a virtual gift is completed, the sender's NXC wallet is debited by the serv
 - Any later reserve use requires a separately approved, append-only, auditable posting policy.
 - This decision is a design rule only; no reserve account, balance, schema, API, or transaction has been created.
 
-## Next open decision — NXC source for jewel conversion
+## Decision 02 — NXC source for jewel conversion
 
-Choose one policy for future design review:
+**Selected option:** 1 — Existing platform-controlled NXC reserve.
 
-1. **Existing platform reserve:** the NXC credit created by a jewel conversion is funded by debiting the platform-controlled NXC reserve. The reserve must have sufficient available units; it cannot become negative.
-2. **Authorized issuance:** conversion creates newly authorized NXC through a dedicated issuance control account, subject to an approved cap and audit policy.
+When a future jewel conversion is approved, the NXC credit would be funded by a corresponding debit to the platform reserve. The reserve must have sufficient available units and must never become negative.
 
-No conversion is enabled until the source policy and its controls are approved and tested in a non-production environment.
+### Controls
+- The jewel debit and reserve debit/member NXC credit must be one atomic accounting operation.
+- The conversion must fail without changing either ledger if the reserve is insufficient.
+- The reserve cannot be replenished through an unapproved or unexplained issuance.
+- NXC and jewel ledgers remain separate and independently reconcilable.
+- This is a design decision only; no conversion, reserve account, balance, schema, API, or transaction has been created.
+
+## Next open decision — Jewel reward cap
+
+The existing reward rule is 1 jewel per 1 NXC of eligible virtual gifts received. A maximum reward cap has not yet been decided.
+
+Options for further product review:
+1. **No additional cap:** apply the 1:1 rule to all eligible gifts, with anti-abuse controls and eligibility rules still required.
+2. **Fixed cap:** apply the 1:1 rule only up to a defined maximum per member per defined period; excess eligible gift value does not generate additional jewels for that period.
+
+No reward or conversion is enabled until eligibility, abuse controls, reconciliation, and non-production tests are specified and approved.
