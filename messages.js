@@ -6,6 +6,40 @@ const conversations = [
   { id:"youssef", name:"يوسف", initial:"ي", preview:"تمام 👍", time:"الإثنين", unread:false, messages:[{from:"them",text:"تمام 👍",time:"الإثنين"}] }
 ];
 
+const STORAGE_KEY = "nox.messages.preview.v1";
+function loadPreviewConversations() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return conversations;
+    const saved = JSON.parse(raw);
+    if (!Array.isArray(saved) || saved.length > 100) return conversations;
+    const valid = saved.every(item =>
+      item && typeof item.id === "string" && typeof item.name === "string" &&
+      typeof item.initial === "string" && typeof item.preview === "string" &&
+      typeof item.time === "string" && typeof item.unread === "boolean" &&
+      Array.isArray(item.messages) && item.messages.length <= 500 &&
+      item.messages.every(message => message &&
+        (message.from === "me" || message.from === "them") &&
+        typeof message.text === "string" && message.text.length <= 1000 &&
+        typeof message.time === "string")
+    );
+    return valid ? saved : conversations;
+  } catch {
+    return conversations;
+  }
+}
+function savePreviewConversations() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+    return true;
+  } catch {
+    notify("تعذر الحفظ على هذا الجهاز؛ قد تكون مساحة التخزين غير متاحة");
+    return false;
+  }
+}
+const restoredConversations = loadPreviewConversations();
+conversations.splice(0, conversations.length, ...restoredConversations);
+
 const list = document.getElementById("conversation-list");
 const messagesBox = document.getElementById("chat-messages");
 const activeName = document.getElementById("active-name");
