@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#25115c">
+  <meta name="description" content="NOX NEXT — معاينة لوحة جهة المراجعة">
+  <title>NOX NEXT — جهة المراجعة</title>
+  <link rel="stylesheet" href="./styles.css?v=review-console-preview-1">
+  <style>html.auth-pending body{visibility:hidden}</style>
+  <script>document.documentElement.classList.add("auth-pending")</script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
+  <script type="module" src="./core/auth-guard.js"></script>
+</head>
+<body>
+  <main class="review-shell">
+    <div class="review-wrap">
+      <header class="review-top">
+        <div class="review-brand">
+          <span class="review-brand-mark">N</span>
+          <div><h1>NOX NEXT</h1><p>جهة المراجعة الهندسية والأمنية</p></div>
+        </div>
+        <a class="review-back" href="./home.html">العودة إلى NOX NEXT ←</a>
+      </header>
+
+      <section class="review-hero">
+        <small>NOX NEXT • REVIEW CENTER</small>
+        <h2>لوحة جهة المراجعة</h2>
+        <p>مساحة مخصصة للمراجعين المعتمدين لمتابعة طلبات المراجعة وتوثيق القرارات. هذه معاينة للواجهة فقط؛ لم يتم ربطها بعد بنظام الصلاحيات أو قاعدة البيانات.</p>
+        <span class="review-status">● وضع المعاينة — لا توجد صلاحيات مراجعة مفعّلة</span>
+      </section>
+
+      <section class="review-grid" aria-label="أقسام لوحة المراجعة">
+        <article class="review-card"><small>طلبات التسجيل</small><b>بانتظار ربط النظام</b></article>
+        <article class="review-card"><small>الشكاوى والبلاغات</small><b>بانتظار ربط النظام</b></article>
+        <article class="review-card"><small>سجل قرارات المراجعة</small><b>بانتظار ربط النظام</b></article>
+      </section>
+
+      <section class="review-section">
+        <h3>طلبات تحتاج إلى مراجعة</h3>
+        <p>لن تظهر أي بيانات لأشخاص هنا قبل إنشاء مصدر بيانات آمن وتحديد صلاحيات المراجعين على الخادم.</p>
+        <div class="review-empty">لا توجد طلبات معروضة في نسخة المعاينة.</div>
+      </section>
+
+      <section class="review-section">
+        <h3>سجل المراجعات والاعتمادات</h3>
+        <p>سيحتوي السجل مستقبلًا على هوية المراجع، ونوع المراجعة، والقرار، وسبب القرار، والتوقيت. لا يمكن إنشاء أو تعديل قرارات من هذه المعاينة.</p>
+        <div class="review-empty">سجل المراجعة غير متصل حاليًا.</div>
+      </section>
+
+      <aside class="review-note">
+        تنبيه: تسجيل الدخول إلى الموقع لا يمنح صلاحية المراجعة. إظهار لوحة المراجع أو الإدارة وتنفيذ أي قرار يتطلبان تحققًا من صلاحيات موثوقًا من الخادم. حساب الإدارة سيحتاج إلى الصلاحيتين معًا، بينما حساب المراجع يحتاج إلى صلاحية المراجعة فقط.
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
