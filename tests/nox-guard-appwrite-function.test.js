@@ -31,9 +31,10 @@ test("creates a pending profile with unknown age and server-assigned user role",
   const h = harness();
   const result = await h.invoke({ action: "profile", method: "POST", bodyJson: { displayName: "New User", ageBand: "18_plus", role: "admin" } });
   assert.equal(result.status, 201);
-  assert.equal(result.payload.profile.ageBand, "unknown");
-  assert.equal(result.payload.profile.accountStatus, "pending_review");
-  assert.equal(result.payload.profile.role, "user");
+  assert.equal(result.rows.users[0].ageBand, "unknown");
+  assert.equal(result.rows.users[0].accountStatus, "pending_review");
+  assert.equal(result.rows.users[0].role, "user");
+  assert.equal("ageBand" in result.payload.profile, false);
 });
 
 test("rejects invalid profile display names", async () => {
