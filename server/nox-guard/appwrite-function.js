@@ -31,7 +31,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
           return json(res, { ok: false, error: "invalid_display_name" }, 400);
         const created = await db.createRow(USERS, {
           authUserId: user.$id,
-          noxId: "NX" + id().replace(/[^a-zA-Z0-9]/g, "").slice(0, 18).toUpperCase(),
+          oxId: "NX" + id().replace(/[^a-zA-Z0-9]/g, "").slice(0, 18).toUpperCase(),
           displayName,
           ageBand: "unknown",
           accountStatus: "pending_review",
@@ -118,7 +118,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
 
 function publicProfile(row) {
   return {
-    id: row.$id, noxId: row.noxId, displayName: row.displayName,
+    id: row.$id, noxId: row.oxId, displayName: row.displayName,
     accountStatus: row.accountStatus
   };
 }
