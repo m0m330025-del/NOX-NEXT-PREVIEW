@@ -47,6 +47,7 @@
           <div class="conversation-filters" role="group" aria-label="تصفية المحادثات">
             <button type="button" class="filter-chip active" data-filter="all" aria-pressed="true">الكل</button>
             <button type="button" class="filter-chip" data-filter="unread" aria-pressed="false">غير المقروءة</button>
+            <button type="button" class="filter-chip" data-filter="archived" aria-pressed="false">المؤرشفة</button>
           </div>
           <div class="conversation-list" id="conversation-list" aria-label="قائمة المحادثات"></div>
           <p class="preview-disclaimer">بيانات تجريبية محفوظة محليًا على هذا الجهاز فقط؛ ليست محادثات حقيقية.</p>
@@ -58,12 +59,15 @@
               <div><h2 id="active-name">سارة</h2><p id="active-status">معاينة محلية</p></div>
             </div>
             <div class="chat-header-actions">
+              <button type="button" id="chat-pin" aria-label="تثبيت المحادثة" title="تثبيت المحادثة">⌖</button>
+              <button type="button" id="chat-archive" aria-label="أرشفة المحادثة" title="أرشفة المحادثة">▤</button>
               <button type="button" id="chat-audio" aria-label="مكالمة صوتية" title="إعداد المكالمة">☎</button>
               <button type="button" id="chat-video" aria-label="مكالمة فيديو" title="إعداد مكالمة فيديو">▣</button>
               <button type="button" id="chat-details" aria-label="تفاصيل المحادثة" title="تفاصيل المحادثة">ⓘ</button>
             </div>
           </header>
           <div class="chat-preview-banner"><span>ⓘ</span> وضع المعاينة: الرسائل تُحفظ محليًا على هذا الجهاز فقط، ولا تُرسل إلى أشخاص آخرين.</div>
+          <div class="message-search-toolbar"><label for="message-search">بحث داخل المحادثة</label><input id="message-search" type="search" placeholder="ابحث في الرسائل..."><button type="button" id="clear-message-search">مسح</button></div>
           <div class="translation-toolbar"><label for="translation-language">لغة الترجمة</label><select id="translation-language"><option value="en">الإنجليزية</option><option value="ar">العربية</option><option value="fr">الفرنسية</option><option value="de">الألمانية</option><option value="es">الإسبانية</option><option value="tr">التركية</option></select><span>الترجمة الآلية ستُفعّل بعد ربط خدمة ترجمة آمنة</span></div>
           <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="الرسائل"></div>
           <p class="typing-indicator" id="typing-indicator" role="status" aria-live="polite" hidden>أنت تكتب الآن…</p>
