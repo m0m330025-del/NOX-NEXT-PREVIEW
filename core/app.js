@@ -66,6 +66,17 @@ export function initApp() {
 
   // NOX NEXT friend add flow (front-end preview; server verification comes later).
   const friendNotice = message => window.dispatchEvent(new CustomEvent("nox:notice", { detail: message }));
+
+  // Treat browser storage as untrusted and recover safely from malformed values.
+  function readStoredArray(key) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(value) ? value : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
   const friendModal = document.getElementById("friend-modal");
   const camera = document.getElementById("friend-camera");
   const cameraStatus = document.getElementById("camera-status");
@@ -122,9 +133,9 @@ export function initApp() {
     const incomingBox = document.getElementById("incoming-requests");
     const sentBox = document.getElementById("sent-requests");
     if (!incomingBox || !sentBox) return;
-    const incoming = JSON.parse(localStorage.getItem("noxIncomingFriendRequests") || "[]");
-    const sent = JSON.parse(localStorage.getItem("noxFriendRequests") || "[]");
-    const accepted = JSON.parse(localStorage.getItem("noxAcceptedFriends") || "[]");
+    const incoming = readStoredArray("noxIncomingFriendRequests").filter(item => item && typeof item === "object" && typeof item.id === "string");
+    const sent = readStoredArray("noxFriendRequests").filter(id => typeof id === "string");
+    const accepted = readStoredArray("noxAcceptedFriends").filter(id => typeof id === "string");
     incomingBox.innerHTML = "";
     sentBox.innerHTML = "";
     const pendingIncoming = incoming.filter(item => !accepted.includes(item.id));
@@ -138,7 +149,7 @@ export function initApp() {
       const actions = document.createElement("div"); actions.className = "request-actions";
       const accept = document.createElement("button"); accept.className = "request-accept"; accept.textContent = "قبول";
       accept.addEventListener("click", () => {
-        const list = JSON.parse(localStorage.getItem("noxAcceptedFriends") || "[]");
+        const list = readStoredArray("noxAcceptedFriends").filter(id => typeof id === "string");
         if (!list.includes(item.id)) list.push(item.id);
         localStorage.setItem("noxAcceptedFriends", JSON.stringify(list));
         localStorage.setItem("noxIncomingFriendRequests", JSON.stringify(incoming.filter(entry => entry.id !== item.id)));
@@ -259,7 +270,7 @@ export function initApp() {
       friendNotice(pendingFriendId === ownNoxId ? "لا يمكنك إضافة حسابك كصديق" : "ابحث عن NOX ID أولًا");
       return;
     }
-    const requests = JSON.parse(localStorage.getItem("noxFriendRequests") || "[]");
+    const requests = readStoredArray("noxFriendRequests").filter(id => typeof id === "string");
     if (requests.includes(pendingFriendId)) {
       friendNotice("سبق إرسال طلب لهذا المعرّف على هذا الجهاز");
       return;
