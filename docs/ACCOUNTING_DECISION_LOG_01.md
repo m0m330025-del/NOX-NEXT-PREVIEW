@@ -30,12 +30,23 @@ When a future jewel conversion is approved, the NXC credit would be funded by a 
 - NXC and jewel ledgers remain separate and independently reconcilable.
 - This is a design decision only; no conversion, reserve account, balance, schema, API, or transaction has been created.
 
-## Next open decision — Jewel reward cap
+## Decision 03 — Jewel reward cap
 
-The existing reward rule is 1 jewel per 1 NXC of eligible virtual gifts received. A maximum reward cap has not yet been decided.
+**Selected option:** 1 — No additional cap.
 
-Options for further product review:
-1. **No additional cap:** apply the 1:1 rule to all eligible gifts, with anti-abuse controls and eligibility rules still required.
-2. **Fixed cap:** apply the 1:1 rule only up to a defined maximum per member per defined period; excess eligible gift value does not generate additional jewels for that period.
+The provisional reward rule remains 1 jewel per 1 NXC of eligible completed virtual gifts received, without an additional per-period reward cap.
 
-No reward or conversion is enabled until eligibility, abuse controls, reconciliation, and non-production tests are specified and approved.
+### Controls
+- Anti-abuse and eligibility controls remain mandatory.
+- Reward calculation must be based on authoritative completed gift events, not client-submitted values.
+- Duplicate event processing must not create duplicate jewel rewards.
+- This is a design decision only; no rewards, balances, schema, API, or transactions have been created.
+
+## Next open decision — Self-gifting eligibility
+
+Should a gift sent by a member to the same member account be eligible to generate jewel rewards?
+
+1. **Exclude self-gifts:** a sender and recipient with the same account identity generate no jewel reward.
+2. **Allow self-gifts:** self-addressed gifts count under the same 1:1 reward rule.
+
+This decision concerns jewel rewards only; gift display behavior and other progression rules would need separate specification. No reward is enabled pending approval.
