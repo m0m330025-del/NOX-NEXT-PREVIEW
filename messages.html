@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8f0ed">
+  <meta name="description" content="مركز المحادثات في NOX NEXT">
+  <title>المحادثات | NOX NEXT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./messages.css">
+  <script type="module" src="./messages.js"></script>
+</head>
+<body>
+<div class="app-frame messages-app">
+  <aside class="sidebar">
+    <a class="brand brand-desktop" href="./home.html"><span class="brand-symbol">N</span><span><b>NOX NEXT</b><small>NOX Social Universe</small></span></a>
+    <nav class="primary-nav" aria-label="القائمة الرئيسية">
+      <a class="nav-link" href="./home.html"><span>⌂</span>الرئيسية</a>
+      <a class="nav-link" href="./home.html#friends"><span>♧</span>الأصدقاء</a>
+      <a class="nav-link active" href="./messages.html" aria-current="page"><span>☏</span>المحادثات</a>
+      <a class="nav-link" href="./home.html#stories"><span>◉</span>الحالات</a>
+      <a class="nav-link" href="./home.html#call-settings"><span>◖</span>إعدادات المكالمات</a>
+      <a class="nav-link" href="./nox-kiss.html"><span>♡</span>NOX KISS</a>
+    </nav>
+    <a class="logout-button messages-home-link" href="./home.html">العودة للرئيسية <span>⌂</span></a>
+  </aside>
+  <div class="workspace">
+    <header class="mobile-header messages-mobile-header">
+      <a class="brand brand-mobile" href="./home.html"><span class="brand-symbol">N</span><span><b>NOX NEXT</b><small>المحادثات</small></span></a>
+      <a class="messages-back-home" href="./home.html" aria-label="العودة للرئيسية">⌂</a>
+    </header>
+    <header class="topbar messages-topbar">
+      <div><strong>مركز المحادثات</strong><small>تواصل مع أصدقائك في مكان واحد</small></div>
+      <a class="messages-top-home" href="./home.html">الرئيسية</a>
+    </header>
+    <main class="messages-page">
+      <section class="messages-shell" aria-label="مركز المحادثات">
+        <aside class="conversation-sidebar">
+          <div class="conversation-heading">
+            <div><span class="eyebrow">NOX MESSAGES</span><h1>المحادثات</h1></div>
+            <button class="new-chat-button" type="button" id="new-chat" aria-label="محادثة جديدة" title="محادثة جديدة">＋</button>
+          </div>
+          <label class="conversation-search"><span>⌕</span><input id="conversation-search" type="search" placeholder="ابحث في المحادثات..." aria-label="ابحث في المحادثات"></label>
+          <div class="conversation-filters" role="group" aria-label="تصفية المحادثات">
+            <button type="button" class="filter-chip active" data-filter="all" aria-pressed="true">الكل</button>
+            <button type="button" class="filter-chip" data-filter="unread" aria-pressed="false">غير المقروءة</button>
+          </div>
+          <div class="conversation-list" id="conversation-list" aria-label="قائمة المحادثات"></div>
+          <p class="preview-disclaimer">هذه بيانات تجريبية للمعاينة على هذا الجهاز فقط، وليست محادثات حقيقية.</p>
+        </aside>
+        <section class="chat-panel" aria-label="نافذة المحادثة">
+          <header class="chat-header">
+            <div class="chat-person">
+              <div class="person-avatar" id="active-avatar">س</div>
+              <div><h2 id="active-name">سارة</h2><p id="active-status">معاينة محلية</p></div>
+            </div>
+            <div class="chat-header-actions">
+              <button type="button" id="chat-audio" aria-label="مكالمة صوتية" title="إعداد المكالمة">☎</button>
+              <button type="button" id="chat-video" aria-label="مكالمة فيديو" title="إعداد مكالمة فيديو">▣</button>
+              <button type="button" id="chat-details" aria-label="تفاصيل المحادثة" title="تفاصيل المحادثة">ⓘ</button>
+            </div>
+          </header>
+          <div class="chat-preview-banner"><span>ⓘ</span> وضع المعاينة: الرسائل التي تكتبها هنا لا تُرسل إلى أشخاص آخرين ولا تُحفظ بعد إغلاق الصفحة.</div>
+          <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="الرسائل"></div>
+          <form class="message-composer" id="message-form">
+            <button type="button" class="composer-tool" id="emoji-toggle" aria-label="إضافة رمز تعبيري" title="رمز تعبيري">☺</button>
+            <label class="message-input-wrap"><span class="sr-only">اكتب رسالة</span><input id="message-input" type="text" maxlength="1000" autocomplete="off" placeholder="اكتب رسالتك في المعاينة..." required></label>
+            <button type="submit" class="send-message-button" aria-label="إرسال في المعاينة">➤</button>
+          </form>
+          <p class="composer-note">الإرسال محلي تجريبي — لن تصل الرسالة إلى الطرف الآخر</p>
+        </section>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="messages-toast" role="status" aria-live="polite"></div>
+</body>
+</html>
