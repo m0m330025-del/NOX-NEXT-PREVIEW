@@ -157,7 +157,18 @@ function appendRuntimeMessage(messageId) {
   chat.append(bubble);
 }
 function renderRuntimeMessages() {
-  for (const [id] of runtimeMessages) appendRuntimeMessage(id);
+  for (const [id, record] of runtimeMessages) {
+    const existing = document.querySelector('[data-runtime-message="' + id + '"]');
+    if (!existing) {
+      appendRuntimeMessage(id);
+      continue;
+    }
+    const grid = existing.querySelector(".inline-media-grid");
+    if (grid) {
+      grid.replaceChildren();
+      record.items.forEach((item,index) => grid.append(makeMediaNode(item,id,index)));
+    }
+  }
 }
 function openMedia(messageId,index) {
   const record = runtimeMessages.get(messageId);
