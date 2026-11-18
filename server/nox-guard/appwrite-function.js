@@ -79,9 +79,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
           return json(res, { ok: false, error: "invalid_target" }, 400);
         if (!await targetProfile(targetId))
           return json(res, { ok: false, error: "target_not_found" }, 404);
-        const existing = await db.listRows(BLOCKS, [
-          { blockerId: profile.$id, blockedId: targetId }
-        ]);
+        const existing = await db.listRows(BLOCKS, { blockerId: profile.$id, blockedId: targetId });
         if (existing.length) return json(res, { ok: true, blocked: true, existing: true });
         const created = await db.createRow(BLOCKS, {
           blockerId: profile.$id, blockedId: targetId, createdAt: now().toISOString()
@@ -93,9 +91,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
         const targetId = req.bodyJson?.targetUserId;
         if (typeof targetId !== "string" || targetId.length < 1 || targetId.length > 36)
           return json(res, { ok: false, error: "invalid_target" }, 400);
-        const existing = await db.listRows(BLOCKS, [
-          Query.equal("blockerId", profile.$id), Query.equal("blockedId", targetId)
-        ]);
+        const existing = await db.listRows(BLOCKS, { blockerId: profile.$id, blockedId: targetId });
         for (const row of existing) await db.deleteRow(BLOCKS, row.$id);
         return json(res, { ok: true, blocked: false });
       }
@@ -105,8 +101,8 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
         if (!targetId || targetId.length > 36 || targetId === profile.$id)
           return json(res, { ok: false, error: "invalid_target" }, 400);
         const [outgoing, incoming] = await Promise.all([
-          db.listRows(BLOCKS, [Query.equal("blockerId", profile.$id), Query.equal("blockedId", targetId)]),
-          db.listRows(BLOCKS, [{ blockerId: targetId, blockedId: profile.$id }])
+          db.listRows(BLOCKS, { blockerId: profile.$id, blockedId: targetId }),
+          db.listRows(BLOCKS, { blockerId: targetId, blockedId: profile.$id })
         ]);
         return json(res, { ok: true, blocked: outgoing.length > 0 || incoming.length > 0 });
       }
