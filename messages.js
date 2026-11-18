@@ -21,7 +21,10 @@ function loadPreviewConversations() {
       item.messages.every(message => message &&
         (message.from === "me" || message.from === "them") &&
         typeof message.text === "string" && message.text.length <= 1000 &&
-        typeof message.time === "string")
+        typeof message.time === "string" &&
+        (message.edited === undefined || typeof message.edited === "boolean") &&
+        (message.translatedText === undefined || (typeof message.translatedText === "string" && message.translatedText.length <= 1000)) &&
+        (message.translationLanguage === undefined || typeof message.translationLanguage === "string"))
     );
     return valid ? saved : conversations;
   } catch {
@@ -51,6 +54,9 @@ const toast = document.getElementById("messages-toast");
 let activeId = conversations[0].id;
 let activeFilter = "all";
 let toastTimer;
+let typingTimer;
+const typingIndicator = document.getElementById("typing-indicator");
+const translationLanguage = document.getElementById("translation-language");
 
 function notify(message) {
   toast.textContent = message;
@@ -109,7 +115,50 @@ function renderChat() {
   item.messages.forEach(message => {
     const bubble = document.createElement("div");
     bubble.className = "message-bubble " + (message.from === "me" ? "sent" : "received");
-    bubble.append(safeText("span","",message.text),safeText("time","message-time",message.time));
+    bubble.append(safeText("span","message-original",message.text));
+    if (message.edited) bubble.append(safeText("small","message-edited","معدّلة"));
+    if (message.translatedText) {
+      bubble.append(safeText("span","message-translation",message.translatedText));
+      bubble.append(safeText("small","translation-caption","ترجمة مضافة يدويًا • " + (message.translationLanguage || "لغة مختارة")));
+    }
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
+    meta.append(safeText("time","message-time",message.time));
+    if (message.from === "me") meta.append(safeText("span","message-ticks","✓✓"));
+    bubble.append(meta);
+    const actions = document.createElement("div");
+    actions.className = "message-actions";
+    if (message.from === "me") {
+      const edit = safeText("button","","تعديل");
+      edit.type = "button";
+      edit.addEventListener("click",() => {
+        const next = window.prompt("عدّل نص الرسالة:",message.text);
+        if (next === null) return;
+        if (!next.trim() || next.trim().length > 1000) return notify("اكتب رسالة من 1 إلى 1000 حرف");
+        message.text = next.trim();
+        message.edited = true;
+        item.preview = message.text;
+        savePreviewConversations();
+        renderList();
+        renderChat();
+        notify("تم تعديل الرسالة في المعاينة المحلية");
+      });
+      actions.append(edit);
+    }
+    const translate = safeText("button","","إضافة ترجمة");
+    translate.type = "button";
+    translate.addEventListener("click",() => {
+      const next = window.prompt("أدخل الترجمة يدويًا. الترجمة الآلية لم تُربط بعد:",message.translatedText || "");
+      if (next === null) return;
+      if (!next.trim() || next.trim().length > 1000) return notify("نص الترجمة يجب أن يكون من 1 إلى 1000 حرف");
+      message.translatedText = next.trim();
+      message.translationLanguage = translationLanguage.value;
+      savePreviewConversations();
+      renderChat();
+      notify("حُفظت الترجمة اليدوية محليًا");
+    });
+    actions.append(translate);
+    bubble.append(actions);
     messagesBox.append(bubble);
   });
   messagesBox.scrollTop = messagesBox.scrollHeight;
@@ -126,18 +175,25 @@ document.querySelectorAll("[data-filter]").forEach(button => {
   });
 });
 searchInput.addEventListener("input",renderList);
+input.addEventListener("input",() => {
+  typingIndicator.hidden = !input.value.trim();
+  clearTimeout(typingTimer);
+  if (input.value.trim()) typingTimer = setTimeout(() => { typingIndicator.hidden = true; }, 1800);
+});
 form.addEventListener("submit",event => {
   event.preventDefault();
   const value = input.value.trim();
   if(!value) return;
   const item = conversations.find(entry => entry.id === activeId);
   const now = new Intl.DateTimeFormat("ar-EG",{hour:"2-digit",minute:"2-digit"}).format(new Date());
-  item.messages.push({from:"me",text:value,time:now});
+  item.messages.push({from:"me",text:value,time:now,edited:false});
   item.preview = value;
   item.time = now;
   item.unread = false;
   savePreviewConversations();
   input.value = "";
+  typingIndicator.hidden = true;
+  clearTimeout(typingTimer);
   renderList();
   renderChat();
   notify("أُضيفت الرسالة للمعاينة المحلية فقط");
