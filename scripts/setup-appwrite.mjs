@@ -30,6 +30,10 @@ const definitions = [
       { key: "authUserId", type: "varchar", size: 36, required: true },
       { key: "noxId", type: "varchar", size: 32, required: true },
       { key: "displayName", type: "varchar", size: 80, required: true },
+      // Optional during migration; new profiles are populated only by the server function.
+      { key: "ageBand", type: "varchar", size: 16, required: false },
+      { key: "accountStatus", type: "varchar", size: 24, required: false },
+      { key: "role", type: "varchar", size: 16, required: false },
       { key: "avatarFileId", type: "varchar", size: 36, required: false },
       { key: "createdAt", type: "datetime", required: true }
     ],
