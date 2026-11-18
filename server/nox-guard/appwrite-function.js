@@ -119,7 +119,7 @@ export function createNoxGuardHandler({ authenticate, db, now = () => new Date()
 function publicProfile(row) {
   return {
     id: row.$id, noxId: row.noxId, displayName: row.displayName,
-    accountStatus: row.accountStatus, ageBand: row.ageBand, role: row.role
+    accountStatus: row.accountStatus
   };
 }
 
