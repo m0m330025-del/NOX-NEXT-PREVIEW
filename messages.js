@@ -207,6 +207,7 @@ function renderChat() {
     messagesBox.append(bubble);
   });
   messagesBox.scrollTop = messagesBox.scrollHeight;
+  window.dispatchEvent(new Event("nox:chat-rendered"));
 }
 document.querySelectorAll("[data-filter]").forEach(button => {
   button.addEventListener("click",() => {
