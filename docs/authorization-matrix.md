@@ -19,8 +19,10 @@ This document records the approved product model. It does not implement or grant
 - No reviewer or admin UI in this preview can approve accounts, change roles, or access private applicant records.
 - Human review does not replace applicable legal requirements, age safeguards, or independent professional accreditation.
 
-## NOX KISS access model
+## NOX KISS product description and access model
 
+- Intended product description: NOX KISS is a social and entertainment experience with a non-explicit romantic theme; it is not designed as an adults-only (+18) space.
+- This is the product's stated intended description, not a completed independent content or moderation audit.
 - NOX KISS has no adult-only account type, role, permission, entitlement, or separate access tier.
 - NOX KISS is not assigned an adult-only (+18) classification by this authorization model.
 - Users do not receive additional game permissions based on an adult designation.
