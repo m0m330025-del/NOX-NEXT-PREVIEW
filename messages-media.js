@@ -142,7 +142,7 @@ function formatSize(bytes) {
 }
 function appendRuntimeMessage(messageId) {
   const record = runtimeMessages.get(messageId);
-  if (!record || document.querySelector('[data-runtime-message="' + messageId + '"]')) return;
+  if (!record || record.conversationName !== document.getElementById("active-name").textContent || document.querySelector('[data-runtime-message="' + messageId + '"]')) return;
   const bubble = document.createElement("div");
   bubble.className = "message-bubble sent media-message-bubble";
   bubble.dataset.runtimeMessage = messageId;
@@ -158,6 +158,7 @@ function appendRuntimeMessage(messageId) {
 }
 function renderRuntimeMessages() {
   for (const [id, record] of runtimeMessages) {
+    if (record.conversationName !== document.getElementById("active-name").textContent) continue;
     const existing = document.querySelector('[data-runtime-message="' + id + '"]');
     if (!existing) {
       appendRuntimeMessage(id);
@@ -233,8 +234,8 @@ form.addEventListener("submit",event => {
   const id = "media-" + Date.now() + "-" + (++serial);
   const limit = viewLimit();
   const items = pending.splice(0).map(entry => ({...entry,limit,viewed:0}));
-  runtimeMessages.set(id,{caption,items,time:now});
-  const activeConversation = document.getElementById("active-name").textContent;
+  const conversationName = document.getElementById("active-name").textContent;
+  runtimeMessages.set(id,{caption,items,time:now,conversationName});
   const bubble = document.createElement("div");
   bubble.className = "message-bubble sent media-message-bubble";
   bubble.dataset.runtimeMessage = id;
