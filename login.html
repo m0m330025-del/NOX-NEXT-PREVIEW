@@ -29,7 +29,7 @@
       <div class="form-options"><a href="#" id="forgot-link">نسيت كلمة المرور؟</a></div>
       <button class="submit-button" type="submit">تسجيل الدخول <span>←</span></button>
     </form>
-    <p class="signup-line">ليس لديك حساب؟ <a href="./signup.html" id="signup-link">إنشاء حساب جديد</a></p>
+    <p class="signup-line">إنشاء الحساب غير متاح حاليًا — <a href="./signup.html" id="signup-link">تفاصيل حالة التسجيل</a></p>
     <p class="demo-note" id="notice" role="status">تسجيل الدخول مرتبط بخدمة Appwrite. استخدم حسابك المسجل للمتابعة.</p>
     <div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
   </section>
@@ -37,49 +37,36 @@
 <script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
 <script type="module">
 import { createLoginSession, getCurrentUser, requestPasswordRecovery } from "./core/auth-client.js";
-
 const password=document.getElementById("password");
 const notice=document.getElementById("notice");
 const submit=document.querySelector("#login-form .submit-button");
-
 getCurrentUser().then(user=>{ if(user) window.location.replace("./home.html"); });
-
 document.getElementById("toggle-password").addEventListener("click",()=>{
   const show=password.type==="password";
   password.type=show?"text":"password";
   document.getElementById("toggle-password").textContent=show?"إخفاء":"إظهار";
 });
-
 document.getElementById("login-form").addEventListener("submit",async event=>{
   event.preventDefault();
   if(!event.currentTarget.reportValidity()) return;
   submit.disabled=true;
   notice.textContent="جارٍ التحقق من بيانات الدخول…";
   try {
-    const user=await createLoginSession(
-      document.getElementById("email").value.trim(),
-      password.value
-    );
+    await createLoginSession(document.getElementById("email").value.trim(),password.value);
     notice.textContent="تم تسجيل الدخول بنجاح. جارٍ فتح NOX NEXT…";
     notice.dataset.state="success";
     window.location.replace("./home.html");
   } catch(error) {
     notice.textContent="تعذر تسجيل الدخول. راجع البيانات وحاول مرة أخرى.";
     notice.dataset.state="error";
-  } finally {
-    submit.disabled=false;
-  }
+  } finally { submit.disabled=false; }
 });
-
 document.getElementById("forgot-link").addEventListener("click",async event=>{
   event.preventDefault();
   const email=document.getElementById("email").value.trim();
-  if(!email) {
-    notice.textContent="اكتب بريدك الإلكتروني أولًا، ثم اضغط «نسيت كلمة المرور؟».";
-    return;
-  }
+  if(!email) { notice.textContent="اكتب بريدك الإلكتروني أولًا، ثم اضغط «نسيت كلمة المرور؟»."; return; }
   try {
-    await requestPasswordRecovery(email, new URL("./recovery.html", window.location.href).href);
+    await requestPasswordRecovery(email,new URL("./recovery.html",window.location.href).href);
     notice.textContent="إذا كان البريد مرتبطًا بحساب، فستصلك تعليمات استعادة كلمة المرور.";
     notice.dataset.state="success";
   } catch(error) {
