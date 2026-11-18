@@ -62,6 +62,7 @@ export function initCameraFilters() {
   function setFilter(name) {
     video.style.setProperty("--camera-filter", FILTERS[name] || "none");
     video.dataset.filter = name;
+    overlay.dataset.filter = name;
     document.querySelectorAll("[data-camera-filter]").forEach(button => {
       const active = button.dataset.cameraFilter === name;
       button.classList.toggle("active", active);
