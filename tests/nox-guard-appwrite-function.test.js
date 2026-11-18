@@ -34,7 +34,7 @@ test("creates a pending profile with unknown age and server-assigned user role",
   assert.equal(result.rows.users[0].ageBand, "unknown");
   assert.equal(result.rows.users[0].accountStatus, "pending_review");
   assert.equal(result.rows.users[0].role, "user");
-  assert.equal(result.rows.users[0].oxId, "NXUNIQUE-NOX-ID");
+  assert.equal(result.rows.users[0].oxId, "NXUNIQUENOXID");
   assert.equal(result.payload.profile.noxId, result.rows.users[0].oxId);
   assert.equal("ageBand" in result.payload.profile, false);
 });
