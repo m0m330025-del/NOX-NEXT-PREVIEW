@@ -8,7 +8,7 @@ const labels = {
   settings: "الإعدادات"
 };
 
-const availableSections = new Set(["home", "stories", "friends"]);
+const availableSections = new Set(["home", "stories", "friends", "messages"]);
 
 export function initNavigation() {
   const links = document.querySelectorAll("[data-nav]");
