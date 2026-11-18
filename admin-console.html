@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#25115c">
+  <meta name="description" content="NOX NEXT — معاينة لوحة الإدارة">
+  <title>NOX NEXT — لوحة الإدارة</title>
+  <link rel="stylesheet" href="./styles.css?v=review-console-preview-1">
+  <style>html.auth-pending body{visibility:hidden}</style>
+  <script>document.documentElement.classList.add("auth-pending")</script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
+  <script type="module" src="./core/auth-guard.js"></script>
+</head>
+<body>
+  <main class="review-shell">
+    <div class="review-wrap">
+      <header class="review-top">
+        <div class="review-brand">
+          <span class="review-brand-mark">N</span>
+          <div><h1>NOX NEXT</h1><p>مركز إدارة المنصة</p></div>
+        </div>
+        <a class="review-back" href="./home.html">العودة إلى NOX NEXT ←</a>
+      </header>
+
+      <section class="review-hero">
+        <small>NOX NEXT • ADMIN CENTER</small>
+        <h2>لوحة الإدارة</h2>
+        <p>واجهة الإدارة الموحدة. حساب الإدارة المعتمد سيحصل على صلاحيات الإدارة والمراجعة معًا، وتظل كل صلاحية مستقلة وقابلة للتدقيق.</p>
+        <span class="review-status">● وضع المعاينة — لا توجد صلاحيات إدارية مفعّلة</span>
+      </section>
+
+      <section class="review-grid" aria-label="أقسام الإدارة">
+        <article class="review-card"><small>إدارة الأعضاء</small><b>بانتظار ربط النظام</b></article>
+        <article class="review-card"><small>إعدادات المنصة</small><b>بانتظار ربط النظام</b></article>
+        <article class="review-card"><small>الصلاحيات وسجل النشاط</small><b>بانتظار ربط النظام</b></article>
+      </section>
+
+      <section class="review-section">
+        <h3>أدوات الإدارة</h3>
+        <p>ستُعرض هنا أدوات الإدارة بعد اعتماد الصلاحيات من مصدر موثوق على الخادم. لا توجد حاليًا عمليات لتغيير الأعضاء أو الصلاحيات من هذه المعاينة.</p>
+        <div class="review-empty">أدوات الإدارة غير متصلة حاليًا.</div>
+      </section>
+
+      <section class="review-section">
+        <h3>جهة المراجعة</h3>
+        <p>حساب الإدارة يجمع صلاحية الإدارة وصلاحية المراجعة، ويمكنه فتح لوحة المراجعة من نفس الحساب.</p>
+        <div class="review-empty"><a class="review-back" href="./review-console.html">فتح معاينة لوحة جهة المراجعة</a></div>
+      </section>
+
+      <aside class="review-note">
+        تنبيه: هذه واجهة معاينة فقط. لا تمنح تسجيل الدخول وحده صلاحيات الإدارة أو المراجعة. كل قراءة أو تعديل أو قرار فعلي يجب أن يتحقق منه الخادم.
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
