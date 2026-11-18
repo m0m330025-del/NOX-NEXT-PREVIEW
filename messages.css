@@ -128,6 +128,6 @@
 
 
 /* Best-effort browser deterrents for limited-view media; OS screenshots/recording remain outside web-page control. */
-.media-viewer.limited-view-active .media-viewer-content,.media-viewer.limited-view-active .media-viewer-content *{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
-.media-viewer.limited-view-active .media-viewer-content img,.media-viewer.limited-view-active .media-viewer-content video{-webkit-user-drag:none;user-select:none}
+.media-viewer-backdrop.limited-view-active .media-viewer-content,.media-viewer-backdrop.limited-view-active .media-viewer-content *{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+.media-viewer-backdrop.limited-view-active .media-viewer-content img,.media-viewer-backdrop.limited-view-active .media-viewer-content video{-webkit-user-drag:none;user-select:none}
 @media print{.media-viewer-backdrop{display:none!important}}
