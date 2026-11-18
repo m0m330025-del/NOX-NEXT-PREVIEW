@@ -104,6 +104,7 @@ export function initApp() {
   let scanLoop = false;
   let detector = null;
   let pendingFriendId = "";
+  let friendModalReturnFocus = null;
   const ownNoxId = (readStoredValue("noxDemoId") || readStoredValue("noxUserId") || readStoredValue("nox_id") || readStoredValue("NOX_ID") || "NOX-123-456").toUpperCase();
 
   function stopFriendCamera() {
@@ -265,19 +266,27 @@ export function initApp() {
     }
   }
 
+  function closeFriendModal() {
+    stopFriendCamera();
+    friendModal?.classList.remove("open");
+    friendModal?.setAttribute("aria-hidden", "true");
+    if (friendModalReturnFocus instanceof HTMLElement && friendModalReturnFocus.isConnected) {
+      friendModalReturnFocus.focus();
+    }
+    friendModalReturnFocus = null;
+  }
+
   document.querySelectorAll('[data-action="open-friends"]').forEach(button => {
     button.addEventListener("click", () => {
+      friendModalReturnFocus = document.activeElement;
       friendModal?.classList.add("open");
       friendModal?.setAttribute("aria-hidden", "false");
       switchFriendTab("scan");
+      friendModal?.querySelector(".friend-close")?.focus();
     });
   });
   document.querySelectorAll('[data-action="close-friends"]').forEach(button => {
-    button.addEventListener("click", () => {
-      stopFriendCamera();
-      friendModal?.classList.remove("open");
-      friendModal?.setAttribute("aria-hidden", "true");
-    });
+    button.addEventListener("click", closeFriendModal);
   });
   document.querySelectorAll("[data-friend-tab]").forEach(button => {
     button.addEventListener("click", () => switchFriendTab(button.dataset.friendTab));
@@ -328,9 +337,28 @@ export function initApp() {
   });
   friendModal?.addEventListener("keydown", event => {
     if (event.key === "Escape") {
-      stopFriendCamera();
-      friendModal.classList.remove("open");
-      friendModal.setAttribute("aria-hidden", "true");
+      event.preventDefault();
+      closeFriendModal();
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+    const focusable = [...friendModal.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter(element => !element.hidden && element.getClientRects().length);
+    if (!focusable.length) {
+      event.preventDefault();
+      friendModal.querySelector(".friend-close")?.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
     }
   });
 
