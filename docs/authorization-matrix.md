@@ -19,6 +19,14 @@ This document records the approved product model. It does not implement or grant
 - No reviewer or admin UI in this preview can approve accounts, change roles, or access private applicant records.
 - Human review does not replace applicable legal requirements, age safeguards, or independent professional accreditation.
 
+## NOX KISS access model
+
+- NOX KISS has no adult-only account type, role, permission, entitlement, or separate access tier.
+- NOX KISS is not assigned an adult-only (+18) classification by this authorization model.
+- Users do not receive additional game permissions based on an adult designation.
+- Platform-wide account safety and age-protection requirements remain separate and are not disabled by this game access model.
+- The standard User / Reviewer / Admin roles above remain the only documented account roles; reviewer and admin powers are for their stated operational consoles only.
+
 ## Current implementation boundary
 
 The review console is a static, authenticated preview. It contains no applicant data and performs no review actions. The review and admin entry points remain hidden until a trusted authorization integration is implemented. No backend, database, schema, secrets, runtime, or deployment changes are included.
