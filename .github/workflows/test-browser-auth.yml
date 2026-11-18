@@ -3,7 +3,7 @@ name: Test NOX authentication and guard policy
 on:
   push:
     branches:
-      - feature/auth-login-staging
+      - feature/all-ages-optional-dob
     paths:
       - "core/auth-client.js"
       - "core/appwrite-config.js"
@@ -11,6 +11,8 @@ on:
       - "tests/auth-client.test.js"
       - "tests/nox-guard-policy.test.js"
       - "tests/nox-guard-appwrite-function.test.js"
+      - "tests/registration-age-policy.test.js"
+      - "signup.html"
       - "tests/registration-age-policy.test.js"
       - "signup.html"
       - ".github/workflows/test-browser-auth.yml"
