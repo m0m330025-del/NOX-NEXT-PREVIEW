@@ -40,3 +40,5 @@ jobs:
         run: node --test test/appwrite-transactions.integration.test.js
       - name: Verify private conversation and message authorization
         run: node --test test/conversations.integration.test.js
+      - name: Verify friend request lifecycle and authorization
+        run: node --test test/friend-requests.integration.test.js
