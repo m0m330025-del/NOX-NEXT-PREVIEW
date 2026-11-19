@@ -65,7 +65,7 @@ document.getElementById("toggle-password").addEventListener("click",()=>{
 form.addEventListener("submit",async event=>{
   event.preventDefault();
   if(!form.reportValidity()) return;
-  const email=document.getElementById("email").value.trim();
+  const email=document.getElementById("email").value.trim().toLowerCase();
   const displayName=document.getElementById("display-name").value.trim();
   submit.disabled=true;
   notice.textContent="جارٍ إنشاء الحساب وتفعيل العضوية على الخادم…";
@@ -73,7 +73,13 @@ form.addEventListener("submit",async event=>{
   try {
     await registerAccount({email,password:password.value,displayName});
     notice.textContent="تم إنشاء الحساب واعتماد العضوية. جارٍ تسجيل الدخول…";
-    await createLoginSession(email,password.value);
+    try {
+      await createLoginSession(email,password.value);
+    } catch(_) {
+      notice.textContent="تم إنشاء الحساب واعتماد العضوية، لكن تعذر تسجيل الدخول تلقائيًا. يمكنك الدخول من صفحة تسجيل الدخول.";
+      notice.dataset.state="success";
+      return;
+    }
     notice.textContent="تم تسجيل الدخول. جارٍ فتح NOX NEXT…";
     notice.dataset.state="success";
     window.location.replace("./home.html");
