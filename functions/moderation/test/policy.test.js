@@ -164,3 +164,13 @@ test("message idempotency keys must be UUIDs", async () => {
   assert.equal(validateMessageId("not-a-uuid").ok, false);
   assert.equal(validateMessageId("../messages").ok, false);
 });
+
+test("only explicit APPROVED membership grants access", async () => {
+  const { hasApprovedMembership } = await import("../src/policy.js");
+  assert.equal(hasApprovedMembership("APPROVED"), true);
+  assert.equal(hasApprovedMembership(null), false);
+  assert.equal(hasApprovedMembership(undefined), false);
+  assert.equal(hasApprovedMembership("PENDING"), false);
+  assert.equal(hasApprovedMembership("SUSPENDED"), false);
+  assert.equal(hasApprovedMembership("approved"), false);
+});
