@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { Client, ID, TablesDB, Users, Query } from "node-appwrite";
 import { normalizeRegistrationInput, hasApprovedRegistrationProfile } from "./policy.js";
 
@@ -28,7 +28,7 @@ export default async ({ req, res, log }) => {
   const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey);
   const users = new Users(client);
   const db = new TablesDB(client);
-  const emailHash = createHash("sha256").update(input.email).digest("hex");
+  const emailHash = createHmac("sha256", apiKey).update(input.email).digest("hex");
   const now = new Date();
   const windowStart = new Date(now.getTime() - EMAIL_WINDOW_MS).toISOString();
 
