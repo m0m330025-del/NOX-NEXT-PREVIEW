@@ -70,7 +70,7 @@ document.getElementById("login-form").addEventListener("submit",async event=>{
   submit.disabled=true;
   notice.textContent="جارٍ التحقق من بيانات الدخول…";
   try {
-    await createLoginSession(document.getElementById("email").value.trim(),password.value);
+    await createLoginSession(document.getElementById("email").value.trim().toLowerCase(),password.value);
     const membership=await getMembership();
     if(membership.approved!==true || membership.accountStatus!=="APPROVED") {
       await closeCurrentSession();
@@ -90,7 +90,7 @@ document.getElementById("login-form").addEventListener("submit",async event=>{
 });
 document.getElementById("forgot-link").addEventListener("click",async event=>{
   event.preventDefault();
-  const email=document.getElementById("email").value.trim();
+  const email=document.getElementById("email").value.trim().toLowerCase();
   if(!email) { notice.textContent="اكتب بريدك الإلكتروني أولًا، ثم اضغط «نسيت كلمة المرور؟»."; return; }
   try {
     await requestPasswordRecovery(email,new URL("./recovery.html",window.location.href).href);
