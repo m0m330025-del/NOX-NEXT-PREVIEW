@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const calls = [];
-let accountBehavior = {};
+let accountBehavior = {};\nlet functionBehavior = {};
 
 class MockClient {
   setEndpoint(value) { calls.push(["endpoint", value]); return this; }
@@ -37,7 +37,18 @@ class MockAccount {
   }
 }
 
-globalThis.window = { Appwrite: { Client: MockClient, Account: MockAccount } };
+class MockFunctions {
+  constructor(client) { this.client = client; }
+  async createExecution(args) {
+    calls.push(["createExecution", args]);
+    if (functionBehavior.error) throw functionBehavior.error;
+    return functionBehavior.execution ?? {
+      responseStatusCode: 200,
+      responseBody: JSON.stringify({ approved: true, accountStatus: "APPROVED", userId: "synthetic_user" })
+    };
+  }
+}
+\nglobalThis.window = { Appwrite: { Client: MockClient, Account: MockAccount, Functions: MockFunctions } };
 const auth = await import("../core/auth-client.js");
 
 test("configures the public Appwrite browser client without embedding credentials", () => {
@@ -52,6 +63,54 @@ test("creates an email/password session and returns the authenticated account", 
   assert.equal(user.$id, "synthetic_user");
   assert.ok(calls.some(([name]) => name === "createEmailPasswordSession"));
   assert.ok(calls.some(([name]) => name === "get"));
+});
+
+test("registers through the server function without exposing a server API key", async () => {
+  calls.length = 0;
+  functionBehavior = {
+    execution: {
+      responseStatusCode: 201,
+      responseBody: JSON.stringify({ userId: "synthetic_user", accountStatus: "APPROVED" })
+    }
+  };
+  const result = await auth.registerAccount({
+    email: "member@example.test",
+    password: "synthetic-password",
+    displayName: "Test Member"
+  });
+  assert.equal(result.accountStatus, "APPROVED");
+  const call = calls.find(([name]) => name === "createExecution");
+  assert.equal(call[1].functionId, "nox-registration");
+  assert.equal(call[1].method, "POST");
+  assert.equal(JSON.parse(call[1].body).email, "member@example.test");
+});
+
+test("rejects registration when the server function does not approve membership", async () => {
+  functionBehavior = {
+    execution: {
+      responseStatusCode: 201,
+      responseBody: JSON.stringify({ userId: "synthetic_user", accountStatus: "PENDING" })
+    }
+  };
+  await assert.rejects(() => auth.registerAccount({
+    email: "member@example.test", password: "synthetic-password", displayName: "Test"
+  }), /registration_not_approved/);
+});
+
+test("checks membership using the authenticated moderation function", async () => {
+  calls.length = 0;
+  functionBehavior = {
+    execution: {
+      responseStatusCode: 200,
+      responseBody: JSON.stringify({ approved: true, accountStatus: "APPROVED" })
+    }
+  };
+  const result = await auth.getMembership();
+  assert.equal(result.approved, true);
+  const call = calls.find(([name]) => name === "createExecution");
+  assert.equal(call[1].functionId, "nox-moderation-api");
+  assert.equal(call[1].path, "/membership");
+  assert.equal(call[1].method, "GET");
 });
 
 test("rejects empty login credentials before contacting Appwrite", async () => {
