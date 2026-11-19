@@ -1,230 +1,37 @@
-const FILTERS = {
-  none:"none",
-  paris:"saturate(1.16) contrast(1.03) sepia(.08) brightness(1.04) hue-rotate(-7deg)",
-  golden:"sepia(.28) saturate(1.35) contrast(1.04) brightness(1.05)",
-  cool:"saturate(.92) contrast(1.08) brightness(1.04) hue-rotate(12deg)",
-  vintage:"sepia(.42) saturate(.78) contrast(1.12) brightness(.96)",
-  dream:"saturate(1.2) contrast(.9) brightness(1.12) blur(.25px)",
-  mono:"grayscale(1) contrast(1.08)",
-  korean:"brightness(1.08) saturate(1.08) contrast(.94) hue-rotate(-8deg)",
-  chinese:"saturate(1.2) contrast(1.05) sepia(.12) hue-rotate(-12deg)",
-  american:"contrast(1.18) saturate(1.28) brightness(1.02)",
-  russian:"saturate(.78) contrast(1.12) brightness(1.06) hue-rotate(8deg)",
-  retro70:"sepia(.36) saturate(1.2) contrast(.92)",
-  film:"contrast(1.16) saturate(.86) brightness(.98)",
-  noir:"grayscale(1) contrast(1.55) brightness(.82)",
-  roseMakeup:"saturate(1.22) hue-rotate(-12deg) brightness(1.04)",
-  glamMakeup:"saturate(1.18) contrast(1.06) brightness(1.06)",
-  festival:"saturate(1.5) hue-rotate(24deg) contrast(1.08)",
-  neonMakeup:"saturate(1.45) hue-rotate(48deg) contrast(1.1)",
-  bigEyes:"saturate(1.12) contrast(1.08)",
-  alien:"hue-rotate(75deg) saturate(1.5) contrast(1.12)",
-  pixel:"contrast(1.35) saturate(1.3)",
-  mirror:"contrast(1.08) saturate(1.1)"
-};
-
-export function initCameraFilters() {
-  const modal = document.getElementById("camera-studio");
-  const video = document.getElementById("camera-studio-video");
-  if (!modal || !video) return;
-  const preview = document.getElementById("camera-preview-wrap");
-  const status = document.getElementById("camera-studio-status");
-  const title = document.getElementById("camera-studio-title");
-  const description = document.getElementById("camera-studio-description");
-  const note = document.getElementById("camera-studio-note");
-  const overlay = document.getElementById("camera-effect-overlay");
-  const zoom = document.getElementById("camera-zoom");
-  const zoomValue = document.getElementById("camera-zoom-value");
-  const start = document.getElementById("camera-studio-start");
-  const stop = document.getElementById("camera-studio-stop");
-  const capture = document.getElementById("camera-studio-capture");
-  const canvas = document.getElementById("camera-capture-canvas");
-  const download = document.getElementById("camera-download");
-  const switchCamera = document.getElementById("camera-studio-switch");
-  const selectedName = document.getElementById("camera-selected-name");
-  let facingMode = "user";
-  let stream = null;
-  let cameraRequest = 0;
-  let returnFocus = null;
-  let currentMode = "story";
-  const shapeStrength = document.getElementById("camera-shape-strength");
-  const shapeStrengthValue = document.getElementById("camera-shape-strength-value");
-  const SHAPES = { none:[1,1], balloon:[1.24,0.88], wide:[1.3,0.94], tall:[0.92,1.25], fisheye:[1.17,1.12] };
-  let currentShape = "none";
-  function applyShape() {
-    const [targetX,targetY] = SHAPES[currentShape] || SHAPES.none;
-    const strength = (Number(shapeStrength?.value ?? 65) || 0) / 100;
-    video.style.setProperty("--camera-shape-x",(1+(targetX-1)*strength).toFixed(3));
-    video.style.setProperty("--camera-shape-y",(1+(targetY-1)*strength).toFixed(3));
-    if (shapeStrengthValue) shapeStrengthValue.textContent = `${Math.round(strength*100)}%`;
-  }
-  function setShape(name) {
-    currentShape = SHAPES[name] ? name : "none";
-    document.querySelectorAll("[data-camera-shape]").forEach(button => {
-      const active = button.dataset.cameraShape === currentShape;
-      button.classList.toggle("active",active);
-      button.setAttribute("aria-pressed",String(active));
-    });
-    applyShape();
-  }
-
-  function stopCamera() {
-    cameraRequest += 1;
-    if (stream) stream.getTracks().forEach(track => track.stop());
-    stream = null;
-    video.srcObject = null;
-    preview.classList.remove("is-live");
-    start.disabled = false;
-    stop.disabled = true;
-    status.textContent = "الكاميرا متوقفة";
-    if (capture) capture.disabled = true;
-  }
-
-  function close() {
-    stopCamera();
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden", "true");
-    if (returnFocus?.isConnected) returnFocus.focus();
-    returnFocus = null;
-  }
-
-  function setFilter(name) {
-    video.style.setProperty("--camera-filter", FILTERS[name] || "none");
-    video.dataset.filter = name;
-    overlay.dataset.filter = name;
-    const selected = document.querySelector(`[data-camera-filter="${name}"]`);
-    if (selectedName) selectedName.textContent = selected?.textContent.trim() || name;
-    document.querySelectorAll("[data-camera-filter]").forEach(button => {
-      const active = button.dataset.cameraFilter === name;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", String(active));
-    });
-  }
-
-  function setEffect(name) {
-    overlay.dataset.effect = name;
-    document.querySelectorAll("[data-camera-effect]").forEach(button => {
-      const active = button.dataset.cameraEffect === name;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", String(active));
-    });
-  }
-
-  function open(mode) {
-    currentMode = mode === "call" ? "call" : "story";
-    returnFocus = document.activeElement;
-    title.textContent = currentMode === "call" ? "فلاتر مكالمات الفيديو" : "كاميرا الحالات";
-    description.textContent = currentMode === "call" ? "معاينة شكل الفلاتر التي ستُستخدم داخل واجهة المكالمة" : "اختَر التأثير وشاهد المعاينة المباشرة قبل تجهيز الحالة";
-    note.textContent = currentMode === "call"
-      ? "هذه معاينة واجهة الفلاتر فقط؛ مكالمات الفيديو نفسها لم تُربط بعد. لا يتم تسجيل أو رفع الصورة أو تشغيل الميكروفون."
-      : "الفلاتر تعمل محليًا على المعاينة فقط. لا يتم تسجيل أو رفع الصور أو تشغيل الميكروفون.";
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden", "false");
-    modal.querySelector("button.camera-studio-close")?.focus();
-  }
-
-  document.querySelectorAll('[data-action="open-camera-studio"]').forEach(button => {
-    button.addEventListener("click", () => open(button.dataset.cameraMode));
-  });
-  modal.querySelectorAll("[data-camera-close]").forEach(button => button.addEventListener("click", close));
-  document.querySelectorAll("[data-camera-filter]").forEach(button => button.addEventListener("click", () => setFilter(button.dataset.cameraFilter)));
-  document.querySelectorAll("[data-camera-effect]").forEach(button => button.addEventListener("click", () => setEffect(button.dataset.cameraEffect)));
-  document.querySelectorAll("[data-camera-shape]").forEach(button => button.addEventListener("click", () => setShape(button.dataset.cameraShape)));
-  shapeStrength?.addEventListener("input", applyShape);
-
-  start.addEventListener("click", async () => {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      status.textContent = "المتصفح لا يدعم تشغيل الكاميرا. استخدم متصفحًا حديثًا واتصالًا آمنًا.";
-      return;
-    }
-    start.disabled = true;
-    const requestId = ++cameraRequest;
-    status.textContent = "بانتظار إذن الكاميرا…";
-    try {
-      const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
-      if (requestId !== cameraRequest || !modal.classList.contains("open") || document.hidden) {
-        nextStream.getTracks().forEach(track => track.stop());
-        start.disabled = false;
-        return;
-      }
-      stream = nextStream;
-      video.srcObject = stream;
-      await video.play();
-      preview.classList.add("is-live");
-      stop.disabled = false;
-      if (capture) capture.disabled = false;
-      status.textContent = "المعاينة تعمل — الميكروفون غير مستخدم";
-    } catch (error) {
-      if (requestId !== cameraRequest) return;
-      start.disabled = false;
-      status.textContent = error?.name === "NotAllowedError" ? "لم تسمح للمتصفح باستخدام الكاميرا." : "تعذر تشغيل الكاميرا؛ تحقق من الإذن أو اتصال HTTPS.";
-      if (stream) stream.getTracks().forEach(track => track.stop());
-      stream = null;
-      video.srcObject = null;
-      preview.classList.remove("is-live");
-      stop.disabled = true;
-    }
-  });
-  stop.addEventListener("click", stopCamera);
-  switchCamera?.addEventListener("click", async () => {
-    if (!modal.classList.contains("open")) return;
-    const wasLive = Boolean(stream);
-    if (wasLive) stopCamera();
-    facingMode = facingMode === "user" ? "environment" : "user";
-    if (wasLive) start.click();
-  });
-  capture?.addEventListener("click", () => {
-    if (!stream || video.readyState < 2 || !canvas) {
-      status.textContent = "شغّل الكاميرا أولًا لالتقاط الصورة";
-      return;
-    }
-    const width = video.videoWidth, height = video.videoHeight;
-    if (!width || !height) { status.textContent = "انتظر حتى تكتمل معاينة الكاميرا"; return; }
-    canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    ctx.save();
-    if (facingMode === "user") { ctx.translate(width, 0); ctx.scale(-1, 1); }
-    ctx.filter = FILTERS[video.dataset.filter] || "none";
-    ctx.drawImage(video, 0, 0, width, height);
-    ctx.restore();
-    ctx.filter = "none";
-    // Subtle, baked-in NOX NEXT watermark. No external asset or upload is required.
-    const pad = Math.max(18, Math.round(width * .025));
-    const fontSize = Math.max(18, Math.round(width * .032));
-    ctx.font = `700 ${fontSize}px Arial, sans-serif`;
-    ctx.textAlign = "right"; ctx.textBaseline = "bottom";
-    ctx.shadowColor = "#0009"; ctx.shadowBlur = 8;
-    ctx.fillStyle = "#f2ce79";
-    ctx.fillText("NOX NEXT", width - pad, height - pad);
-    ctx.shadowBlur = 0;
-    canvas.toBlob(blob => {
-      if (!blob) { status.textContent = "تعذر تجهيز الصورة"; return; }
-      const url = URL.createObjectURL(blob);
-      download.href = url; download.hidden = false;
-      download.click();
-      status.textContent = "تم تجهيز الصورة بالشعار الذهبي — يمكنك حفظها";
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    }, "image/png");
-  });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) stopCamera(); });
-  window.addEventListener("pagehide", stopCamera);
-  zoom?.addEventListener("input", () => {
-    const value = Number(zoom.value) || 1;
-    video.style.setProperty("--camera-zoom", String(value));
-    zoomValue.textContent = `${value.toFixed(1)}×`;
-  });
-  modal.addEventListener("keydown", event => {
-    if (event.key === "Escape") { event.preventDefault(); close(); return; }
-    if (event.key !== "Tab") return;
-    const items = [...modal.querySelectorAll('button:not([disabled])')].filter(item => item.getClientRects().length);
-    if (!items.length) return;
-    if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1).focus(); }
-    else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0].focus(); }
-  });
-  setFilter("none");
-  setEffect("none");
-  setShape("none");
-  if (shapeStrength) shapeStrength.value = "65";
-  applyShape();
-  if (zoom) { zoom.value = "1"; video.style.setProperty("--camera-zoom", "1"); }
+const FILTERS={none:"none",paris:"saturate(1.16) contrast(1.03) sepia(.08) brightness(1.04) hue-rotate(-7deg)",golden:"sepia(.28) saturate(1.35) contrast(1.04) brightness(1.05)",cool:"saturate(.92) contrast(1.08) brightness(1.04) hue-rotate(12deg)",vintage:"sepia(.42) saturate(.78) contrast(1.12) brightness(.96)",dream:"saturate(1.2) contrast(.9) brightness(1.12)",mono:"grayscale(1) contrast(1.08)",korean:"brightness(1.08) saturate(1.08) contrast(.94)",chinese:"saturate(1.2) contrast(1.05) sepia(.12)",american:"contrast(1.18) saturate(1.28)",russian:"saturate(.78) contrast(1.12)",retro70:"sepia(.36) saturate(1.2)",film:"contrast(1.16) saturate(.86)",noir:"grayscale(1) contrast(1.55)",roseMakeup:"saturate(1.22) hue-rotate(-12deg)",glamMakeup:"saturate(1.18) contrast(1.06)",festival:"saturate(1.5) hue-rotate(24deg)",neonMakeup:"saturate(1.45) hue-rotate(48deg)",bigEyes:"saturate(1.12) contrast(1.08)",alien:"hue-rotate(75deg) saturate(1.5)",pixel:"contrast(1.35) saturate(1.3)",mirror:"contrast(1.08) saturate(1.1)"};
+const SHAPES={none:[1,1],balloon:[1.24,.88],wide:[1.3,.94],tall:[.92,1.25],fisheye:[1.17,1.12]};
+export function initCameraFilters(){
+const $=id=>document.getElementById(id),modal=$("camera-studio"),video=$("camera-studio-video");if(!modal||!video)return;
+const preview=$("camera-preview-wrap"),status=$("camera-studio-status"),title=$("camera-studio-title"),description=$("camera-studio-description"),note=$("camera-studio-note"),overlay=$("camera-effect-overlay"),start=$("camera-studio-start"),stop=$("camera-studio-stop"),canvas=$("camera-capture-canvas"),download=$("camera-download"),switchCamera=$("camera-studio-switch"),selectedName=$("camera-selected-name"),shapeSlider=$("camera-shape-strength"),shapeValue=$("camera-shape-strength-value"),zoom=$("camera-zoom"),zoomValue=$("camera-zoom-value"),recordButton=$("camera-studio-record");
+const lists=[...modal.querySelectorAll(".camera-filter-list")],wheel=lists[0],buttons=lists.flatMap(x=>[...x.querySelectorAll("[data-camera-filter]")]);lists.slice(1).forEach(x=>x.remove());buttons.forEach(b=>wheel?.append(b));
+let stream=null,facing="user",request=0,returnFocus=null,shape="none",effect="none",recording=false,recorder=null,chunks=[],raf=0,lastTap=0,dragging=false,lastX=0,dragged=false,selectedIndex=0;
+const names=buttons.map(b=>b.dataset.cameraFilter);
+function layout(){if(!wheel)return;const w=wheel.clientWidth||320,r=Math.min(145,w*.46),h=132;buttons.forEach((b,i)=>{const a=(-150+(buttons.length<2?0:i/(buttons.length-1)*120))*Math.PI/180;b.style.left=(w/2+r*Math.cos(a))+"px";b.style.top=(h+r*Math.sin(a))+"px";});}
+function setFilter(name){video.dataset.filter=name;video.style.setProperty("--camera-filter",FILTERS[name]||"none");overlay.dataset.filter=name;const b=buttons.find(x=>x.dataset.cameraFilter===name);if(selectedName)selectedName.textContent=b?.textContent.trim()||name;buttons.forEach(x=>{const on=x.dataset.cameraFilter===name;x.classList.toggle("active",on);x.setAttribute("aria-pressed",String(on));});selectedIndex=Math.max(0,names.indexOf(name));}
+function setShape(name){shape=SHAPES[name]?name:"none";modal.querySelectorAll("[data-camera-shape]").forEach(b=>{const on=b.dataset.cameraShape===shape;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on));});if(shapeValue)shapeValue.textContent=(Number(shapeSlider?.value||65))+"%";}
+function setEffect(name){effect=name;overlay.dataset.effect=name;modal.querySelectorAll("[data-camera-effect]").forEach(b=>{const on=b.dataset.cameraEffect===name;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on));});}
+function composite(){if(!stream||video.readyState<2||!canvas)return false;const w=video.videoWidth,h=video.videoHeight;if(!w||!h)return false;canvas.width=w;canvas.height=h;const c=canvas.getContext("2d"),z=Number(zoom?.value||1),s=(SHAPES[shape]||SHAPES.none),strength=Number(shapeSlider?.value??65)/100;c.save();c.translate(w/2,h/2);c.scale((facing==="user"?-1:1)*z*(1+(s[0]-1)*strength),z*(1+(s[1]-1)*strength));c.filter=FILTERS[video.dataset.filter]||"none";c.drawImage(video,-w/2,-h/2,w,h);c.restore();c.filter="none";
+const emoji={sparkles:"✦  ✧  ✦",hearts:"💜  ✨  💜",crown:"👑",glasses:"🕶️",bunny:"🐰",mustache:"🥸"}[effect];if(emoji){c.save();c.font=Math.max(24,w*.075)+"px Arial";c.textAlign="center";c.shadowColor="#000b";c.shadowBlur=12;c.fillText(emoji,w/2,h*.25);c.restore();}
+c.save();c.font="700 "+Math.max(18,w*.032)+"px Arial";c.textAlign="right";c.textBaseline="bottom";c.shadowColor="#000b";c.shadowBlur=8;c.fillStyle="#f2ce79";c.fillText("NOX NEXT",w-Math.max(18,w*.025),h-Math.max(18,w*.025));c.restore();return true;}
+function capture(){if(!composite()){status.textContent="شغّل الكاميرا وانتظر المعاينة أولًا.";return;}canvas.toBlob(blob=>{if(!blob){status.textContent="تعذر تجهيز الصورة.";return;}const url=URL.createObjectURL(blob);download.href=url;download.download="NOX-NEXT-photo.png";download.hidden=false;download.click();status.textContent="تم حفظ الصورة بالفلاتر والتأثير والشعار النصي.";setTimeout(()=>URL.revokeObjectURL(url),60000);},"image/png");}
+function stopRecording(){if(recorder&&recorder.state!=="inactive")recorder.stop();recording=false;if(recordButton){recordButton.textContent="● فيديو";recordButton.classList.remove("is-recording");}if(raf)cancelAnimationFrame(raf);raf=0;}
+function drawLoop(){if(!recording)return;composite();raf=requestAnimationFrame(drawLoop);}
+function stopCamera(){request++;if(recording)stopRecording();if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;preview.classList.remove("is-live");start.disabled=false;stop.disabled=true;if(recordButton)recordButton.disabled=true;status.textContent="الكاميرا متوقفة";}
+function close(){stopCamera();modal.classList.remove("open");modal.setAttribute("aria-hidden","true");if(returnFocus?.isConnected)returnFocus.focus();}
+function open(mode){returnFocus=document.activeElement;title.textContent=mode==="call"?"فلاتر مكالمات الفيديو":"كاميرا الحالات";description.textContent="اسحب عجلة الفلاتر، واضغط الفلتر المختار مرة ثانية لالتقاط الصورة.";note.textContent="الفلاتر والتأثيرات تُدمج في الصور والفيديو محليًا. الشعار الحالي نص ذهبي مؤقت إلى حين توفير ملف اللوجو الأصلي.";modal.classList.add("open");modal.setAttribute("aria-hidden","false");layout();}
+document.querySelectorAll('[data-action="open-camera-studio"]').forEach(b=>b.addEventListener("click",()=>open(b.dataset.cameraMode)));
+modal.querySelectorAll("[data-camera-close]").forEach(b=>b.addEventListener("click",close));
+buttons.forEach(b=>b.addEventListener("click",()=>{if(dragged){dragged=false;return;}const now=Date.now(),name=b.dataset.cameraFilter;if(video.dataset.filter===name&&now-lastTap<1100){capture();lastTap=0;}else{lastTap=now;setFilter(name);if(!stream)status.textContent="تم اختيار الفلتر. شغّل الكاميرا، ثم اضغط الفلتر المختار مرة ثانية لالتقاط الصورة.";}}));
+wheel?.addEventListener("pointerdown",e=>{dragging=true;dragged=false;lastX=e.clientX;wheel.setPointerCapture?.(e.pointerId);});
+wheel?.addEventListener("pointermove",e=>{if(!dragging)return;const dx=e.clientX-lastX;lastX=e.clientX;if(Math.abs(dx)>8){dragged=true;selectedIndex=Math.max(0,Math.min(buttons.length-1,selectedIndex+(dx<0?1:-1)));setFilter(names[selectedIndex]);}});
+wheel?.addEventListener("pointerup",()=>{dragging=false;setTimeout(()=>dragged=false,100);});wheel?.addEventListener("pointercancel",()=>{dragging=false;});
+modal.querySelectorAll("[data-camera-shape]").forEach(b=>b.addEventListener("click",()=>setShape(b.dataset.cameraShape)));shapeSlider?.addEventListener("input",()=>{if(shapeValue)shapeValue.textContent=shapeSlider.value+"%";});
+modal.querySelectorAll("[data-camera-effect]").forEach(b=>b.addEventListener("click",()=>setEffect(b.dataset.cameraEffect)));
+zoom?.addEventListener("input",()=>{if(zoomValue)zoomValue.textContent=Number(zoom.value).toFixed(1)+"×";});
+start.addEventListener("click",async()=>{if(!navigator.mediaDevices?.getUserMedia){status.textContent="الكاميرا تحتاج متصفحًا حديثًا واتصال HTTPS.";return;}start.disabled=true;const id=++request;status.textContent="بانتظار إذن الكاميرا…";try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080}},audio:false});if(id!==request||!modal.classList.contains("open")||document.hidden){s.getTracks().forEach(t=>t.stop());start.disabled=false;return;}stream=s;video.srcObject=s;await video.play();preview.classList.add("is-live");stop.disabled=false;if(recordButton)recordButton.disabled=false;status.textContent="الكاميرا تعمل — الميكروفون غير مستخدم.";}catch(e){if(id!==request)return;start.disabled=false;status.textContent=e?.name==="NotAllowedError"?"لم تسمح بإذن الكاميرا.":"تعذر تشغيل الكاميرا؛ تحقق من الإذن واتصال HTTPS.";stream=null;video.srcObject=null;preview.classList.remove("is-live");}});
+stop.addEventListener("click",stopCamera);switchCamera?.addEventListener("click",()=>{const live=!!stream;if(live)stopCamera();facing=facing==="user"?"environment":"user";if(live)start.click();});
+recordButton?.addEventListener("click",()=>{if(!stream){status.textContent="شغّل الكاميرا أولًا.";return;}if(recording){stopRecording();return;}if(!canvas.captureStream||!window.MediaRecorder){status.textContent="تسجيل الفيديو غير مدعوم في هذا المتصفح.";return;}composite();const cs=canvas.captureStream(30),mime=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(t=>MediaRecorder.isTypeSupported(t));try{recorder=new MediaRecorder(cs,mime?{mimeType:mime}:undefined);chunks=[];recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data);};recorder.onstop=()=>{cs.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"}),url=URL.createObjectURL(blob);download.href=url;download.download="NOX-NEXT-video.webm";download.hidden=false;download.textContent="حفظ الفيديو";download.click();status.textContent="اكتمل تسجيل الفيديو.";setTimeout(()=>URL.revokeObjectURL(url),60000);};recorder.start(250);recording=true;recordButton.textContent="■ إيقاف التسجيل";recordButton.classList.add("is-recording");status.textContent="جارٍ تسجيل الفيديو…";drawLoop();}catch(e){cs.getTracks().forEach(t=>t.stop());status.textContent="تعذر بدء تسجيل الفيديو على هذا المتصفح.";}}); 
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopCamera();});window.addEventListener("pagehide",stopCamera);window.addEventListener("resize",layout);
+modal.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();close();}});
+setFilter("none");setShape("none");setEffect("none");if(shapeSlider)shapeSlider.value="65";if(zoom)zoom.value="1";
 }
