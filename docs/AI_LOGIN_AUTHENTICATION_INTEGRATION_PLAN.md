@@ -17,32 +17,29 @@ The intended first login method is email + password through the Appwrite Web Cli
 The implementation must:
 1. Create an email/password session using the pinned Appwrite Web SDK API.
 2. Retrieve the current authenticated user.
-3. Ask a trusted server endpoint for authoritative membership status.
-4. Route to member home only when the server confirms `APPROVED`.
-5. Provide logout by deleting the current session.
-6. Use Appwrite password recovery only after allowed browser hostnames and recovery redirect URLs are configured and tested.
-7. Use generic credential/recovery messages that do not disclose whether an email exists.
+3. For self-service signup, create the Appwrite account and persist its authoritative membership as `APPROVED` through a trusted server-controlled workflow; do not let the browser write membership state.
+4. Establish a login session only after the server confirms account creation and `APPROVED` membership are complete.
+5. Route to member home only when the server confirms `APPROVED`.
+6. Provide logout by deleting the current session.
+7. Use Appwrite password recovery only after allowed browser hostnames and recovery redirect URLs are configured and tested.
+8. Use generic credential/recovery messages that do not disclose whether an email exists.
 
 ## Canonical membership lifecycle
-Use exactly these values in all storage, APIs, tests, and UI:
-- `PENDING_REVIEW`
-- `APPROVED`
-- `REJECTED`
-- `SUSPENDED`
+Use exactly these values in all storage, APIs, tests, and UI: `PENDING_REVIEW`, `APPROVED`, `REJECTED`, and `SUSPENDED`.
 
-Every submitted membership request starts as `PENDING_REVIEW`, assigned by trusted server code. A browser cannot choose or modify the state.
+The approved product policy is immediate self-service registration: no manual approval and no one-account-per-IP restriction. Trusted server code creates the account and writes `APPROVED` membership atomically or through a recoverable, idempotent workflow. The browser cannot choose or write membership state.
 
 Allowed transitions:
-- No membership → `PENDING_REVIEW` by the registration workflow.
-- `PENDING_REVIEW` → `APPROVED` or `REJECTED` by an authorized administrator.
+- No membership → `APPROVED` by the trusted self-service registration workflow, only after the account and membership are both confirmed.
 - `APPROVED` → `SUSPENDED` by an authorized administrator.
 - `SUSPENDED` → `APPROVED` only through explicit authorized reinstatement.
-- All other transitions are denied. A rejected request remains denied unless a separate audited reconsideration workflow is designed.
+- `REJECTED` remains denied unless a separate audited reconsideration workflow is designed.
+- `PENDING_REVIEW` remains a legacy/exception state only; it is not the normal new-registration path.
 
-A successful credential check is not membership approval. Pending, rejected, suspended, missing, malformed, or unknown states must not receive member-area or member-data access. The server must derive the account identity from a verified Appwrite session/JWT, load the authoritative record, and enforce approval on every protected operation. A browser route guard is navigation UX only.
+A successful credential check alone is not sufficient. The server must derive identity from a verified Appwrite session/JWT, load the authoritative record, and enforce `APPROVED` on every protected operation. A browser route guard is navigation UX only.
 
 ## Account lifecycle blocker
-Before implementation, verify the exact Appwrite Cloud behavior and pinned SDK methods for creating accounts, disabling accounts, and issuing sessions. Do not assume an unapproved account can safely receive a session and later be disabled. Choose a server-controlled lifecycle that prevents unapproved access; fail closed if the safe lifecycle cannot be established.
+Before implementation, verify exact Appwrite Cloud behavior and pinned SDK methods for creating accounts and issuing sessions. Do not let the browser create an immediately usable account before authoritative `APPROVED` membership is safely persisted. Use a server-controlled, idempotent lifecycle; fail closed if the safe lifecycle cannot be established.
 
 ## Administrative and scheduled approval
 - Individual approval/rejection/suspension/reinstatement is restricted to explicitly authorized administrators and audited.
@@ -52,7 +49,7 @@ Before implementation, verify the exact Appwrite Cloud behavior and pinned SDK m
 - Store immutable batch intent and per-member outcomes server-side. Use a trusted scheduler, idempotency, and concurrency protection; do not depend on an open browser tab.
 
 ## Required tests before enabling member access
-- New registrations are pending and cannot enter member pages or read protected data.
+- New self-service registrations receive `APPROVED` only after trusted account and membership persistence succeeds; incomplete/failed registration cannot access member pages or protected data.
 - Approved accounts can access only resources they are authorized to use.
 - Pending, rejected, suspended, missing, malformed, and unknown states are denied.
 - Tampering with local storage, URLs, request bodies, or displayed roles cannot grant access.
@@ -67,7 +64,7 @@ Before implementation, verify the exact Appwrite Cloud behavior and pinned SDK m
 2. Verify the actual database schema and permissions before proposing a migration.
 3. Verify pinned `node-appwrite@31.3.0` method signatures and account lifecycle behavior.
 4. Resolve the moderation Function Node engine declaration against the actual deployed Node runtime before any Function deployment.
-5. Add server-side rate limiting and abuse protection.
+5. Add proportionate server-side rate limiting and abuse protection. Do not enforce a one-account-per-IP lifetime rule; IP is not a reliable person identifier.
 6. Prepare isolated staging changes and synthetic-account tests.
 
 ## Scope and deployment warning
