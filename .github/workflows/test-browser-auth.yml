@@ -3,7 +3,8 @@ name: Test NOX authentication and guard policy
 on:
   push:
     branches:
-      - feature/all-ages-optional-dob\n      - feature/open-registration-implementation
+      - feature/all-ages-optional-dob
+      - feature/open-registration-implementation
     paths:
       - "core/auth-client.js"
       - "core/appwrite-config.js"
@@ -12,7 +13,12 @@ on:
       - "tests/nox-guard-policy.test.js"
       - "tests/nox-guard-appwrite-function.test.js"
       - "tests/registration-age-policy.test.js"
-      - "signup.html"\n      - "core/auth-guard.js"\n      - "functions/registration/**"\n      - "functions/moderation/src/index.js"\n      - "functions/moderation/src/policy.js"\n      - "functions/moderation/test/policy.test.js"
+      - "signup.html"
+      - "core/auth-guard.js"
+      - "functions/registration/**"
+      - "functions/moderation/src/index.js"
+      - "functions/moderation/src/policy.js"
+      - "functions/moderation/test/policy.test.js"
       - "tests/registration-age-policy.test.js"
       - "signup.html"
       - ".github/workflows/test-browser-auth.yml"
