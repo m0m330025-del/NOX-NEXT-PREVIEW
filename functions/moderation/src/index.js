@@ -1,5 +1,5 @@
 import { Client, Account } from "node-appwrite";
-import { isModerator, validateBlockTarget, validateReportInput, validateNoxId, validateRequestId, validateMessageId } from "./policy.js";
+import { isModerator, validateBlockTarget, validateReportInput, validateNoxId, validateRequestId, validateMessageId, hasApprovedMembership } from "./policy.js";
 import { createModerationStore } from "./store.js";
 
 const json = (res, status, body) => res.json(body, status);
@@ -51,14 +51,14 @@ export default async ({ req, res, log }) => {
 
   if (route === "/membership" && req.method === "GET") {
     return json(res, 200, {
-      approved: membershipStatus === "APPROVED",
+      approved: hasApprovedMembership(membershipStatus),
       accountStatus: membershipStatus
     });
   }
 
   // Every member service route is denied unless the private server-owned
   // profile explicitly carries APPROVED. Missing legacy status is not approval.
-  if (membershipStatus !== "APPROVED") {
+  if (!hasApprovedMembership(membershipStatus)) {
     return json(res, 403, { error: "membership_required" });
   }
 
