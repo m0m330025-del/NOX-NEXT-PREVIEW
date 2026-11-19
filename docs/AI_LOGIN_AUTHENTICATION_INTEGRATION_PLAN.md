@@ -1,70 +1,74 @@
 # NOX NEXT Login and Registration Authentication Integration Plan
 
-**Status:** AI-assisted engineering recommendation; documentation only.  
-**Branch:** feature/moderation-functions-scaffold
+**Status:** Engineering plan; documentation only.  
+**Target staging branch:** `feature/auth-login-staging`  
+**Policy source:** `docs/NOX_ALL_AGES_REGISTRATION_DECISION_2026-11-18.md`
 
-## Repository findings (reviewed 2026-11-18)
-- `login.html` is a visual preview. Its submit handler explicitly does not authenticate or create a session.
-- `signup.html` is also a preview. It performs a browser-side age calculation and password-match check, then explicitly states that no account is created.
-- `core/appwrite-config.js` contains the Appwrite endpoint and public project/database identifiers; it correctly contains no API key.
-- The existing `NOX_CORE` bootstrap workflow is present, but this review does not establish that it has successfully run against Appwrite.
-- `functions/moderation/src/index.js` validates an Appwrite user JWT for its existing scaffold routes. Its moderation operations remain unimplemented; it is not currently a registration or login service.
-- The moderation package README says it is a staging scaffold and has not been deployed or integration-tested against the live database.
+## Product and registration policy
+- NOX is a general social platform for users of all ages; no minimum-age threshold applies to account creation.
+- Date of birth is optional. It must not be required, used to reject registration, or used to disable an account.
+- Do not request identity documents solely to prove age.
+- Keep privacy, reporting, blocking, anti-abuse, content moderation, age-aware safety defaults, and feature-specific safeguards. These do not silently become a general age gate.
+- The former 18+ proposal in `docs/AI_REGISTRATION_AGE_VERIFICATION_REVIEW.md` is superseded and must not be implemented.
 
-## Recommended v1 login method
-Use **email + password through the Appwrite Web Client SDK**. This matches the existing login screen and avoids introducing phone/SMS, social-provider, or passwordless dependencies in the first release.
+## Authentication model
+The intended first login method is email + password through the Appwrite Web Client SDK, using the existing public endpoint and project ID. The browser must never contain an Appwrite API key or privileged Users API credential.
 
-Client responsibilities:
-1. Create an Appwrite `Client` using the existing public endpoint and project ID.
-2. Create an `Account` service.
-3. Submit the email and password through Appwrite's `createEmailPasswordSession` method.
-4. Call `account.get()` to confirm the current session.
-5. Load the member profile through an authenticated server endpoint; do not read private TablesDB rows directly from the browser.
-6. Route only fully approved, enabled accounts to the member home page.
-7. Provide sign-out with `deleteSession({ sessionId: "current" })`.
-8. Implement password recovery through Appwrite's recovery flow after the project email sender and allowed redirect URLs are configured and tested.
+The implementation must:
+1. Create an email/password session using the pinned Appwrite Web SDK API.
+2. Retrieve the current authenticated user.
+3. Ask a trusted server endpoint for authoritative membership status.
+4. Route to member home only when the server confirms `APPROVED`.
+5. Provide logout by deleting the current session.
+6. Use Appwrite password recovery only after allowed browser hostnames and recovery redirect URLs are configured and tested.
+7. Use generic credential/recovery messages that do not disclose whether an email exists.
 
-The browser must never contain an Appwrite API key, server secret, or privileged Users API credential. Use generic login failure messaging that does not disclose whether an email is registered.
+## Canonical membership lifecycle
+Use exactly these values in all storage, APIs, tests, and UI:
+- `PENDING_REVIEW`
+- `APPROVED`
+- `REJECTED`
+- `SUSPENDED`
 
-## Registration approval gate (must be enforced server-side)
-The user's approved product rule is that every new registration remains pending until the user has completed the owner's in-person review and the owner has approved it. The card and paper signature are reviewed outside NOX NEXT and are not uploaded or stored by the app.
+Every submitted membership request starts as `PENDING_REVIEW`, assigned by trusted server code. A browser cannot choose or modify the state.
 
-Recommended state model:
-- `pending_review`
-- `approved`
-- `rejected`
+Allowed transitions:
+- No membership → `PENDING_REVIEW` by the registration workflow.
+- `PENDING_REVIEW` → `APPROVED` or `REJECTED` by an authorized administrator.
+- `APPROVED` → `SUSPENDED` by an authorized administrator.
+- `SUSPENDED` → `APPROVED` only through explicit authorized reinstatement.
+- All other transitions are denied. A rejected request remains denied unless a separate audited reconsideration workflow is designed.
 
-A pending or rejected account must not gain member-area access. The browser's date-of-birth check is only a convenience and is not a security control. Eligibility and approval must be validated by trusted server logic. Never trust a client-supplied `approved` flag, role, NOX ID, or account status.
+A successful credential check is not membership approval. Pending, rejected, suspended, missing, malformed, or unknown states must not receive member-area or member-data access. The server must derive the account identity from a verified Appwrite session/JWT, load the authoritative record, and enforce approval on every protected operation. A browser route guard is navigation UX only.
 
-The safest implementation must prevent a new user from obtaining an enabled Appwrite session before approval. Use a server-controlled account lifecycle and the Appwrite Users API from a protected backend. Verify the exact disabled-user creation/status behavior against the pinned SDK and Appwrite Cloud version before implementing; do not create an enabled account in the browser and rely on a later asynchronous disable as an approval gate.
-
-After approval, the trusted backend enables the account and records reviewer, decision timestamp, and audit metadata. Rejection requires a written reason, as already approved. Do not store ID-card images, full identity numbers, or paper signatures in NOX NEXT.
+## Account lifecycle blocker
+Before implementation, verify the exact Appwrite Cloud behavior and pinned SDK methods for creating accounts, disabling accounts, and issuing sessions. Do not assume an unapproved account can safely receive a session and later be disabled. Choose a server-controlled lifecycle that prevents unapproved access; fail closed if the safe lifecycle cannot be established.
 
 ## Administrative and scheduled approval
-- Individual approval/rejection is restricted to explicitly authorized administrators.
-- Bulk approval includes only the exact selected, already-reviewed requests.
-- A scheduled batch displays the exact member snapshot, count, date, time, and Cairo timezone before final confirmation.
-- Per the user's approved decision, a saved scheduled batch cannot be cancelled in the admin interface. Revalidate each member's pending status and eligibility at execution time; skip and audit any request that is no longer eligible rather than overriding a later state.
-- Use server-side scheduling and an immutable per-member audit result. Do not rely on a browser tab or client clock to execute scheduled approvals.
+- Individual approval/rejection/suspension/reinstatement is restricted to explicitly authorized administrators and audited.
+- Rejection requires a reason; internal notes must remain separate from sanitized user-facing text.
+- Bulk approval may include only the exact selected, reviewed pending requests.
+- A confirmed scheduled batch retains the previously approved no-cancel product rule, but every member is revalidated at execution. Changed/ineligible records are skipped and audited; the batch must never force an invalid transition.
+- Store immutable batch intent and per-member outcomes server-side. Use a trusted scheduler, idempotency, and concurrency protection; do not depend on an open browser tab.
 
-## Required tests before enabling login
-- New registration cannot enter the member area before approval.
-- Approved account can sign in and access only its authorized data.
-- Rejected, suspended, and pending accounts cannot enter the member area.
-- Wrong password and unknown email produce non-enumerating errors.
-- Expired session, logout, and password recovery behave correctly.
-- Refreshing a protected page rechecks the session and approval state.
-- Admin-only approval endpoints reject ordinary members.
-- Bulk approval snapshot, timezone, execution-time revalidation, duplicate execution, and audit records are tested.
-- Use synthetic accounts only; no real ID documents or real member credentials in tests.
+## Required tests before enabling member access
+- New registrations are pending and cannot enter member pages or read protected data.
+- Approved accounts can access only resources they are authorized to use.
+- Pending, rejected, suspended, missing, malformed, and unknown states are denied.
+- Tampering with local storage, URLs, request bodies, or displayed roles cannot grant access.
+- Credential errors are non-enumerating; logout and recovery behave correctly.
+- Refreshing protected pages rechecks session and membership.
+- Ordinary members cannot invoke administrative transitions.
+- Scheduled batches are idempotent, use `Africa/Cairo` for local scheduling, revalidate every member, and audit outcomes.
+- Tests use synthetic identities only.
 
-## Blocking prerequisites / risks
-1. Confirm the existing Appwrite project has the Web platform configured for the exact deployed hostname(s), and verify CORS.
-2. Confirm the `NOX_CORE` database bootstrap completed; the current repository review cannot verify live Appwrite state.
-3. Confirm the exact Node SDK method signatures and disabled-account behavior for pinned `node-appwrite@31.3.0`.
-4. Design and review the registration/admin approval backend and its least-privilege API key scopes.
-5. Resolve the existing Node engine mismatch before deploying any backend package: the moderation package declares Node `>=22 <23`, while the previously recorded deployed Function runtime was Node 26.
-6. Add server-side rate limiting and abuse protection for registration, login, and recovery.
+## Blocking prerequisites
+1. Verify the Appwrite project browser platform hostnames and recovery redirect allowlist.
+2. Verify the actual database schema and permissions before proposing a migration.
+3. Verify pinned `node-appwrite@31.3.0` method signatures and account lifecycle behavior.
+4. Resolve the moderation Function Node engine declaration against the actual deployed Node runtime before any Function deployment.
+5. Add server-side rate limiting and abuse protection.
+6. Prepare isolated staging changes and synthetic-account tests.
 
 ## Scope and deployment warning
-This document records an engineering plan only. No login/signup code, schema, Function, Appwrite setting, API key, workflow, or deployment was changed. The connected branch may redeploy an Appwrite Function when backend files change. Any backend/schema/runtime/secret change or Function deployment requires the user's explicit approval after a clear redeployment warning.
+This file records a plan only. It does not claim that signup, the membership API, schema, or Function is deployed. Any backend, schema, runtime, secret, Appwrite setting, or Function deployment change requires separate explicit approval after a clear redeployment warning. Do not change `main`, the original Railway service, or the other Railway project as part of this staging work.
