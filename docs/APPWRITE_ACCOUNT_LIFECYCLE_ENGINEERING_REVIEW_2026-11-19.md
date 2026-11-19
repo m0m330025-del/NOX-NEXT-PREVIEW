@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-19  
 **Branch:** `feature/auth-login-staging`  
-**Status:** Documentation-only engineering review; no code, schema, Appwrite setting, secret, or deployment changes.
+**Status:** Historical engineering review; superseded on 2026-11-19 by the approved immediate self-service registration policy. No code, schema, Appwrite setting, secret, or deployment changes.
 
 ## Scope and evidence
 
@@ -46,9 +46,15 @@ That sequence has a race window and can issue a usable session before the accoun
 
 Do **not** store a submitted password in a registration-request table, audit row, Function log, or ordinary profile record.
 
-## Recommended account lifecycle
+## Superseding product decision — 2026-11-19
+The user approved immediate self-service registration: no administrative approval before entry, automatic `APPROVED` membership after successful trusted account creation, immediate login after that is confirmed, and no one-account-per-IP restriction. The following earlier manual-approval lifecycle is historical and must not be implemented as the current product flow.
 
-Use a registration-request-first flow. Do not create an Appwrite Auth user while the request is pending.
+## Current engineering direction
+Use a trusted, idempotent registration workflow that creates the Appwrite Auth account and authoritative `APPROVED` membership before issuing or enabling a usable session. The browser must never write membership state or gain access merely because Appwrite credentials succeeded. Do not use IP as a unique-person key or lifetime signup quota. Apply proportionate rate limiting only after verifying trustworthy client-IP/proxy metadata and privacy requirements.
+
+## Historical account lifecycle (superseded)
+
+The following registration-request-first flow reflected the previous manual-approval policy and is retained only as historical analysis. Do not use it as the current product flow.
 
 ### A. Submit registration request
 
