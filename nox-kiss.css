@@ -12,3 +12,13 @@
 #qr-reader{margin-top:12px;overflow:hidden;border-radius:12px}
 .friend-notice{font-size:11px!important;line-height:1.6}
 .friend-list{padding-right:20px;color:#244b42;font-size:13px}
+
+/* Dance library and avatar builder additions */
+.avatar-builder{width:min(390px,calc(100% - 24px));text-align:right}
+.avatar-builder h3{color:#f0d28c;margin:8px 0}
+.avatar-builder label{display:block;text-align:right;margin:10px 0 5px;font-size:12px;color:#eadcf5}
+.avatar-builder input[type=file],.avatar-builder select{width:100%;padding:10px;border-radius:10px;border:1px solid #ffffff35;background:#251735;color:#fff}
+.avatar-preview{min-height:145px;margin-top:10px;border:1px dashed #d5a4ff88;border-radius:14px;display:grid;place-items:center;overflow:hidden;color:#cbbbd8;font-size:12px;background:#ffffff08}
+.avatar-preview img{display:block;width:100%;max-height:220px;object-fit:contain}
+.avatar-builder .privacy-note{font-size:11px;color:#b8e4cb;background:#17412d55;padding:9px;border-radius:10px}
+.avatar-builder button:disabled{opacity:.5;cursor:not-allowed}
