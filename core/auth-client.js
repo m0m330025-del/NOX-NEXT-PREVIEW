@@ -61,7 +61,7 @@ export async function registerAccount({ email, password, displayName }) {
     body: JSON.stringify({ email, password, displayName }),
     async: false,
     method: "POST",
-    path: "/"
+    xpath: "/"
   });
   const result = parseExecution(execution);
   if (!result.userId || result.accountStatus !== "APPROVED") {
@@ -76,7 +76,7 @@ export async function getMembership() {
     body: "",
     async: false,
     method: "GET",
-    path: "/membership"
+    xpath: "/membership"
   });
   return parseExecution(execution);
 }
