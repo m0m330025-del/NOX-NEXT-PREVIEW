@@ -30,15 +30,15 @@
       <button class="submit-button" type="submit">دخول للمعاينة <span>←</span></button>
     </form>
     <p class="signup-line">ليس لديك حساب؟ <a href="./signup.html" id="signup-link">إنشاء حساب جديد</a></p>
-    <p class="demo-note" id="notice" role="status">هذه شاشة تصميم تجريبية؛ تسجيل الحسابات الفعلي وربط قاعدة البيانات مرحلة لاحقة.</p>
-    <div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
+    <p class="demo-note" id="notice" role="status">تسجيل الدخول الفعلي عبر Appwrite.</p>
+    <div class="secure-note">✧　حسابات NOX NEXT — اتصال Appwrite</div>
   </section>
 </main>
-<script>
-const password=document.getElementById('password');
-document.getElementById('toggle-password').addEventListener('click',()=>{const show=password.type==='password';password.type=show?'text':'password';document.getElementById('toggle-password').textContent=show?'إخفاء':'إظهار';});
-document.getElementById('login-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('notice').textContent='هذه معاينة فقط؛ لم يتم التحقق من الحساب أو إنشاء جلسة حقيقية.';window.location.href='./home.html';});
-document.getElementById('forgot-link').addEventListener('click',e=>{e.preventDefault();document.getElementById('notice').textContent='استعادة كلمة المرور ستُفعّل بعد ربط نظام الحسابات.';});
-
+<script type="module">
+import { signIn, authErrorMessage } from "./core/auth.js";
+const form=document.getElementById("login-form"), notice=document.getElementById("notice"), button=form.querySelector('button[type="submit"]'), password=document.getElementById("password");
+document.getElementById("toggle-password").addEventListener("click",()=>{const show=password.type==="password";password.type=show?"text":"password";document.getElementById("toggle-password").textContent=show?"إخفاء":"إظهار";});
+form.addEventListener("submit",async event=>{event.preventDefault();const email=document.getElementById("email").value.trim().toLowerCase(),value=password.value;if(!email||!value){notice.textContent="أدخل البريد الإلكتروني وكلمة المرور.";return;}button.disabled=true;button.textContent="جارٍ تسجيل الدخول...";try{const user=await signIn(email,value);sessionStorage.setItem("nox.auth.notice","مرحبًا بعودتك "+(user.name||"")+"، تم تسجيل الدخول.");window.location.replace("./home.html");}catch(error){notice.textContent=authErrorMessage(error,"login");}finally{button.disabled=false;button.textContent="دخول إلى NOX NEXT";}});
+document.getElementById("forgot-link").addEventListener("click",event=>{event.preventDefault();notice.textContent="استعادة كلمة المرور تحتاج إلى تفعيل مسار الاستعادة في Appwrite.";});
 </script>
 </body></html>
