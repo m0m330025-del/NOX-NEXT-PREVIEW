@@ -42,5 +42,7 @@ jobs:
           node-version: 22
       - name: Install pinned Appwrite SDK for function tests
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
-      - name: Run authentication and NOX GUARD tests
-        run: node --check functions/registration/src/index.js && node --check core/auth-client.js && node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js tests/registration-age-policy.test.js
+      - name: Install registration function dependencies
+        run: npm --prefix functions/registration install --ignore-scripts --no-audit --no-fund
+      - name: Run authentication, registration and NOX GUARD tests
+        run: node --check core/auth-client.js && npm --prefix functions/registration test && npm --prefix functions/registration run check && node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js tests/registration-age-policy.test.js
