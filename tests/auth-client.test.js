@@ -81,7 +81,7 @@ test("registers through the server function without exposing a server API key", 
   assert.equal(result.accountStatus, "APPROVED");
   const call = calls.find(([name]) => name === "createExecution");
   assert.equal(call[1].functionId, "nox-registration");
-  assert.equal(call[1].method, "POST");
+  assert.equal(call[1].method, "POST");\n  assert.equal(call[1].xpath, "/");
   assert.equal(JSON.parse(call[1].body).email, "member@example.test");
 });
 
@@ -109,7 +109,7 @@ test("checks membership using the authenticated moderation function", async () =
   assert.equal(result.approved, true);
   const call = calls.find(([name]) => name === "createExecution");
   assert.equal(call[1].functionId, "nox-moderation-api");
-  assert.equal(call[1].path, "/membership");
+  assert.equal(call[1].xpath, "/membership");
   assert.equal(call[1].method, "GET");
 });
 
