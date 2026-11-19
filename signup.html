@@ -26,11 +26,7 @@
 <div class="field"><span>♙</span><input id="full-name" type="text" placeholder="اكتب اسمك" autocomplete="name" required minlength="2"></div>
 <label for="username">اسم المستخدم</label>
 <div class="field"><span>@</span><input id="username" type="text" placeholder="اختر اسمًا مميزًا" autocomplete="username" required minlength="3"></div>
-<label for="gender">الجنس</label>
-<div class="field"><span>♧</span><select id="gender" required><option value="" selected disabled>اختر الجنس</option><option value="male">ذكر</option><option value="female">أنثى</option><option value="unspecified">أفضل عدم الإفصاح</option></select></div>
-<label for="birth-date">تاريخ الميلاد</label>
-<div class="field"><span>▦</span><input id="birth-date" type="date" autocomplete="bday" required></div>
-<p class="age-hint">اللعبة مخصصة لمن أتم 18 عامًا. سيتم التحقق من تاريخ الميلاد قبل السماح بإنشاء الحساب.</p>
+
 <label for="email">البريد الإلكتروني</label>
 <div class="field"><span>✉</span><input id="email" type="email" placeholder="name@example.com" autocomplete="email" required></div>
 <label for="password">كلمة المرور</label>
@@ -38,38 +34,18 @@
 <label for="confirm-password">تأكيد كلمة المرور</label>
 <div class="field"><span>◇</span><input id="confirm-password" type="password" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password" required minlength="8"><button type="button" class="show-password" data-target="confirm-password">إظهار</button></div>
 <label class="terms"><input id="terms" type="checkbox" required> أوافق على شروط الاستخدام وسياسة الخصوصية</label>
-<button class="submit-button" type="submit">إنشاء حساب تجريبي <span>←</span></button>
+<button class="submit-button" type="submit">إنشاء حساب <span>←</span></button>
 </form>
 <p class="login-line">لديك حساب بالفعل؟ <a href="./login.html">تسجيل الدخول</a></p>
-<p class="demo-note" id="notice" role="status">هذه واجهة تجريبية فقط؛ لن تُرسل بياناتك أو يُنشأ حساب فعلي قبل ربط نظام الحسابات.</p>
+<p class="demo-note" id="notice" role="status">سيتم إنشاء حسابك وتسجيل دخولك فور نجاح العملية.</p>
 <div id="nox-id-result" class="demo-note" hidden aria-live="polite"></div>
-<div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
+<div class="secure-note">✧　حسابات NOX NEXT — اتصال Appwrite</div>
 </section>
 </main>
-<script>
-const birthDate=document.getElementById('birth-date');
-const today=new Date();
-birthDate.max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
-document.querySelectorAll('.show-password').forEach(button=>button.addEventListener('click',()=>{
- const field=document.getElementById(button.dataset.target),show=field.type==='password';
- field.type=show?'text':'password';button.textContent=show?'إخفاء':'إظهار';
-}));
-document.getElementById('signup-form').addEventListener('submit',event=>{
- event.preventDefault();
- const password=document.getElementById('password').value;
- const confirm=document.getElementById('confirm-password').value;
- const notice=document.getElementById('notice');
- const dob=birthDate.value ? new Date(birthDate.value+'T00:00:00') : null;
- let age=dob ? today.getFullYear()-dob.getFullYear() : -1;
- if(dob && (today.getMonth()<dob.getMonth() || (today.getMonth()===dob.getMonth() && today.getDate()<dob.getDate()))) age--;
- if(!dob || dob>today){notice.textContent='من فضلك أدخل تاريخ ميلاد صحيحًا.';return;}
- if(age<18){notice.textContent='عذرًا، هذه اللعبة مخصصة لمن أتم 18 عامًا أو أكثر، ولا يمكن إكمال التسجيل.';return;}
- if(password!==confirm){notice.textContent='كلمتا المرور غير متطابقتين؛ راجع البيانات وحاول مرة أخرى.';return;}
- const newId='NOX-'+String(Math.floor(100+Math.random()*900))+'-'+String(Math.floor(100+Math.random()*900));
- localStorage.setItem('noxDemoId',newId);
- notice.textContent='اجتاز النموذج فحص العمر المبدئي فقط. إنشاء الحساب والتحقق الحقيقي يحتاجان إلى خادم آمن.';
- const idResult=document.getElementById('nox-id-result'); idResult.hidden=false;
- idResult.innerHTML='<strong>معرّف NOX التجريبي المقترح</strong><br><span dir="ltr" style="font-size:22px;font-weight:900;letter-spacing:2px">'+newId+'</span><br>المعرّف النهائي يجب أن يصدر من الخادم لضمان عدم التكرار.';
-});
+<script type="module">
+import { signUp, authErrorMessage } from "./core/auth.js";
+const form=document.getElementById("signup-form"),notice=document.getElementById("notice"),button=form.querySelector('button[type="submit"]');
+document.querySelectorAll(".show-password").forEach(control=>control.addEventListener("click",()=>{const field=document.getElementById(control.dataset.target),show=field.type==="password";field.type=show?"text":"password";control.textContent=show?"إخفاء":"إظهار";}));
+form.addEventListener("submit",async event=>{event.preventDefault();const name=document.getElementById("full-name").value.trim(),username=document.getElementById("username").value.trim(),email=document.getElementById("email").value.trim().toLowerCase(),password=document.getElementById("password").value,confirm=document.getElementById("confirm-password").value;if(password.length<8){notice.textContent="كلمة المرور يجب ألا تقل عن 8 أحرف.";return;}if(password!==confirm){notice.textContent="كلمتا المرور غير متطابقتين.";return;}if(!name||!username||!email){notice.textContent="أكمل البيانات المطلوبة.";return;}button.disabled=true;button.textContent="جارٍ إنشاء الحساب وتسجيل الدخول...";try{const user=await signUp({name,username,email,password});sessionStorage.setItem("nox.auth.notice","أهلًا "+(user.name||name)+"، تم إنشاء حسابك وتسجيل دخولك بنجاح.");window.location.replace("./home.html");}catch(error){notice.textContent=authErrorMessage(error,"signup");}finally{button.disabled=false;button.textContent="إنشاء حساب";}});
 </script>
 </body></html>
