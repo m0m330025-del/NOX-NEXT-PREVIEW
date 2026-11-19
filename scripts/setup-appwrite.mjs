@@ -43,6 +43,16 @@ const definitions = [
     ]
   },
   {
+    id: "registration_attempts", name: "Registration Attempts",
+    columns: [
+      { key: "emailHash", type: "varchar", size: 64, required: true },
+      { key: "attemptedAt", type: "datetime", required: true }
+    ],
+    indexes: [
+      { key: "email_hash_attempted", type: "key", columns: ["emailHash", "attemptedAt"] }
+    ]
+  },
+  {
     id: "friend_requests", name: "Friend Requests",
     columns: [
       { key: "senderId", type: "varchar", size: 36, required: true },
