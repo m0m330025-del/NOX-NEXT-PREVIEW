@@ -28,6 +28,11 @@ export function createModerationStore() {
     return result.rows[0] ?? null;
   }
 
+  async function getMembershipStatus(authUserId) {
+    const user = await findUser(authUserId);
+    return user?.accountStatus ?? null;
+  }
+
   async function findUserByNoxId(noxId) {
     const result = await db.listRows({
       databaseId: DATABASE_ID,
@@ -587,5 +592,5 @@ export function createModerationStore() {
     }));
   }
 
-  return { createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships, lookupPublicProfile, listNotifications, markNotificationRead, createOrGetConversation, listConversations, listMessages, sendMessage };
+  return { getMembershipStatus, createBlock, removeBlock, listBlocks, isBlocked, createReport, listReports, createFriendRequest, listFriendRequests, respondToFriendRequest, cancelFriendRequest, listFriendships, lookupPublicProfile, listNotifications, markNotificationRead, createOrGetConversation, listConversations, listMessages, sendMessage };
 }
