@@ -3,7 +3,7 @@ name: Test NOX authentication and guard policy
 on:
   push:
     branches:
-      - feature/all-ages-optional-dob
+      - feature/all-ages-optional-dob\n      - feature/open-registration-implementation
     paths:
       - "core/auth-client.js"
       - "core/appwrite-config.js"
@@ -12,7 +12,7 @@ on:
       - "tests/nox-guard-policy.test.js"
       - "tests/nox-guard-appwrite-function.test.js"
       - "tests/registration-age-policy.test.js"
-      - "signup.html"
+      - "signup.html"\n      - "core/auth-guard.js"\n      - "functions/registration/**"\n      - "functions/moderation/src/index.js"\n      - "functions/moderation/src/policy.js"\n      - "functions/moderation/test/policy.test.js"
       - "tests/registration-age-policy.test.js"
       - "signup.html"
       - ".github/workflows/test-browser-auth.yml"
@@ -43,4 +43,4 @@ jobs:
       - name: Install pinned Appwrite SDK for function tests
         run: npm install --no-save --package-lock=false node-appwrite@31.3.0
       - name: Run authentication and NOX GUARD tests
-        run: node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js tests/registration-age-policy.test.js
+        run: node --check functions/registration/src/index.js && node --check core/auth-client.js && node --test tests/auth-client.test.js tests/nox-guard-policy.test.js tests/nox-guard-appwrite-function.test.js tests/registration-age-policy.test.js
