@@ -20,27 +20,66 @@
 <section class="form-panel">
 <a class="back-link" href="./login.html">→ العودة لتسجيل الدخول</a>
 <div class="form-heading"><span class="mini-mark">N</span><span>انضم إلى عالمنا</span></div>
-<h2>إنشاء حساب جديد</h2><p class="subheading">تسجيل ذاتي مباشر — السياسة المعتمدة</p>
-<section class="demo-note" role="status" aria-live="polite">
-<strong>التسجيل متاح للجميع دون موافقة إدارية</strong>
+<h2>إنشاء حساب جديد</h2><p class="subheading">تسجيل ذاتي مباشر — دون موافقة إدارية</p>
+<div class="demo-note" role="note">
+<strong>التسجيل مفتوح للجميع</strong>
 <ul>
-<li>يمكن إنشاء الحساب مباشرة دون انتظار موافقة إدارية.</li>
-<li>بعد اكتمال إنشاء الحساب وتفعيل العضوية على الخادم، يبدأ تسجيل الدخول تلقائيًا.</li>
+<li>يُنشأ الحساب وتُفعّل العضوية تلقائيًا من الخادم.</li>
+<li>يبدأ تسجيل الدخول تلقائيًا بعد نجاح إنشاء الحساب والعضوية.</li>
 <li>لا يوجد حد لحساب واحد لكل عنوان IP.</li>
-<li>تُطبق حماية الخادم ومكافحة إساءة الاستخدام دون اعتبار IP هوية شخصية.</li>
-<li>لا يوجد حد أدنى للعمر لإنشاء حساب NOX.</li>
-<li>تاريخ الميلاد اختياري تمامًا، ويمكن تركه فارغًا.</li>
-<li>لا يُستخدم تاريخ الميلاد لرفض التسجيل أو تعطيل الحساب.</li>
-<li>لا نطلب بطاقة هوية أو مستندًا لإثبات العمر ضمن التسجيل.</li>
-<li>تظل حماية الخصوصية والإبلاغ والحظر والإشراف على المحتوى مطبقة على جميع المستخدمين.</li>
+<li>لا يوجد حد أدنى للعمر، وتاريخ الميلاد غير مطلوب.</li>
 </ul>
-</section>
-<label for="birth-date">تاريخ الميلاد (اختياري)</label>
-<div class="field"><span>▦</span><input id="birth-date" type="date" autocomplete="bday" aria-describedby="birth-date-note"></div>
-<p class="demo-note" id="birth-date-note">يمكنك ترك هذا الحقل فارغًا. تاريخ الميلاد اختياري ولا يؤثر على أهلية التسجيل.</p>
-<p class="demo-note" style="margin-top:12px">تنبيه تقني: إنشاء الحساب الفعلي لن يُفعّل قبل تجهيز مسار الخادم الذي ينشئ الحساب ويثبت العضوية APPROVED بأمان، ثم يسمح بالدخول. الصفحة الحالية لا تنشئ حسابًا بعد.</p>
+</div>
+<form id="signup-form" novalidate>
+<label for="display-name">الاسم الظاهر</label>
+<div class="field"><span>♙</span><input id="display-name" type="text" maxlength="80" autocomplete="name" placeholder="الاسم الذي سيظهر للأصدقاء" required></div>
+<label for="email">البريد الإلكتروني</label>
+<div class="field"><span>✉</span><input id="email" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com" required></div>
+<label for="password">كلمة المرور</label>
+<div class="field"><span>◇</span><input id="password" type="password" minlength="8" maxlength="256" autocomplete="new-password" placeholder="8 أحرف على الأقل" required><button type="button" class="show-password" id="toggle-password">إظهار</button></div>
+<button class="submit-button" type="submit" id="signup-submit">إنشاء الحساب <span>←</span></button>
+</form>
 <p class="login-line">لديك حساب بالفعل؟ <a href="./login.html">تسجيل الدخول</a></p>
-<div class="secure-note">✧　NOX NEXT — سياسة التسجيل المعتمدة</div>
+<p class="demo-note" id="notice" role="status" aria-live="polite">بيانات التسجيل تُرسل إلى وظيفة خادم محمية. لا يتم حفظ كلمة المرور في ملف المستخدم.</p>
+<div class="secure-note">✧　NOX NEXT — تسجيل مباشر مع حماية العضوية</div>
 </section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
+<script type="module">
+import { registerAccount, createLoginSession } from "./core/auth-client.js";
+const form=document.getElementById("signup-form");
+const notice=document.getElementById("notice");
+const submit=document.getElementById("signup-submit");
+const password=document.getElementById("password");
+document.getElementById("toggle-password").addEventListener("click",()=>{
+  const show=password.type==="password";
+  password.type=show?"text":"password";
+  document.getElementById("toggle-password").textContent=show?"إخفاء":"إظهار";
+});
+form.addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!form.reportValidity()) return;
+  const email=document.getElementById("email").value.trim();
+  const displayName=document.getElementById("display-name").value.trim();
+  submit.disabled=true;
+  notice.textContent="جارٍ إنشاء الحساب وتفعيل العضوية على الخادم…";
+  notice.dataset.state="pending";
+  try {
+    await registerAccount({email,password:password.value,displayName});
+    notice.textContent="تم إنشاء الحساب واعتماد العضوية. جارٍ تسجيل الدخول…";
+    await createLoginSession(email,password.value);
+    notice.textContent="تم تسجيل الدخول. جارٍ فتح NOX NEXT…";
+    notice.dataset.state="success";
+    window.location.replace("./home.html");
+  } catch(error) {
+    const code=error?.code || error?.message;
+    if(code==="email_already_registered") notice.textContent="هذا البريد مسجل بالفعل. جرّب تسجيل الدخول أو استعادة كلمة المرور.";
+    else if(code==="registration_temporarily_limited") notice.textContent="تم تجاوز عدد المحاولات لهذا البريد مؤقتًا. حاول بعد 15 دقيقة.";
+    else if(code==="invalid_registration_data") notice.textContent="راجع الاسم والبريد وكلمة المرور (8 أحرف على الأقل).";
+    else if(code==="registration_not_approved") notice.textContent="لم يكتمل اعتماد العضوية. لم يتم تسجيل الدخول.";
+    else notice.textContent="تعذر إكمال التسجيل الآن. لم يتم تأكيد إنشاء الحساب؛ حاول لاحقًا.";
+    notice.dataset.state="error";
+  } finally { submit.disabled=false; }
+});
+</script>
 </body></html>
