@@ -155,3 +155,8 @@ export function validateMessageId(value) {
     ? { ok: true, value: value.toLowerCase() }
     : { ok: false, error: "invalid_idempotency_key" };
 }
+
+/** Only an explicit server-owned APPROVED status grants member access. */
+export function hasApprovedMembership(accountStatus) {
+  return accountStatus === "APPROVED";
+}
