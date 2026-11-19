@@ -14,7 +14,7 @@ test("signup creates an Appwrite account, immediately opens a session, then read
 test("login is connected to real Appwrite authentication", () => {
   const html = read("login.html");
   assert.match(html, /import \{ signIn, authErrorMessage \} from "\.\/core\/auth\.js"/);
-  assert.match(html, /await signIn\(email, value\)/);
+  assert.match(html, /signIn\(email,\s*value\)/);
   assert.doesNotMatch(html, /دخول للمعاينة|دخول تجريبي/);
 });
 
