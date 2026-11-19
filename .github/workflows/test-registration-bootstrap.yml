@@ -1,0 +1,38 @@
+name: Test NOX registration bootstrap
+
+on:
+  push:
+    branches:
+      - feature/open-registration-implementation
+    paths:
+      - "scripts/setup-registration-attempts.mjs"
+      - "functions/registration/**"
+      - ".github/workflows/test-registration-bootstrap.yml"
+  pull_request:
+    paths:
+      - "scripts/setup-registration-attempts.mjs"
+      - "functions/registration/**"
+      - ".github/workflows/test-registration-bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  registration-bootstrap-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check isolated Appwrite bootstrap syntax
+        run: node --check scripts/setup-registration-attempts.mjs
+      - name: Install registration function dependencies
+        run: npm --prefix functions/registration install --ignore-scripts --no-audit --no-fund
+      - name: Check registration function syntax
+        run: npm --prefix functions/registration run check
+      - name: Run registration policy tests
+        run: npm --prefix functions/registration test
