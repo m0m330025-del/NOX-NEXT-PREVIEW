@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      - feature/moderation-functions-scaffold\n      - feature/open-registration-implementation
+      - feature/moderation-functions-scaffold
+      - feature/open-registration-implementation
     paths:
       - "index.js"
       - "package.json"
