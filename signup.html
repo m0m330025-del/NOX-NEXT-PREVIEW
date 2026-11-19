@@ -22,14 +22,20 @@
 <div class="form-heading"><span class="mini-mark">N</span><span>انضم إلى عالمنا</span></div>
 <h2>إنشاء حساب جديد</h2><p class="subheading">تسجيل ذاتي مباشر — دون موافقة إدارية</p>
 <div class="demo-note" role="note">
-<strong>التسجيل مفتوح للجميع</strong>
+<strong>التسجيل متاح لجميع الأعمار</strong>
 <ul>
-<li>يُنشأ الحساب وتُفعّل العضوية تلقائيًا من الخادم.</li>
-<li>يبدأ تسجيل الدخول تلقائيًا بعد نجاح إنشاء الحساب والعضوية.</li>
+<li>لا يوجد حد أدنى للعمر لإنشاء حساب NOX.</li>
+<li>تاريخ الميلاد اختياري تمامًا، ويمكن تركه فارغًا.</li>
+<li>لا يُستخدم تاريخ الميلاد لرفض التسجيل أو تعطيل الحساب.</li>
+<li>لا نطلب بطاقة هوية أو مستندًا لإثبات العمر ضمن التسجيل.</li>
+<li>تظل حماية الخصوصية والإبلاغ والحظر والإشراف على المحتوى مطبقة على جميع المستخدمين.</li>
+<li>يُنشأ الحساب وتُفعّل العضوية تلقائيًا من الخادم، ثم يبدأ تسجيل الدخول.</li>
 <li>لا يوجد حد لحساب واحد لكل عنوان IP.</li>
-<li>لا يوجد حد أدنى للعمر، وتاريخ الميلاد غير مطلوب.</li>
 </ul>
 </div>
+<label for="birth-date">تاريخ الميلاد (اختياري)</label>
+<div class="field"><span>▦</span><input id="birth-date" type="date" autocomplete="bday" aria-describedby="birth-date-note"></div>
+<p class="demo-note" id="birth-date-note">يمكنك ترك هذا الحقل فارغًا. تاريخ الميلاد اختياري تمامًا ولا يُرسل إلى الخادم أو يُحفظ ضمن التسجيل.</p>
 <form id="signup-form" novalidate>
 <label for="display-name">الاسم الظاهر</label>
 <div class="field"><span>♙</span><input id="display-name" type="text" maxlength="80" autocomplete="name" placeholder="الاسم الذي سيظهر للأصدقاء" required></div>
