@@ -82,7 +82,9 @@ document.getElementById("login-form").addEventListener("submit",async event=>{
     notice.dataset.state="success";
     window.location.replace("./home.html");
   } catch(error) {
-    notice.textContent="تعذر تسجيل الدخول. راجع البيانات وحاول مرة أخرى.";
+    await closeCurrentSession().catch(()=>{});
+    if(error?.code==="membership_required") notice.textContent="الحساب موجود لكنه غير معتمد للمنصة. الحسابات التجريبية القديمة محفوظة لمراجعة الإدارة.";
+    else notice.textContent="تعذر تسجيل الدخول أو التحقق من العضوية. راجع البيانات وحاول مرة أخرى.";
     notice.dataset.state="error";
   } finally { submit.disabled=false; }
 });
