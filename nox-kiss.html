@@ -35,12 +35,13 @@
       <button data-panel="music">♫ <span>الأغاني</span></button>
       <button data-panel="friends">⌕ <span>NOX ID</span></button>
       <button id="openDances" class="dance-button">✦ <span>الرقصات</span></button>
+      <button id="openAvatarBuilder" type="button">🧍 <span>بناء الشخصية</span></button>
     </nav>
 
     <aside class="panel" id="dancePanel" hidden>
       <div class="panel-head"><div><small>NOX KISS</small><h2>الحركات والرقصات</h2></div><button class="close" id="closeDances" aria-label="إغلاق">×</button></div>
       <p class="panel-note">اختر حركة؛ ستظهر على مجسمك بينما تظل الغرفة مفتوحة.</p>
-      <div class="tabs"><button class="tab active" data-category="all">الكل</button><button class="tab" data-category="egypt">مصري</button><button class="tab" data-category="folk">شعبي</button></div>
+      <div class="tabs"><button class="tab active" data-category="all">الكل</button><button class="tab" data-category="egypt">مصري</button><button class="tab" data-category="folk">شعبي</button><button class="tab" data-category="men">رجالي</button></div>
       <div class="dance-list">
         <button class="dance-item" data-dance="رقصة شرقية كلاسيكية" data-category="egypt"><span>💃</span><b>رقصة شرقية كلاسيكية</b><i>تشغيل</i></button>
         <button class="dance-item" data-dance="رقصة بلدي مصرية" data-category="egypt"><span>✨</span><b>رقصة بلدي مصرية</b><i>تشغيل</i></button>
@@ -48,6 +49,10 @@
         <button class="dance-item" data-dance="رقصة مهرجانات" data-category="folk"><span>🕺</span><b>رقصة مهرجانات</b><i>تشغيل</i></button>
         <button class="dance-item" data-dance="رقصة حظ وأفراح" data-category="folk"><span>🥁</span><b>رقصة حظ وأفراح</b><i>تشغيل</i></button>
         <button class="dance-item" data-dance="دبكة شعبية" data-category="folk"><span>👣</span><b>دبكة شعبية</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقص شرقي مصري استعراضي" data-category="egypt"><span>✨</span><b>رقص شرقي مصري استعراضي</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقصة بلدي رجالي" data-category="men"><span>🕺</span><b>رقصة بلدي رجالي</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="رقصة صعيدي استعراضية" data-category="men"><span>🥁</span><b>رقصة صعيدي استعراضية</b><i>تشغيل</i></button>
+        <button class="dance-item" data-dance="تحطيب استعراضي" data-category="men"><span>🪵</span><b>تحطيب استعراضي</b><i>تشغيل</i></button>
       </div>
       <div class="panel-actions"><button id="stopDance" class="stop">إيقاف الحركة</button><button id="closePanel" class="done">تم</button></div>
     </aside>
@@ -59,6 +64,24 @@
       <label for="friendNoxId">إضافة باستخدام NOX ID</label><div class="friend-entry"><input id="friendNoxId" placeholder="NOX-123-456" dir="ltr"><button id="addFriend" type="button">إضافة</button></div>
       <button id="startQrScan" class="scan-button" type="button">▦ مسح QR لإضافة صديق</button><div id="qr-reader" hidden></div>
       <p id="friendNotice" class="friend-notice" role="status">الإضافة هنا تجريبية ومحفوظة على هذا الجهاز فقط.</p><h4>قائمة الأصدقاء</h4><ul id="friendList" class="friend-list"></ul>
+    </aside>
+ 
+    <aside class="mini-panel avatar-builder" id="avatarBuilder" hidden>
+      <button class="close" id="closeAvatarBuilder" aria-label="إغلاق">×</button>
+      <h3>وحدة بناء الشخصية</h3>
+      <p>ارفع صورة مرجعية تملك حق استخدامها، ثم اختر تفاصيل مظهرك. المعاينة الحالية محلية على جهازك.</p>
+      <label for="avatarPhoto">الصورة المرجعية</label>
+      <input id="avatarPhoto" type="file" accept="image/png,image/jpeg,image/webp">
+      <div class="avatar-preview" id="avatarPreview">معاينة الصورة ستظهر هنا</div>
+      <label for="avatarHair">الشعر</label>
+      <select id="avatarHair"><option>كما في الصورة المرجعية</option><option>قصير</option><option>متوسط</option><option>طويل</option><option>مجعد</option></select>
+      <label for="avatarStyle">ستايل الشخصية</label>
+      <select id="avatarStyle"><option>طبيعي واقعي 3D</option><option>سينمائي 3D</option><option>كرتوني واقعي 3D</option></select>
+      <label for="avatarBeachwear">ملابس الشاطئ</label>
+      <select id="avatarBeachwear"><option>ملابس شاطئية محتشمة</option><option>ملابس سباحة رياضية</option><option>قميص شاطئي وشورت</option></select>
+      <p class="privacy-note">خصوصية: الصورة لا تُرفع إلى خادم في هذه المعاينة. أغلق النافذة لإزالة المعاينة.</p>
+      <button id="buildAvatar" type="button" disabled>تطبيق الملامح على مجسم 3D</button>
+      <p id="avatarNotice" role="status">تحويل الصورة إلى مجسم 3D وربطه بالحساب يحتاج إلى خدمة إنشاء مجسمات وربطها بالخادم؛ لم يُفعّل بعد.</p>
     </aside>
     <footer>نموذج واجهة محلي — الحركات تجريبية ولا يوجد اتصال أو مزامنة بين اللاعبين بعد.</footer>
   </main>
