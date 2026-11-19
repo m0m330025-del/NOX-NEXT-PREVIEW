@@ -23,8 +23,9 @@ Missing, malformed, unknown, or conflicting state fails closed. Do not accept lo
 
 ## Trust boundary
 - Appwrite credential authentication proves control of an account; it does not prove membership approval.
-- New registration requests begin as `PENDING_REVIEW`, assigned by trusted server code.
-- Only an explicitly authorized administrator may approve, reject, suspend, or reinstate a membership through a server-authorized, audited transition.
+- New self-service registrations are assigned `APPROVED` automatically by trusted server code only after account creation and membership persistence both succeed.
+- There is no pre-registration administrative approval step. A successful self-service registration receives `APPROVED` automatically through trusted server code.
+- Administrators retain separately authorized ability to suspend or reinstate accounts where supported; this is not a signup gate.
 - A member receives access to member pages and data only after a fresh server-side check confirms `APPROVED`.
 - Every protected API/data operation independently verifies the Appwrite session, loads the authoritative membership record, checks `APPROVED`, and then applies resource-level authorization.
 - Missing or unavailable membership status denies access.
@@ -32,6 +33,8 @@ Missing, malformed, unknown, or conflicting state fails closed. Do not accept lo
 - Never expose Appwrite API keys, provider secrets, verification tokens, or privileged credentials in frontend code.
 
 ## Registration and privacy
+- Registration is open self-service; no manual approval is required before first access.
+- There is no one-account-per-IP restriction. IP addresses must not be used as a unique-person identity or a lifetime account quota. Abuse controls may use proportionate rate limiting, subject to privacy and proxy-trust review.
 - Collect only the minimum approved account information.
 - Date of birth, if offered, must remain optional and must not affect general registration eligibility.
 - Do not collect identity-card images, full identity numbers, or paper signatures in NOX NEXT.
@@ -46,4 +49,4 @@ Missing, malformed, unknown, or conflicting state fails closed. Do not accept lo
 - Do not assume that creating an enabled account and disabling it asynchronously is a safe approval gate.
 
 ## Release gate
-This document is a design specification, not a deployed membership service, legal opinion, or independent security audit. Do not enable member access until server-side membership enforcement and synthetic-account tests pass. Backend, schema, Function, secret, or deployment changes require separate explicit approval after explaining the redeployment impact.
+This document is a design specification, not a deployed membership service, legal opinion, or independent security audit. Do not enable member access until the approved automatic-approval lifecycle, server-side membership enforcement, and synthetic-account tests pass. Backend, schema, Function, secret, or deployment changes require separate explicit approval after explaining the redeployment impact.
