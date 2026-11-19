@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const calls = [];
-let accountBehavior = {};\nlet functionBehavior = {};
+let accountBehavior = {};
+let functionBehavior = {};
 
 class MockClient {
   setEndpoint(value) { calls.push(["endpoint", value]); return this; }
@@ -48,7 +49,8 @@ class MockFunctions {
     };
   }
 }
-\nglobalThis.window = { Appwrite: { Client: MockClient, Account: MockAccount, Functions: MockFunctions } };
+
+globalThis.window = { Appwrite: { Client: MockClient, Account: MockAccount, Functions: MockFunctions } };
 const auth = await import("../core/auth-client.js");
 
 test("configures the public Appwrite browser client without embedding credentials", () => {
@@ -81,7 +83,8 @@ test("registers through the server function without exposing a server API key", 
   assert.equal(result.accountStatus, "APPROVED");
   const call = calls.find(([name]) => name === "createExecution");
   assert.equal(call[1].functionId, "nox-registration");
-  assert.equal(call[1].method, "POST");\n  assert.equal(call[1].xpath, "/");
+  assert.equal(call[1].method, "POST");
+  assert.equal(call[1].xpath, "/");
   assert.equal(JSON.parse(call[1].body).email, "member@example.test");
 });
 
