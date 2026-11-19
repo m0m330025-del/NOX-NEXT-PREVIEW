@@ -49,7 +49,7 @@ test("Preview auth modules and embedded login/signup scripts pass syntax checks"
   }
   for (const path of ["login.html", "signup.html"]) {
     const html = read(path);
-    const script = html.match(/<script type="module">([\\s\\S]*?)<\\/script>/);
+    const script = html.match(/<script type="module">([\s\S]*?)<\/script>/);
     assert.ok(script, path + " has a module script");
     const result = spawnSync(process.execPath, ["--check", "--input-type=module"], { input: script[1], encoding: "utf8" });
     assert.equal(result.status, 0, path + ": " + result.stderr);
