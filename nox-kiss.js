@@ -37,6 +37,42 @@ document.addEventListener("DOMContentLoaded", () => {
     other.hidden = false; panel.hidden = true;
   }));
   document.getElementById("closeOther").addEventListener("click", () => { other.hidden = true; stopScanner(); });
+  
+  // Local-only avatar reference preview. No image is uploaded or persisted.
+  const avatarBuilder = document.getElementById("avatarBuilder");
+  const avatarPhoto = document.getElementById("avatarPhoto");
+  const avatarPreview = document.getElementById("avatarPreview");
+  const avatarNotice = document.getElementById("avatarNotice");
+  let avatarObjectUrl = null;
+  document.getElementById("openAvatarBuilder").addEventListener("click", () => {
+    avatarBuilder.hidden = false; other.hidden = true; panel.hidden = true;
+  });
+  document.getElementById("closeAvatarBuilder").addEventListener("click", () => {
+    avatarBuilder.hidden = true;
+    avatarPhoto.value = "";
+    if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
+    avatarObjectUrl = null;
+    avatarPreview.textContent = "معاينة الصورة ستظهر هنا";
+  });
+  avatarPhoto.addEventListener("change", () => {
+    const file = avatarPhoto.files && avatarPhoto.files[0];
+    if (!file) return;
+    if (!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 5*1024*1024) {
+      avatarPhoto.value = "";
+      avatarNotice.textContent = "اختر صورة JPG أو PNG أو WEBP بحجم لا يتجاوز 5 ميجابايت.";
+      return;
+    }
+    if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
+    avatarObjectUrl = URL.createObjectURL(file);
+    const img = document.createElement("img");
+    img.alt = "معاينة الصورة المرجعية";
+    img.src = avatarObjectUrl;
+    avatarPreview.replaceChildren(img);
+    avatarNotice.textContent = "تم عرض الصورة محليًا فقط. إنشاء مجسم 3D مطابق يحتاج إلى خدمة متخصصة وربط آمن.";
+  });
+  document.getElementById("buildAvatar").addEventListener("click", () => {
+    avatarNotice.textContent = "خدمة تحويل الصور إلى مجسمات 3D غير مفعّلة بعد.";
+  });
 
   const myId = localStorage.getItem("noxDemoId") || ("NOX-" + Math.floor(100+Math.random()*900) + "-" + Math.floor(100+Math.random()*900));
   localStorage.setItem("noxDemoId", myId);
