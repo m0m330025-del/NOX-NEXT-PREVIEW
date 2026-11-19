@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 
 const read = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8");
 
@@ -39,4 +40,18 @@ test("Preview uses the approved NOX NEXT CORE project", () => {
   const config = read("core/appwrite-config.js");
   assert.match(config, /https:\/\/fra\.cloud\.appwrite\.io\/v1/);
   assert.match(config, /6af9ca51000735dfb692/);
+});
+
+test("Preview auth modules and embedded login/signup scripts pass syntax checks", () => {
+  for (const path of ["core/auth.js", "core/session.js", "app.js"]) {
+    const result = spawnSync(process.execPath, ["--check", "--input-type=module"], { input: read(path), encoding: "utf8" });
+    assert.equal(result.status, 0, path + ": " + result.stderr);
+  }
+  for (const path of ["login.html", "signup.html"]) {
+    const html = read(path);
+    const script = html.match(/<script type="module">([\\s\\S]*?)<\\/script>/);
+    assert.ok(script, path + " has a module script");
+    const result = spawnSync(process.execPath, ["--check", "--input-type=module"], { input: script[1], encoding: "utf8" });
+    assert.equal(result.status, 0, path + ": " + result.stderr);
+  }
 });
