@@ -37,6 +37,12 @@ export function initCameraFilters() {
   const zoomValue = document.getElementById("camera-zoom-value");
   const start = document.getElementById("camera-studio-start");
   const stop = document.getElementById("camera-studio-stop");
+  const capture = document.getElementById("camera-studio-capture");
+  const canvas = document.getElementById("camera-capture-canvas");
+  const download = document.getElementById("camera-download");
+  const switchCamera = document.getElementById("camera-studio-switch");
+  const selectedName = document.getElementById("camera-selected-name");
+  let facingMode = "user";
   let stream = null;
   let cameraRequest = 0;
   let returnFocus = null;
@@ -71,6 +77,7 @@ export function initCameraFilters() {
     start.disabled = false;
     stop.disabled = true;
     status.textContent = "الكاميرا متوقفة";
+    if (capture) capture.disabled = true;
   }
 
   function close() {
@@ -85,6 +92,8 @@ export function initCameraFilters() {
     video.style.setProperty("--camera-filter", FILTERS[name] || "none");
     video.dataset.filter = name;
     overlay.dataset.filter = name;
+    const selected = document.querySelector(`[data-camera-filter="${name}"]`);
+    if (selectedName) selectedName.textContent = selected?.textContent.trim() || name;
     document.querySelectorAll("[data-camera-filter]").forEach(button => {
       const active = button.dataset.cameraFilter === name;
       button.classList.toggle("active", active);
@@ -132,7 +141,7 @@ export function initCameraFilters() {
     const requestId = ++cameraRequest;
     status.textContent = "بانتظار إذن الكاميرا…";
     try {
-      const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
       if (requestId !== cameraRequest || !modal.classList.contains("open") || document.hidden) {
         nextStream.getTracks().forEach(track => track.stop());
         start.disabled = false;
@@ -143,6 +152,7 @@ export function initCameraFilters() {
       await video.play();
       preview.classList.add("is-live");
       stop.disabled = false;
+      if (capture) capture.disabled = false;
       status.textContent = "المعاينة تعمل — الميكروفون غير مستخدم";
     } catch (error) {
       if (requestId !== cameraRequest) return;
@@ -156,6 +166,46 @@ export function initCameraFilters() {
     }
   });
   stop.addEventListener("click", stopCamera);
+  switchCamera?.addEventListener("click", async () => {
+    if (!modal.classList.contains("open")) return;
+    const wasLive = Boolean(stream);
+    if (wasLive) stopCamera();
+    facingMode = facingMode === "user" ? "environment" : "user";
+    if (wasLive) start.click();
+  });
+  capture?.addEventListener("click", () => {
+    if (!stream || video.readyState < 2 || !canvas) {
+      status.textContent = "شغّل الكاميرا أولًا لالتقاط الصورة";
+      return;
+    }
+    const width = video.videoWidth, height = video.videoHeight;
+    if (!width || !height) { status.textContent = "انتظر حتى تكتمل معاينة الكاميرا"; return; }
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.save();
+    if (facingMode === "user") { ctx.translate(width, 0); ctx.scale(-1, 1); }
+    ctx.filter = FILTERS[video.dataset.filter] || "none";
+    ctx.drawImage(video, 0, 0, width, height);
+    ctx.restore();
+    ctx.filter = "none";
+    // Subtle, baked-in NOX NEXT watermark. No external asset or upload is required.
+    const pad = Math.max(18, Math.round(width * .025));
+    const fontSize = Math.max(18, Math.round(width * .032));
+    ctx.font = `700 ${fontSize}px Arial, sans-serif`;
+    ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+    ctx.shadowColor = "#0009"; ctx.shadowBlur = 8;
+    ctx.fillStyle = "#f2ce79";
+    ctx.fillText("NOX NEXT", width - pad, height - pad);
+    ctx.shadowBlur = 0;
+    canvas.toBlob(blob => {
+      if (!blob) { status.textContent = "تعذر تجهيز الصورة"; return; }
+      const url = URL.createObjectURL(blob);
+      download.href = url; download.hidden = false;
+      download.click();
+      status.textContent = "تم تجهيز الصورة بالشعار الذهبي — يمكنك حفظها";
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }, "image/png");
+  });
   document.addEventListener("visibilitychange", () => { if (document.hidden) stopCamera(); });
   window.addEventListener("pagehide", stopCamera);
   zoom?.addEventListener("input", () => {
