@@ -1,0 +1,14 @@
+{
+  "name": "nox-registration-function",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "check": "node --check src/index.js"
+  },
+  "dependencies": {
+    "node-appwrite": "31.3.0"
+  }
+}
