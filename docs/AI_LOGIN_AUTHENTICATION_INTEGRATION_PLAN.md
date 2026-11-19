@@ -41,12 +41,11 @@ A successful credential check alone is not sufficient. The server must derive id
 ## Account lifecycle blocker
 Before implementation, verify exact Appwrite Cloud behavior and pinned SDK methods for creating accounts and issuing sessions. Do not let the browser create an immediately usable account before authoritative `APPROVED` membership is safely persisted. Use a server-controlled, idempotent lifecycle; fail closed if the safe lifecycle cannot be established.
 
-## Administrative and scheduled approval
-- Individual approval/rejection/suspension/reinstatement is restricted to explicitly authorized administrators and audited.
-- Rejection requires a reason; internal notes must remain separate from sanitized user-facing text.
-- Bulk approval may include only the exact selected, reviewed pending requests.
-- A confirmed scheduled batch retains the previously approved no-cancel product rule, but every member is revalidated at execution. Changed/ineligible records are skipped and audited; the batch must never force an invalid transition.
-- Store immutable batch intent and per-member outcomes server-side. Use a trusted scheduler, idempotency, and concurrency protection; do not depend on an open browser tab.
+## Administrative account controls
+- No administrator approval is required for ordinary self-service registration.
+- Explicitly authorized administrators may suspend or reinstate an existing account through audited server-side transitions.
+- Ordinary members cannot invoke administrative transitions.
+- Legacy pending/rejected records require a separately designed migration or support workflow; they must not silently block new self-service registrations or be auto-promoted without review.
 
 ## Required tests before enabling member access
 - New self-service registrations receive `APPROVED` only after trusted account and membership persistence succeeds; incomplete/failed registration cannot access member pages or protected data.
@@ -56,7 +55,6 @@ Before implementation, verify exact Appwrite Cloud behavior and pinned SDK metho
 - Credential errors are non-enumerating; logout and recovery behave correctly.
 - Refreshing protected pages rechecks session and membership.
 - Ordinary members cannot invoke administrative transitions.
-- Scheduled batches are idempotent, use `Africa/Cairo` for local scheduling, revalidate every member, and audit outcomes.
 - Tests use synthetic identities only.
 
 ## Blocking prerequisites
