@@ -28,7 +28,7 @@ All routes below currently pass through JWT account authentication in the inspec
 | `/conversations` | GET/POST | Member-only |
 | `/messages` | GET/POST | Member-only |
 | `/reports` | POST | Member-only for submission; moderation review is admin-only |
-| `/reports` | GET | Admin-only unless current product semantics prove it is a user's own-report listing; verify before implementation |
+| `/reports` | GET | Member-only — the current handler calls `listReports(caller.$id)`, so it returns the authenticated caller's own reports; admin review is a separate operation and is not implemented by this route |
 | `/blocks` | GET/POST/DELETE | Member-only |
 | `/moderation...` | any supported method | Admin-only; currently placeholder 501 after moderator check |
 | Unknown route | any | 404; no data access |
