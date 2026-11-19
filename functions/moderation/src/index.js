@@ -39,13 +39,34 @@ export default async ({ req, res, log }) => {
   const route = getRoute(req.path);
   const body = req.bodyJson ?? {};
 
+  let store;
+  let membershipStatus;
+  try {
+    store = createModerationStore();
+    membershipStatus = await store.getMembershipStatus(caller.$id);
+  } catch {
+    log("Membership verification failed closed.");
+    return json(res, 503, { error: "membership_service_unavailable" });
+  }
 
+  if (route === "/membership" && req.method === "GET") {
+    return json(res, 200, {
+      approved: membershipStatus === "APPROVED",
+      accountStatus: membershipStatus
+    });
+  }
+
+  // Every member service route is denied unless the private server-owned
+  // profile explicitly carries APPROVED. Missing legacy status is not approval.
+  if (membershipStatus !== "APPROVED") {
+    return json(res, 403, { error: "membership_required" });
+  }
 
   if (route === "/friends/lookup" && req.method === "GET") {
     const checked = validateNoxId(req.query?.noxId);
     if (!checked.ok) return json(res, 400, { error: checked.error });
     try {
-      const profile = await createModerationStore().lookupPublicProfile(checked.value);
+      const profile = await store.lookupPublicProfile(checked.value);
       if (!profile) return json(res, 404, { error: "profile_unavailable" });
       return json(res, 200, { profile });
     } catch {
@@ -56,7 +77,7 @@ export default async ({ req, res, log }) => {
 
   if (route === "/notifications" && req.method === "GET") {
     try {
-      const notifications = await createModerationStore().listNotifications(caller.$id);
+      const notifications = await store.listNotifications(caller.$id);
       return json(res, 200, { notifications });
     } catch {
       log("Notification lookup failed.");
@@ -68,7 +89,7 @@ export default async ({ req, res, log }) => {
     const checked = validateRequestId(body.notificationId);
     if (!checked.ok) return json(res, 400, { error: checked.error });
     try {
-      const result = await createModerationStore().markNotificationRead(caller.$id, checked.value);
+      const result = await store.markNotificationRead(caller.$id, checked.value);
       if (result.error) return json(res, 404, { error: result.error });
       return json(res, 200, result);
     } catch {
@@ -81,7 +102,7 @@ export default async ({ req, res, log }) => {
     const checked = validateNoxId(body.noxId);
     if (!checked.ok) return json(res, 400, { error: checked.error });
     try {
-      const result = await createModerationStore().createFriendRequest(caller.$id, checked.value);
+      const result = await store.createFriendRequest(caller.$id, checked.value);
       if (result.error === "user_not_found") return json(res, 404, { error: result.error });
       if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
       if (result.error === "cannot_request_self") return json(res, 400, { error: result.error });
@@ -96,7 +117,7 @@ export default async ({ req, res, log }) => {
   if (route === "/friends/requests" && req.method === "GET") {
     const direction = req.query?.direction === "outgoing" ? "outgoing" : "incoming";
     try {
-      const requests = await createModerationStore().listFriendRequests(caller.$id, direction);
+      const requests = await store.listFriendRequests(caller.$id, direction);
       return json(res, 200, { requests });
     } catch {
       log("Friend request lookup failed.");
@@ -109,7 +130,7 @@ export default async ({ req, res, log }) => {
     if (!checked.ok) return json(res, 400, { error: checked.error });
     if (!["accept", "decline"].includes(body.decision)) return json(res, 400, { error: "invalid_decision" });
     try {
-      const result = await createModerationStore().respondToFriendRequest(caller.$id, checked.value, body.decision);
+      const result = await store.respondToFriendRequest(caller.$id, checked.value, body.decision);
       if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
       if (result.error) return json(res, 404, { error: result.error });
       return json(res, 200, result);
@@ -123,7 +144,7 @@ export default async ({ req, res, log }) => {
     const checked = validateRequestId(body.requestId);
     if (!checked.ok) return json(res, 400, { error: checked.error });
     try {
-      const result = await createModerationStore().cancelFriendRequest(caller.$id, checked.value);
+      const result = await store.cancelFriendRequest(caller.$id, checked.value);
       if (result.error) return json(res, 404, { error: result.error });
       return json(res, 200, result);
     } catch {
@@ -134,7 +155,7 @@ export default async ({ req, res, log }) => {
 
   if (route === "/friends" && req.method === "GET") {
     try {
-      const friends = await createModerationStore().listFriendships(caller.$id);
+      const friends = await store.listFriendships(caller.$id);
       return json(res, 200, { friends });
     } catch {
       log("Friend list lookup failed.");
@@ -145,7 +166,7 @@ export default async ({ req, res, log }) => {
 
   if (route === "/conversations" && req.method === "GET") {
     try {
-      const conversations = await createModerationStore().listConversations(caller.$id);
+      const conversations = await store.listConversations(caller.$id);
       return json(res, 200, { conversations });
     } catch {
       log("Conversation list lookup failed.");
@@ -157,7 +178,7 @@ export default async ({ req, res, log }) => {
     const checked = validateRequestId(body.friendUserId);
     if (!checked.ok) return json(res, 400, { error: "invalid_friend_id" });
     try {
-      const result = await createModerationStore().createOrGetConversation(caller.$id, checked.value);
+      const result = await store.createOrGetConversation(caller.$id, checked.value);
       if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
       if (result.error === "friendship_required") return json(res, 403, { error: result.error });
       if (result.error) return json(res, 400, { error: result.error });
@@ -172,7 +193,7 @@ export default async ({ req, res, log }) => {
     const checked = validateRequestId(req.query?.conversationId);
     if (!checked.ok) return json(res, 400, { error: "invalid_conversation_id" });
     try {
-      const result = await createModerationStore().listMessages(caller.$id, checked.value);
+      const result = await store.listMessages(caller.$id, checked.value);
       if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
       if (result.error === "friendship_required") return json(res, 403, { error: result.error });
       if (result.error) return json(res, 404, { error: result.error });
@@ -192,7 +213,7 @@ export default async ({ req, res, log }) => {
     const idempotency = validateMessageId(body.idempotencyKey);
     if (!idempotency.ok) return json(res, 400, { error: idempotency.error });
     try {
-      const result = await createModerationStore().sendMessage(caller.$id, checked.value, body.body, idempotency.value);
+      const result = await store.sendMessage(caller.$id, checked.value, body.body, idempotency.value);
       if (result.error === "interaction_unavailable") return json(res, 403, { error: result.error });
       if (result.error === "friendship_required") return json(res, 403, { error: result.error });
       if (result.error === "message_rate_limited") return json(res, 429, { error: result.error });
@@ -216,7 +237,7 @@ export default async ({ req, res, log }) => {
       return json(res, 400, { error: "cannot_report_self" });
     }
     try {
-      const result = await createModerationStore().createReport(caller.$id, checked.value);
+      const result = await store.createReport(caller.$id, checked.value);
       if (result.error === "target_not_found") return json(res, 404, { error: result.error });
       if (result.error === "report_rate_limited") return json(res, 429, { error: result.error });
       return json(res, 201, { reportId: result.reportId, status: result.status });
@@ -228,7 +249,7 @@ export default async ({ req, res, log }) => {
 
   if (route === "/reports" && req.method === "GET") {
     try {
-      const reports = await createModerationStore().listReports(caller.$id);
+      const reports = await store.listReports(caller.$id);
       return json(res, 200, { reports });
     } catch {
       log("Report lookup failed; request details were not logged.");
@@ -240,7 +261,7 @@ export default async ({ req, res, log }) => {
     const checked = validateBlockTarget(body.targetUserId, caller.$id);
     if (!checked.ok) return json(res, 400, { error: checked.error });
     try {
-      const result = await createModerationStore().createBlock(caller.$id, checked.value);
+      const result = await store.createBlock(caller.$id, checked.value);
       if (result.error) return json(res, 404, { error: result.error });
       return json(res, 200, {
         blocked: true,
@@ -256,7 +277,7 @@ export default async ({ req, res, log }) => {
     const checked = validateBlockTarget(body.targetUserId, caller.$id);
     if (!checked.ok) return json(res, 400, { error: checked.error });
     try {
-      const removed = await createModerationStore().removeBlock(caller.$id, checked.value);
+      const removed = await store.removeBlock(caller.$id, checked.value);
       return json(res, 200, { unblocked: removed });
     } catch {
       log("Block removal failed; request details were not logged.");
@@ -266,7 +287,7 @@ export default async ({ req, res, log }) => {
 
   if (route === "/blocks" && req.method === "GET") {
     try {
-      const blocks = await createModerationStore().listBlocks(caller.$id);
+      const blocks = await store.listBlocks(caller.$id);
       return json(res, 200, { blocks });
     } catch {
       log("Block list lookup failed; request details were not logged.");
