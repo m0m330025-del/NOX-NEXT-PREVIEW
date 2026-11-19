@@ -71,6 +71,13 @@ document.getElementById("login-form").addEventListener("submit",async event=>{
   notice.textContent="جارٍ التحقق من بيانات الدخول…";
   try {
     await createLoginSession(document.getElementById("email").value.trim(),password.value);
+    const membership=await getMembership();
+    if(membership.approved!==true || membership.accountStatus!=="APPROVED") {
+      await closeCurrentSession();
+      notice.textContent="الحساب موجود لكنه غير معتمد للمنصة. الحسابات التجريبية القديمة محفوظة لمراجعة الإدارة.";
+      notice.dataset.state="error";
+      return;
+    }
     notice.textContent="تم تسجيل الدخول بنجاح. جارٍ فتح NOX NEXT…";
     notice.dataset.state="success";
     window.location.replace("./home.html");
