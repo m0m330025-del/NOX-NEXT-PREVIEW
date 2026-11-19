@@ -29,18 +29,36 @@
       <div class="form-options"><a href="#" id="forgot-link">نسيت كلمة المرور؟</a></div>
       <button class="submit-button" type="submit">تسجيل الدخول <span>←</span></button>
     </form>
-    <p class="signup-line">إنشاء الحساب غير متاح حاليًا — <a href="./signup.html" id="signup-link">تفاصيل حالة التسجيل</a></p>
+    <p class="signup-line">ليس لديك حساب؟ <a href="./signup.html" id="signup-link">إنشاء حساب جديد</a></p>
     <p class="demo-note" id="notice" role="status">تسجيل الدخول مرتبط بخدمة Appwrite. استخدم حسابك المسجل للمتابعة.</p>
     <div class="secure-note">✧　تجربة NOX NEXT — واجهة أولية</div>
   </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@29.0.0"></script>
 <script type="module">
-import { createLoginSession, getCurrentUser, requestPasswordRecovery } from "./core/auth-client.js";
+import { createLoginSession, getCurrentUser, getMembership, closeCurrentSession, requestPasswordRecovery } from "./core/auth-client.js";
 const password=document.getElementById("password");
 const notice=document.getElementById("notice");
 const submit=document.querySelector("#login-form .submit-button");
-getCurrentUser().then(user=>{ if(user) window.location.replace("./home.html"); });
+getCurrentUser().then(async user=>{
+  if(!user) return;
+  try {
+    const membership=await getMembership();
+    if(membership.approved===true && membership.accountStatus==="APPROVED") window.location.replace("./home.html");
+    else {
+      await closeCurrentSession();
+      notice.textContent="هذا الحساب غير معتمد حاليًا. الحسابات التجريبية القديمة محفوظة ويمكن للإدارة مراجعتها لاحقًا.";
+      notice.dataset.state="error";
+    }
+  } catch(_) {
+    await closeCurrentSession().catch(()=>{});
+    notice.textContent="تعذر التحقق من حالة العضوية. حاول مرة أخرى لاحقًا.";
+    notice.dataset.state="error";
+  }
+});
+const reason=new URLSearchParams(window.location.search).get("reason");
+if(reason==="membership_required") notice.textContent="هذا الحساب غير معتمد حاليًا. الحسابات التجريبية القديمة محفوظة ويمكن للإدارة مراجعتها لاحقًا.";
+if(reason==="membership_unavailable") notice.textContent="تعذر التحقق من العضوية من الخادم. حاول لاحقًا.";
 document.getElementById("toggle-password").addEventListener("click",()=>{
   const show=password.type==="password";
   password.type=show?"text":"password";
