@@ -31,6 +31,6 @@ Never put the API key in browser files or GitHub source.
 
 ## Operational notes
 - Per normalized email, at most three attempts are accepted in a rolling 15-minute window. This is a temporary abuse control, not a one-account-per-IP rule.
-- The attempt table stores only a SHA-256 email digest and timestamp.
+- The attempt table stores only an HMAC-SHA256 email digest (keyed with the server-only API key) and timestamp.
 - A failed profile creation triggers a best-effort deletion of the just-created Auth user.
 - This function is source code only until provisioned and deployed in Appwrite.
