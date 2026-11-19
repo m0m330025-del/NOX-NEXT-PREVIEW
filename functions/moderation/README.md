@@ -18,6 +18,16 @@ This package is a **non-production scaffold** for the NOX moderation API.
 - Rejects self-blocking.
 - Does not log request bodies, report descriptions, or credentials.
 
+## Membership authorization added in the open-registration branch
+
+The implementation branch `feature/open-registration-implementation` adds a server-side membership check before any member route:
+- `GET /membership` returns the caller's current `accountStatus` and an `approved` boolean.
+- All other routes require the private `users` row linked by `authUserId` to have `accountStatus = APPROVED`.
+- Missing status, including legacy test profiles, is denied by default; no legacy rows are auto-approved or deleted.
+- The guard runs after Appwrite JWT verification and before route dispatch.
+
+These changes are source-only. The Appwrite Function remains configured to deploy from `feature/moderation-functions-scaffold`; this branch has not been deployed or connected to the live Function.
+
 ## Protected Function environment
 
 Configure these values in the Appwrite Function's protected environment settings, never in frontend code or Git:
